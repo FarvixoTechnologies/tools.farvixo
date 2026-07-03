@@ -24,13 +24,18 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
 
-  if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/admin'))) {
+  // User dashboard still requires login
+  if (!user && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
+
+  // /admin is public login gate — do NOT redirect to /login
+  // Unauthenticated users see AdminLoginForm on /admin itself
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
@@ -41,8 +46,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Non-admins cannot open /admin
-  if (user && pathname.startsWith('/admin')) {
+  // Logged-in non-admins cannot use admin panel pages
+  if (user && isAdminRoute) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
     if (!isAdminRoleString(profile?.role)) {
       const url = request.nextUrl.clone();
