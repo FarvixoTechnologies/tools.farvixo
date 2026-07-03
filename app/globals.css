@@ -146,6 +146,7 @@ code, pre, .mono { font-family: var(--font-mono); }
 @media (min-width: 1280px) { .header-top { padding: 12px 48px; } }
 .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .logo-mark { width: 38px; height: 38px; border-radius: 10px; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4); }
+.logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; flex-shrink: 0; }
 .logo-name { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1.1; }
 .logo-tagline { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
 

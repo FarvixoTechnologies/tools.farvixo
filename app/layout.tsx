@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description:
     'One Platform. Infinite Tools. Convert, compress, edit and create with 120+ free AI-powered tools — PDF, Image, Video, Audio, Developer, SEO, Business and more.',
   keywords: ['online tools', 'pdf tools', 'image compressor', 'ai tools', 'free tools', 'toolnest'],
+  icons: {
+    icon: '/favicon.png',
+    apple: '/logo-icon.png',
+  },
   openGraph: {
     title: 'ToolNest — One Platform. Infinite Tools. Powered by AI.',
     description: '120+ free online tools: PDF, Image, Video, Audio, AI, Developer, SEO & more.',

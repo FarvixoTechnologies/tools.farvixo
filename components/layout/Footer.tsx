@@ -55,7 +55,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div>
             <div className="logo">
-              <span className="logo-mark"><Icon name="hexagon" size={20} strokeWidth={2.2} /></span>
+              <img src="/logo-icon.png" alt="ToolNest" className="logo-img" width={36} height={36} />
               <span>
                 <span className="logo-name">ToolNest</span>
                 <div className="logo-tagline">One Platform. Infinite Tools.</div>
