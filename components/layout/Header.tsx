@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from '../Icon';
 import { useUI } from '../GlobalUI';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -34,6 +34,18 @@ export default function Header() {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(true);
+
+  useEffect(() => {
+    if (localStorage.getItem('tn-nav-open') === '0') setNavOpen(false);
+  }, []);
+
+  const toggleNav = () =>
+    setNavOpen((o) => {
+      localStorage.setItem('tn-nav-open', o ? '0' : '1');
+      return !o;
+    });
 
   const submitSearch = () => {
     const results = searchTools(q);
@@ -118,9 +130,93 @@ export default function Header() {
             <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
           )}
         </div>
+
+        <div className="header-mobile-actions">
+          <button className="icon-btn" onClick={openPalette} aria-label="Search tools">
+            <Icon name="search" size={18} />
+          </button>
+          <button className="icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+            <Icon name="menu" size={20} />
+          </button>
+        </div>
       </div>
 
-      <nav className="nav-row" aria-label="Primary">
+      {menuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setMenuOpen(false)}>
+          <div className="mobile-menu" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Menu">
+            <div className="mobile-menu-head">
+              {user ? (
+                <Link href={isAdminUser(user) ? '/admin' : '/dashboard'} className="user-chip" onClick={() => setMenuOpen(false)}>
+                  <span className="user-avatar">{initials(user.fullName)}</span>
+                  <span className="user-meta">
+                    <span className="user-name">{user.fullName}</span>
+                    {isAdminUser(user) ? (
+                      <span className="pill pill-admin">ADMIN</span>
+                    ) : (
+                      (user.plan === 'pro' || user.plan === 'enterprise') && <span className="pill pill-pro">PRO</span>
+                    )}
+                  </span>
+                </Link>
+              ) : (
+                <Link href="/login" className="btn btn-primary btn-sm" onClick={() => setMenuOpen(false)}>Sign in</Link>
+              )}
+              <button className="icon-btn" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+                <Icon name="x" size={20} />
+              </button>
+            </div>
+
+            <button className="ai-assistant-btn mobile-menu-ai" onClick={() => { setMenuOpen(false); openAI(); }}>
+              <Icon name="sparkles" size={15} /> AI Assistant
+            </button>
+
+            <div className="mobile-menu-links">
+              {navLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`mobile-menu-link ${pathname === l.href ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {l.label}
+                  {l.badge && <span className="pill pill-nav-new">{l.badge}</span>}
+                </Link>
+              ))}
+              {['security', 'calculator', 'social', 'government'].map((slug) => {
+                const c = categories.find((x) => x.slug === slug)!;
+                return (
+                  <Link key={slug} href={`/tools/${slug}`} className="mobile-menu-link" onClick={() => setMenuOpen(false)}>
+                    {c.name}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mobile-menu-foot">
+              <button className="lang-btn" aria-label="Language selector">
+                <Icon name="globe" size={16} /> English
+              </button>
+              <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+                <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={17} />
+              </button>
+              <button className="icon-btn" onClick={() => toast('Notifications: all caught up! 🎉')} aria-label="Notifications">
+                <Icon name="bell" size={17} />
+                <span className="notif-dot">3</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav className={`nav-row ${navOpen ? '' : 'nav-collapsed'}`} aria-label="Primary">
+        <button
+          className="nav-toggle"
+          onClick={toggleNav}
+          aria-expanded={navOpen}
+          aria-label={navOpen ? 'Hide navigation menu' : 'Show navigation menu'}
+        >
+          <Icon name={navOpen ? 'chevron-up' : 'chevron-down'} size={14} />
+          {!navOpen && <span className="nav-toggle-label">Menu</span>}
+        </button>
         <div className="nav-inner">
           {navLinks.map((l) => (
             <Link key={l.href} href={l.href} className={`nav-link ${pathname === l.href ? 'active' : ''}`}>

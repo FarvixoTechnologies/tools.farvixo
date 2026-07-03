@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef, useId } from 'react';
 import { AD_INVOKE_BASE } from '@/lib/ads/config';
 
 interface HighPerformanceAdProps {
@@ -10,47 +9,23 @@ interface HighPerformanceAdProps {
   className?: string;
 }
 
+// Adsterra's invoke.js relies on document.write and a global atOptions, so each
+// unit must run in its own isolated document — a srcDoc iframe — otherwise
+// multiple units on one page overwrite each other and render nothing.
 export default function HighPerformanceAd({ adKey, width, height, className }: HighPerformanceAdProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const loadedRef = useRef(false);
-  const uniqueId = useId();
-
-  useEffect(() => {
-    if (loadedRef.current || !containerRef.current) return;
-    loadedRef.current = true;
-
-    const container = containerRef.current;
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.text = `
-      atOptions = {
-        'key' : '${adKey}',
-        'format' : 'iframe',
-        'height' : ${height},
-        'width' : ${width},
-        'params' : {}
-      };
-    `;
-    container.appendChild(script);
-
-    const invokeScript = document.createElement('script');
-    invokeScript.type = 'text/javascript';
-    invokeScript.src = `${AD_INVOKE_BASE}/${adKey}/invoke.js`;
-    container.appendChild(invokeScript);
-
-    return () => {
-      container.innerHTML = '';
-      loadedRef.current = false;
-    };
-  }, [adKey, width, height]);
+  const srcDoc = `<!doctype html><html><head><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent}</style></head><body><script type="text/javascript">atOptions={'key':'${adKey}','format':'iframe','height':${height},'width':${width},'params':{}};</script><script type="text/javascript" src="${AD_INVOKE_BASE}/${adKey}/invoke.js"></script></body></html>`;
 
   return (
-    <div
-      ref={containerRef}
-      id={`ad-${uniqueId}`}
+    <iframe
+      title={`sponsored-${adKey}`}
+      srcDoc={srcDoc}
+      width={width}
+      height={height}
       className={`ad-container ${className ?? ''}`}
-      style={{ width, height, maxWidth: '100%', overflow: 'hidden', margin: '0 auto' }}
+      style={{ width, height, maxWidth: '100%', border: 0, overflow: 'hidden', display: 'block', margin: '0 auto' }}
+      scrolling="no"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      loading="lazy"
       data-ad-key={adKey}
     />
   );

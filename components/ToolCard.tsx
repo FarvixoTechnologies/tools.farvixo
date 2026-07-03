@@ -7,7 +7,11 @@ export default function ToolCard({ tool }: { tool: Tool }) {
   const cat = getCategory(tool.category);
   const accent = `var(--${cat?.accent || 'brand-primary'})`;
   return (
-    <Link href={`/tools/${tool.category}/${tool.slug}`} className="tool-card">
+    <Link
+      href={`/tools/${tool.category}/${tool.slug}`}
+      className="tool-card"
+      style={{ '--card-accent': accent } as React.CSSProperties}
+    >
       <span className="tool-icon" style={{ background: accent }}>
         <Icon name={tool.icon} size={21} />
       </span>
