@@ -6,9 +6,7 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { useUI } from '@/components/GlobalUI';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { isAdminRoleString } from '@/lib/auth';
 import { startOAuth } from '@/lib/auth-oauth';
-import { createClient } from '@/lib/supabase/client';
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -20,37 +18,39 @@ export default function AdminLoginForm() {
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
       toast('Enter email and password', 'error');
       return;
     }
+
     setBusy(true);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.user) {
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      });
+      const json = (await res.json()) as {
+        success: boolean;
+        error?: string | null;
+        data?: { redirectTo?: string };
+      };
+
+      if (!json.success) {
+        toast(json.error || 'Invalid login credentials', 'error');
+        setBusy(false);
+        return;
+      }
+
+      await refresh();
+      toast('Welcome, Admin!', 'success');
+      router.replace(json.data?.redirectTo || '/admin');
+      router.refresh();
+    } catch {
+      toast('Network error — try again', 'error');
       setBusy(false);
-      toast(error?.message || 'Sign in failed', 'error');
-      return;
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .maybeSingle();
-
-    if (!isAdminRoleString(profile?.role)) {
-      await supabase.auth.signOut();
-      setBusy(false);
-      toast('Admin access required. Use the user login page.', 'error');
-      return;
-    }
-
-    await refresh();
-    setBusy(false);
-    toast('Welcome, Admin!', 'success');
-    router.replace('/admin');
-    router.refresh();
   };
 
   const oauth = async (provider: 'google' | 'github') => {
@@ -71,27 +71,31 @@ export default function AdminLoginForm() {
           <h1>Admin Login</h1>
           <p className="muted">ToolNest Control Center — authorized staff only</p>
         </div>
-        <form onSubmit={(e) => void login(e)}>
+        <form onSubmit={(e) => void login(e)} autoComplete="on">
           <div className="field mb-4">
             <label htmlFor="admin-email">Email</label>
             <input
               id="admin-email"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@toolnestfm.com"
-              autoComplete="email"
+              autoComplete="username"
+              required
             />
           </div>
           <div className="field mb-4">
             <label htmlFor="admin-password">Password</label>
             <input
               id="admin-password"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
+              required
             />
           </div>
           <button type="submit" className="btn btn-primary w-full" disabled={busy}>
