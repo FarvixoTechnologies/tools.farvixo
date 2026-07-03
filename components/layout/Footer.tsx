@@ -57,7 +57,11 @@ export default function Footer() {
             <div className="logo">
               <img src="/logo-icon.png" alt="ToolNest" className="logo-img" width={36} height={36} />
               <span>
-                <span className="logo-name">ToolNest</span>
+                <span className="logo-brand">
+                  <span className="logo-tool">Tool</span>
+                  <span className="logo-nest">Nest</span>
+                  <span className="logo-fm">FM</span>
+                </span>
                 <div className="logo-tagline">One Platform. Infinite Tools.</div>
               </span>
             </div>

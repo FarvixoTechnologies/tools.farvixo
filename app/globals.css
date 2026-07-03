@@ -147,6 +147,13 @@ code, pre, .mono { font-family: var(--font-mono); }
 .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .logo-mark { width: 38px; height: 38px; border-radius: 10px; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4); }
 .logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; flex-shrink: 0; }
+.logo-brand { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1.1; text-shadow: 0 0 12px rgba(124, 58, 237, 0.3); }
+.logo-tool { color: var(--text-primary); }
+.logo-nest { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+.logo-fm { font-size: 11px; font-weight: 700; color: #06b6d4; border: 1.5px solid #06b6d4; border-radius: 6px; padding: 2px 5px; margin-left: 4px; text-shadow: 0 0 8px rgba(6, 182, 212, 0.4); box-shadow: 0 0 8px rgba(6, 182, 212, 0.15); line-height: 1; }
+[data-theme="light"] .logo-tool { color: #1a1a2e; }
+[data-theme="light"] .logo-nest { color: #2563eb; text-shadow: 0 0 8px rgba(37, 99, 235, 0.25); }
+[data-theme="light"] .logo-fm { color: #0891b2; border-color: #0891b2; text-shadow: 0 0 6px rgba(8, 145, 178, 0.3); box-shadow: 0 0 6px rgba(8, 145, 178, 0.1); }
 .logo-name { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1.1; }
 .logo-tagline { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
 
