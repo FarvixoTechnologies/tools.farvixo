@@ -1,0 +1,40 @@
+{
+  "name": "toolnest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ToolNest — One Platform. Infinite Tools. Powered by AI.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@cantoo/pdf-lib": "^2.2.0",
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "@ffmpeg/util": "^0.12.1",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
+    "docx": "^9.1.0",
+    "fast-xml-parser": "^4.5.0",
+    "jsbarcode": "^3.11.6",
+    "jspdf": "^2.5.2",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.8.0",
+    "next": "15.1.6",
+    "pdfjs-dist": "^4.10.38",
+    "pptxgenjs": "^3.12.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tesseract.js": "^5.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

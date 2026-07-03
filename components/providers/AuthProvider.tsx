@@ -1,0 +1,53 @@
+'use client';
+
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { User } from '@/lib/auth';
+import { fetchCurrentUser, signOut as authSignOut } from '@/lib/auth-client';
+import { createClient } from '@/lib/supabase/client';
+
+interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+  refresh: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    const u = await fetchCurrentUser();
+    setUser(u);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      void refresh();
+    });
+    return () => subscription.unsubscribe();
+  }, [refresh]);
+
+  const signOut = useCallback(async () => {
+    await authSignOut();
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, refresh, signOut }),
+    [user, loading, refresh, signOut],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
