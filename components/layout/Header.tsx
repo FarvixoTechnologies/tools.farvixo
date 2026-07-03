@@ -98,13 +98,17 @@ export default function Header() {
                   <Icon name="crown" size={14} /> Admin
                 </Link>
               )}
-              <Link href="/dashboard" className="user-chip">
-              <span className="user-avatar">{initials(user.fullName)}</span>
-              <span className="user-meta">
-                <span className="user-name">{user.fullName}</span>
-                {(user.plan === 'pro' || user.plan === 'enterprise') && <span className="pill pill-pro">PRO</span>}
-              </span>
-            </Link>
+              <Link href={isAdminUser(user) ? '/admin' : '/dashboard'} className="user-chip">
+                <span className="user-avatar">{initials(user.fullName)}</span>
+                <span className="user-meta">
+                  <span className="user-name">{user.fullName}</span>
+                  {isAdminUser(user) ? (
+                    <span className="pill pill-admin">ADMIN</span>
+                  ) : (
+                    (user.plan === 'pro' || user.plan === 'enterprise') && <span className="pill pill-pro">PRO</span>
+                  )}
+                </span>
+              </Link>
             </>
           ) : (
             <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>

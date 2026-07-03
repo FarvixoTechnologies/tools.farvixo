@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useUI } from '@/components/GlobalUI';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { resolvePostLoginPath } from '@/lib/auth';
 import { startOAuth } from '@/lib/auth-oauth';
 import { createClient } from '@/lib/supabase/client';
 
@@ -12,11 +14,12 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useUI();
+  const { refresh } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const redirectParam = searchParams.get('redirect');
   const urlError = searchParams.get('error');
 
   useEffect(() => {
@@ -31,21 +34,32 @@ function LoginForm() {
     }
     setBusy(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) {
-      toast(error.message, 'error');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) {
+      setBusy(false);
+      toast(error?.message || 'Sign in failed', 'error');
       return;
     }
-    toast('Welcome back!', 'success');
-    router.push(redirect);
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    const dest = resolvePostLoginPath(redirectParam, profile?.role);
+    await refresh();
+    setBusy(false);
+    toast(dest.startsWith('/admin') ? 'Welcome, Admin!' : 'Welcome back!', 'success');
+    router.replace(dest);
     router.refresh();
   };
 
   const oauth = async (provider: 'google' | 'github') => {
     setBusy(true);
     try {
-      await startOAuth(provider, redirect);
+      // OAuth callback resolves admin vs user destination server-side
+      await startOAuth(provider, redirectParam || '/dashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'OAuth sign-in failed';
       toast(message, 'error');

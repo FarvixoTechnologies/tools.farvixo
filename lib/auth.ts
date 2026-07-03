@@ -45,6 +45,32 @@ export function isAdminUser(user: User | null | undefined): boolean {
   return user?.role === 'admin' || user?.role === 'super_admin';
 }
 
+export function isAdminRoleString(role: string | null | undefined): boolean {
+  const r = (role ?? '').toUpperCase();
+  return r === 'ADMIN' || r === 'SUPER_ADMIN';
+}
+
+/** Where to send the user after login / OAuth. Admins land on /admin by default. */
+export function resolvePostLoginPath(
+  requested: string | null | undefined,
+  role: string | null | undefined,
+): string {
+  const isAdmin = isAdminRoleString(role);
+  const path =
+    requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : null;
+
+  if (path?.startsWith('/admin')) {
+    return isAdmin ? path : '/dashboard';
+  }
+
+  // Default login and dashboard links → admin panel for admins
+  if (!path || path === '/dashboard' || path.startsWith('/dashboard')) {
+    return isAdmin ? '/admin' : path || '/dashboard';
+  }
+
+  return path;
+}
+
 export function profileToUser(
   profile: ProfileRow,
   email: string,

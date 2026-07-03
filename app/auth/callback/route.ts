@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { resolvePostLoginPath } from '@/lib/auth';
 import { getAppOrigin } from '@/lib/supabase/auth-url';
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 
@@ -34,17 +35,35 @@ export async function GET(request: NextRequest) {
     user.email?.split('@')[0] ||
     'User';
 
-  await supabase.from('profiles').upsert(
-    {
+  // Do NOT overwrite plan/role — only fill profile identity fields
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('id, role, plan')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    await supabase.from('profiles').insert({
       id: user.id,
       full_name: fullName,
       avatar_url: (user.user_metadata?.avatar_url as string | undefined) ?? null,
       plan: 'FREE',
+      role: 'USER',
       updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'id' },
-  );
+    });
+  } else {
+    await supabase
+      .from('profiles')
+      .update({
+        full_name: fullName,
+        avatar_url: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+  }
 
-  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard';
-  return NextResponse.redirect(`${origin}${safeNext}`);
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+  const dest = resolvePostLoginPath(next, profile?.role ?? existing?.role);
+
+  return NextResponse.redirect(`${origin}${dest}`);
 }
