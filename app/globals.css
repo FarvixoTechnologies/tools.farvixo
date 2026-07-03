@@ -43,7 +43,7 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 999px;
-  --container-max: 1280px;
+  --container-max: 100%;
 
   --font-display: var(--font-sora), 'Sora', system-ui, sans-serif;
   --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
@@ -93,8 +93,9 @@ input, select, textarea { font-family: inherit; color: var(--text-primary); }
 code, pre, .mono { font-family: var(--font-mono); }
 ::selection { background: rgba(124, 58, 237, 0.4); }
 
-.container { max-width: var(--container-max); margin: 0 auto; padding: 0 24px; }
-@media (min-width: 768px) { .container { padding: 0 32px; } }
+.container { width: 100%; margin: 0 auto; padding: 0 24px; }
+@media (min-width: 768px) { .container { padding: 0 40px; } }
+@media (min-width: 1280px) { .container { padding: 0 48px; } }
 
 /* ── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -141,7 +142,8 @@ code, pre, .mono { font-family: var(--font-mono); }
 /* ═══ HEADER ════════════════════════════════════════════════ */
 .header { position: sticky; top: 0; z-index: 100; background: rgba(10, 10, 18, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-subtle); }
 [data-theme='light'] .header { background: rgba(244, 244, 251, 0.85); }
-.header-top { display: flex; align-items: center; gap: 16px; padding: 12px 24px; max-width: 1440px; margin: 0 auto; }
+.header-top { display: flex; align-items: center; gap: 16px; padding: 12px 24px; width: 100%; }
+@media (min-width: 1280px) { .header-top { padding: 12px 48px; } }
 .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .logo-mark { width: 38px; height: 38px; border-radius: 10px; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4); }
 .logo-name { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1.1; }
@@ -171,7 +173,8 @@ code, pre, .mono { font-family: var(--font-mono); }
 /* Nav row */
 .nav-row { border-top: 1px solid var(--border-subtle); overflow-x: auto; scrollbar-width: none; }
 .nav-row::-webkit-scrollbar { display: none; }
-.nav-inner { display: flex; align-items: center; gap: 4px; padding: 0 24px; max-width: 1440px; margin: 0 auto; }
+.nav-inner { display: flex; align-items: center; gap: 4px; padding: 0 24px; width: 100%; }
+@media (min-width: 1280px) { .nav-inner { padding: 0 48px; } }
 .nav-link { display: inline-flex; align-items: center; gap: 6px; padding: 11px 14px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s; }
 .nav-link:hover { color: var(--text-primary); }
 .nav-link.active { color: var(--text-primary); border-bottom-color: var(--brand-primary); background: linear-gradient(to top, rgba(124, 58, 237, 0.12), transparent); border-radius: 6px 6px 0 0; }
@@ -263,6 +266,8 @@ code, pre, .mono { font-family: var(--font-mono); }
 
 /* Tool grid + cards */
 .tool-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+@media (min-width: 1600px) { .tool-grid { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 1920px) { .tool-grid { grid-template-columns: repeat(7, 1fr); } }
 @media (max-width: 1279px) { .tool-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 1023px) { .tool-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 767px) { .tool-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
@@ -559,7 +564,8 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
 .contact-form { max-width: 520px; }
 
 /* ── Admin Panel ── */
-.admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 24px; max-width: 1400px; margin: 0 auto; padding: 24px 24px 64px; min-height: 80vh; }
+.admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 24px; width: 100%; padding: 24px 24px 64px; min-height: 80vh; }
+@media (min-width: 1280px) { .admin-shell { padding: 24px 48px 64px; } }
 @media (max-width: 960px) { .admin-shell { grid-template-columns: 1fr; } }
 .admin-sidebar { padding: 20px; border-radius: var(--radius-lg); height: fit-content; position: sticky; top: 88px; border: 1px solid rgba(124, 58, 237, 0.2); }
 .admin-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); }
