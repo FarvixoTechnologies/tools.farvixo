@@ -9,7 +9,7 @@ export function createRouteHandlerClient(request: NextRequest) {
   const env = getSupabaseEnv();
   if (!env) throw new Error('Missing Supabase environment variables.');
 
-  const pending: PendingCookie[] = [];
+  const pending = new Map<string, PendingCookie>();
 
   const supabase = createServerClient(env.url, env.anonKey, {
     cookies: {
@@ -17,15 +17,22 @@ export function createRouteHandlerClient(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: PendingCookie[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        pending.push(...cookiesToSet);
+        cookiesToSet.forEach((cookie) => {
+          request.cookies.set(cookie.name, cookie.value);
+          pending.set(cookie.name, cookie);
+        });
       },
     },
   });
 
   function applyCookies<T extends NextResponse>(response: T): T {
     pending.forEach(({ name, value, options }) => {
-      response.cookies.set(name, value, options);
+      response.cookies.set(name, value, {
+        ...options,
+        path: options?.path ?? '/',
+        sameSite: options?.sameSite ?? 'lax',
+        secure: options?.secure ?? process.env.NODE_ENV === 'production',
+      });
     });
     return response;
   }
