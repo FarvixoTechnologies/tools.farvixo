@@ -6,501 +6,459 @@ import { Processing, ErrorBox, useToolPhase, type ResultFile } from '../shared';
 import { extractPdfText, renderPdfPages, loadPdfJs } from '@/lib/pdf';
 import { canvasToBlob } from '@/lib/image';
 import { replaceExt, formatBytes } from '@/lib/download';
+import { analyzeDocument, calculateConversionConfidence, buildPageStrategies, type DocumentStructure, type PageStrategy } from '@/lib/pdf-intelligence';
 import Icon from '@/components/Icon';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type SourceFormat = 'pdf' | 'docx' | 'xlsx' | 'csv' | 'pptx' | 'jpg' | 'png' | 'txt' | 'html' | 'md' | 'unknown';
-type TargetFormat = 'docx' | 'xlsx' | 'pptx' | 'txt' | 'html' | 'rtf' | 'jpg' | 'png' | 'webp' | 'csv' | 'md' | 'pdf';
+type TargetFormat = 'docx' | 'xlsx' | 'pptx' | 'txt' | 'html' | 'rtf' | 'jpg' | 'png' | 'webp' | 'csv' | 'md';
+type ViewMode = 'upload' | 'analysis' | 'convert' | 'results' | 'diff' | 'compare';
 
-interface ConversionFile {
-  id: string;
-  file: File;
-  format: SourceFormat;
-  pageCount?: number;
-  thumbnail?: string;
-  status: 'pending' | 'converting' | 'done' | 'error';
-  progress: number;
-  result?: ResultFile;
-  error?: string;
+interface ConversionResult {
+  format: TargetFormat;
+  file: ResultFile;
+  confidence: number;
+  previewHtml?: string;
 }
-
-interface AdvancedOptions {
-  pageRange: string;
-  dpi: 72 | 150 | 300 | 600;
-  preserveLayout: boolean;
-  preserveImages: boolean;
-  preserveFonts: boolean;
-  enableOcr: boolean;
-  imageQuality: number;
-  outputMode: 'individual' | 'zip';
-  pageSize: 'a4' | 'letter' | 'auto';
-  orientation: 'portrait' | 'landscape';
-  margins: 'none' | 'normal' | 'wide';
-}
-
-interface PreviewState {
-  visible: boolean;
-  pages: HTMLCanvasElement[];
-  currentPage: number;
-  zoom: number;
-  rotation: number;
-}
-
-// ─── Constants ───────────────────────────────────────────────────────────────
 
 const FORMAT_META: Record<TargetFormat, { label: string; icon: string; color: string; desc: string }> = {
-  docx: { label: 'Word', icon: 'file-text', color: '#2b579a', desc: 'Editable Word document' },
-  xlsx: { label: 'Excel', icon: 'table', color: '#217346', desc: 'Spreadsheet with tables' },
-  pptx: { label: 'PowerPoint', icon: 'presentation', color: '#d24726', desc: 'Slide presentation' },
-  txt: { label: 'Text', icon: 'type', color: '#6b7280', desc: 'Plain text extraction' },
-  html: { label: 'HTML', icon: 'code', color: '#e34c26', desc: 'Web page format' },
-  rtf: { label: 'RTF', icon: 'file-text', color: '#5b21b6', desc: 'Rich text format' },
-  jpg: { label: 'JPG', icon: 'image', color: '#059669', desc: 'Image per page' },
-  png: { label: 'PNG', icon: 'image', color: '#0891b2', desc: 'Lossless image' },
-  webp: { label: 'WebP', icon: 'image', color: '#7c3aed', desc: 'Modern web image' },
-  csv: { label: 'CSV', icon: 'table', color: '#ca8a04', desc: 'Comma-separated data' },
-  md: { label: 'Markdown', icon: 'type', color: '#1e40af', desc: 'Markdown text' },
-  pdf: { label: 'PDF', icon: 'file-text', color: '#dc2626', desc: 'PDF document' },
+  docx: { label: 'Word', icon: 'file-text', color: '#2b579a', desc: 'Editable document' },
+  xlsx: { label: 'Excel', icon: 'table', color: '#217346', desc: 'Spreadsheet' },
+  pptx: { label: 'PowerPoint', icon: 'presentation', color: '#d24726', desc: 'Slides' },
+  txt: { label: 'Text', icon: 'type', color: '#6b7280', desc: 'Plain text' },
+  html: { label: 'HTML', icon: 'code', color: '#e34c26', desc: 'Web page' },
+  rtf: { label: 'RTF', icon: 'file-text', color: '#5b21b6', desc: 'Rich text' },
+  jpg: { label: 'JPG', icon: 'image', color: '#059669', desc: 'Image' },
+  png: { label: 'PNG', icon: 'image', color: '#0891b2', desc: 'Lossless' },
+  webp: { label: 'WebP', icon: 'image', color: '#7c3aed', desc: 'Modern image' },
+  csv: { label: 'CSV', icon: 'table', color: '#ca8a04', desc: 'Data' },
+  md: { label: 'Markdown', icon: 'type', color: '#1e40af', desc: 'Markdown' },
 };
 
-const PDF_TARGETS: TargetFormat[] = ['docx', 'xlsx', 'pptx', 'txt', 'html', 'rtf', 'jpg', 'png', 'webp', 'csv', 'md'];
-
-const DEFAULT_OPTIONS: AdvancedOptions = {
-  pageRange: '',
-  dpi: 150,
-  preserveLayout: true,
-  preserveImages: true,
-  preserveFonts: true,
-  enableOcr: false,
-  imageQuality: 85,
-  outputMode: 'individual',
-  pageSize: 'a4',
-  orientation: 'portrait',
-  margins: 'normal',
-};
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function detectFormat(file: File): SourceFormat {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  const mime = file.type;
-  if (mime === 'application/pdf' || ext === 'pdf') return 'pdf';
-  if (mime.includes('wordprocessingml') || ext === 'docx') return 'docx';
-  if (mime.includes('spreadsheetml') || ext === 'xlsx' || ext === 'xls') return 'xlsx';
-  if (ext === 'csv' || mime === 'text/csv') return 'csv';
-  if (mime.includes('presentationml') || ext === 'pptx') return 'pptx';
-  if (mime === 'image/jpeg' || ext === 'jpg' || ext === 'jpeg') return 'jpg';
-  if (mime === 'image/png' || ext === 'png') return 'png';
-  if (mime === 'text/plain' || ext === 'txt') return 'txt';
-  if (mime === 'text/html' || ext === 'html' || ext === 'htm') return 'html';
-  if (ext === 'md' || ext === 'markdown') return 'md';
-  return 'unknown';
-}
-
-function generateId() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
-}
-
-function getAiRecommendation(pageCount: number | undefined, fileSize: number): { format: TargetFormat; reason: string } {
-  if (fileSize > 10 * 1024 * 1024) return { format: 'txt', reason: 'Large file - text extraction is fastest' };
-  if (pageCount && pageCount > 50) return { format: 'docx', reason: 'Multi-page document - Word preserves structure' };
-  if (pageCount && pageCount <= 3) return { format: 'png', reason: 'Short document - high-quality images recommended' };
-  return { format: 'docx', reason: 'Word is the most versatile format for editing' };
-}
+const ALL_TARGETS: TargetFormat[] = ['docx', 'xlsx', 'pptx', 'txt', 'html', 'rtf', 'jpg', 'png', 'webp', 'csv', 'md'];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
-  const [files, setFiles] = useState<ConversionFile[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [view, setView] = useState<ViewMode>('upload');
+  const [structure, setStructure] = useState<DocumentStructure | null>(null);
+  const [strategies, setStrategies] = useState<PageStrategy[]>([]);
   const [targetFormat, setTargetFormat] = useState<TargetFormat | null>(null);
-  const [options, setOptions] = useState<AdvancedOptions>(DEFAULT_OPTIONS);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [preview, setPreview] = useState<PreviewState>({ visible: false, pages: [], currentPage: 0, zoom: 1, rotation: 0 });
-  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 });
-  const [conversionHistory, setConversionHistory] = useState<{ name: string; format: string; time: number; size: number }[]>([]);
+  const [results, setResults] = useState<ConversionResult[]>([]);
+  const [compareFormats, setCompareFormats] = useState<TargetFormat[]>([]);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [convertProgress, setConvertProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
+  const [pdfPages, setPdfPages] = useState<HTMLCanvasElement[]>([]);
+  const [diffPage, setDiffPage] = useState(0);
+  const [structureOpen, setStructureOpen] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropzoneRef = useRef<HTMLDivElement>(null);
 
-  const totalPages = useMemo(() => files.reduce((s, f) => s + (f.pageCount || 0), 0), [files]);
-  const aiRec = useMemo(() => {
-    if (files.length === 0) return null;
-    return getAiRecommendation(totalPages, files.reduce((s, f) => s + f.file.size, 0));
-  }, [files, totalPages]);
+  // ─── File Upload + Auto Analysis ────────────────────────────────────────
 
-  // ─── File Handling ───────────────────────────────────────────────────────
+  const handleFile = useCallback(async (f: File) => {
+    setFile(f);
+    setView('analysis');
+    setAnalysisProgress(0);
 
-  const addFiles = useCallback(async (incoming: File[]) => {
-    const newFiles: ConversionFile[] = incoming.map((f) => ({
-      id: generateId(),
-      file: f,
-      format: detectFormat(f),
-      status: 'pending' as const,
-      progress: 0,
-    }));
+    try {
+      const doc = await analyzeDocument(f, (d, t) => setAnalysisProgress(d / t));
+      setStructure(doc);
+      setStrategies(buildPageStrategies(doc));
 
-    setFiles((prev) => [...prev, ...newFiles]);
+      // Pre-render first few pages for preview
+      const pages = await renderPdfPages(f, 1.2, undefined);
+      setPdfPages(pages.slice(0, 10).map((p) => p.canvas));
 
-    for (const cf of newFiles) {
-      if (cf.format === 'pdf') {
-        try {
-          const pdfjs = await loadPdfJs();
-          const data = await cf.file.arrayBuffer();
-          const doc = await pdfjs.getDocument({ data }).promise;
-          const pageCount = doc.numPages;
-          const page = await doc.getPage(1);
-          const vp = page.getViewport({ scale: 0.3 });
-          const canvas = document.createElement('canvas');
-          canvas.width = vp.width;
-          canvas.height = vp.height;
-          await page.render({ canvasContext: canvas.getContext('2d')!, viewport: vp }).promise;
-          const thumb = canvas.toDataURL('image/jpeg', 0.6);
-          setFiles((prev) => prev.map((f) => f.id === cf.id ? { ...f, pageCount, thumbnail: thumb } : f));
-        } catch { /* ignore thumbnail errors */ }
-      }
+      setView('convert');
+    } catch (e) {
+      fail(e);
     }
-  }, []);
-
-  const removeFile = (id: string) => setFiles((prev) => prev.filter((f) => f.id !== id));
+  }, [fail]);
 
   // Paste support
   useEffect(() => {
     const handler = (e: ClipboardEvent) => {
       const items = e.clipboardData?.files;
-      if (items && items.length > 0) {
+      if (items && items.length > 0 && items[0].type === 'application/pdf') {
         e.preventDefault();
-        void addFiles(Array.from(items));
+        void handleFile(items[0]);
       }
     };
     document.addEventListener('paste', handler);
     return () => document.removeEventListener('paste', handler);
-  }, [addFiles]);
+  }, [handleFile]);
 
-  // ─── PDF Preview ─────────────────────────────────────────────────────────
+  // ─── Conversion ──────────────────────────────────────────────────────────
 
-  const openPreview = async (cf: ConversionFile) => {
-    if (cf.format !== 'pdf') return;
-    try {
-      const pages = await renderPdfPages(cf.file, 1.5);
-      setPreview({ visible: true, pages: pages.map((p) => p.canvas), currentPage: 0, zoom: 1, rotation: 0 });
-    } catch { /* ignore */ }
+  const convertToFormat = async (fmt: TargetFormat): Promise<ConversionResult> => {
+    if (!file) throw new Error('No file');
+    const result = await runConversion(file, fmt, (p) => setConvertProgress(p));
+    const conf = structure ? calculateConversionConfidence(structure, fmt) : { overall: 80, perPage: [], issues: [] };
+    const previewHtml = await generatePreview(result.blob, fmt);
+    return { format: fmt, file: result, confidence: conf.overall, previewHtml };
   };
 
-  // ─── Conversion Logic ────────────────────────────────────────────────────
-
-  const convert = async () => {
-    if (!files.length || !targetFormat) return;
+  const startConversion = async () => {
+    if (!targetFormat || !file) return;
     setPhase('working');
-    setBatchProgress({ done: 0, total: files.length });
+    setConvertProgress(0);
+    try {
+      const result = await convertToFormat(targetFormat);
+      setResults([result]);
+      setView('results');
+      setPhase('done');
+    } catch (e) { fail(e); }
+  };
 
-    const updatedFiles = [...files];
-
-    for (let i = 0; i < updatedFiles.length; i++) {
-      const cf = updatedFiles[i];
-      updatedFiles[i] = { ...cf, status: 'converting', progress: 0 };
-      setFiles([...updatedFiles]);
-
-      try {
-        const result = await convertSingle(cf.file, cf.format, targetFormat, options, (p) => {
-          updatedFiles[i] = { ...updatedFiles[i], progress: p };
-          setFiles([...updatedFiles]);
-        });
-        updatedFiles[i] = { ...updatedFiles[i], status: 'done', progress: 1, result };
-        setConversionHistory((prev) => [{ name: result.name, format: targetFormat, time: Date.now(), size: result.blob.size }, ...prev].slice(0, 20));
-      } catch (e) {
-        updatedFiles[i] = { ...updatedFiles[i], status: 'error', error: e instanceof Error ? e.message : 'Conversion failed' };
+  const startComparison = async () => {
+    if (compareFormats.length < 2 || !file) return;
+    setPhase('working');
+    setConvertProgress(0);
+    try {
+      const allResults: ConversionResult[] = [];
+      for (let i = 0; i < compareFormats.length; i++) {
+        const r = await convertToFormat(compareFormats[i]);
+        allResults.push(r);
+        setConvertProgress((i + 1) / compareFormats.length);
       }
-
-      setBatchProgress({ done: i + 1, total: files.length });
-      setFiles([...updatedFiles]);
-    }
-
-    setPhase('done');
+      setResults(allResults);
+      setView('compare');
+      setPhase('done');
+    } catch (e) { fail(e); }
   };
 
   // ─── Download ────────────────────────────────────────────────────────────
 
-  const downloadFile = (rf: ResultFile) => {
+  const download = (rf: ResultFile) => {
     const url = URL.createObjectURL(rf.blob);
     const a = document.createElement('a');
     a.href = url; a.download = rf.name; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
   };
 
-  const downloadAll = async () => {
-    const completed = files.filter((f) => f.result);
-    if (completed.length <= 1) {
-      if (completed[0]?.result) downloadFile(completed[0].result);
-      return;
-    }
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
-    for (const f of completed) {
-      if (f.result) zip.file(f.result.name, f.result.blob);
-    }
-    const blob = await zip.generateAsync({ type: 'blob' });
-    downloadFile({ name: 'converted-files.zip', blob });
-  };
+  const resetAll = () => { reset(); setFile(null); setView('upload'); setStructure(null); setResults([]); setTargetFormat(null); setCompareFormats([]); setPdfPages([]); };
 
-  const resetAll = () => {
-    reset();
-    setFiles([]);
-    setTargetFormat(null);
-    setOptions(DEFAULT_OPTIONS);
-    setShowAdvanced(false);
-    setPreview({ visible: false, pages: [], currentPage: 0, zoom: 1, rotation: 0 });
-    setBatchProgress({ done: 0, total: 0 });
-  };
+  // ─── Confidence Data ─────────────────────────────────────────────────────
 
-  // ─── Render: Preview Modal ───────────────────────────────────────────────
+  const confidenceData = useMemo(() => {
+    if (!structure || !targetFormat) return null;
+    return calculateConversionConfidence(structure, targetFormat);
+  }, [structure, targetFormat]);
 
-  if (preview.visible) {
-    const page = preview.pages[preview.currentPage];
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: UPLOAD VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (view === 'upload') {
     return (
-      <div className="pdf-preview-modal">
-        <div className="pdf-preview-toolbar">
-          <div className="pdf-preview-nav">
-            <button className="btn btn-ghost btn-sm" disabled={preview.currentPage === 0} onClick={() => setPreview((p) => ({ ...p, currentPage: p.currentPage - 1 }))}>
-              <Icon name="chevron-left" size={16} />
-            </button>
-            <span className="mono">{preview.currentPage + 1} / {preview.pages.length}</span>
-            <button className="btn btn-ghost btn-sm" disabled={preview.currentPage >= preview.pages.length - 1} onClick={() => setPreview((p) => ({ ...p, currentPage: p.currentPage + 1 }))}>
-              <Icon name="chevron-right" size={16} />
-            </button>
+      <div className="pdfconv-layout">
+        <div
+          className={`pdfconv-dropzone ${dragOver ? 'drag-active' : ''}`}
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) void handleFile(f); }}
+          role="button" tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
+        >
+          <div className="pdfconv-drop-icon"><Icon name="upload" size={32} /></div>
+          <h3>Drop your PDF here</h3>
+          <p>or <button className="pdfconv-browse-link" onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}>browse files</button> or paste from clipboard</p>
+          <div className="pdfconv-format-badges">
+            {ALL_TARGETS.map((f) => <span key={f}>{FORMAT_META[f].label}</span>)}
           </div>
-          <div className="pdf-preview-controls">
-            <button className="btn btn-ghost btn-sm" onClick={() => setPreview((p) => ({ ...p, zoom: Math.max(0.5, p.zoom - 0.25) }))}>
-              <Icon name="minus" size={14} />
-            </button>
-            <span className="mono">{Math.round(preview.zoom * 100)}%</span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setPreview((p) => ({ ...p, zoom: Math.min(3, p.zoom + 0.25) }))}>
-              <Icon name="plus" size={14} />
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setPreview((p) => ({ ...p, rotation: (p.rotation + 90) % 360 }))}>
-              <Icon name="rotate" size={14} />
-            </button>
-          </div>
-          <button className="btn btn-ghost btn-sm" onClick={() => setPreview((p) => ({ ...p, visible: false }))}>
-            <Icon name="x" size={16} /> Close
-          </button>
+          <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>AI-powered document intelligence &middot; Visual diff &middot; Confidence scoring</p>
         </div>
-        <div className="pdf-preview-canvas-wrap">
-          {page && (
-            <canvas
-              ref={(el) => {
-                if (el && page) {
-                  el.width = page.width;
-                  el.height = page.height;
-                  el.getContext('2d')?.drawImage(page, 0, 0);
-                }
-              }}
-              style={{ transform: `scale(${preview.zoom}) rotate(${preview.rotation}deg)`, maxWidth: '100%', transition: 'transform 0.2s' }}
-            />
-          )}
-        </div>
+        <input ref={inputRef} type="file" hidden accept="application/pdf" onChange={(e) => { if (e.target.files?.[0]) void handleFile(e.target.files[0]); e.target.value = ''; }} />
+        {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
       </div>
     );
   }
 
-  // ─── Render: Processing ──────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: ANALYSIS IN PROGRESS
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  if (phase === 'working') {
-    const pct = batchProgress.total > 0 ? batchProgress.done / batchProgress.total : 0;
-    const currentFile = files.find((f) => f.status === 'converting');
+  if (view === 'analysis') {
     return (
       <div className="pdfconv-processing">
         <div className="pdfconv-progress-ring-wrap">
           <svg className="pdfconv-progress-ring" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-subtle)" strokeWidth="8" />
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--brand-primary)" strokeWidth="8"
-              strokeDasharray={`${2 * Math.PI * 52}`}
-              strokeDashoffset={`${2 * Math.PI * 52 * (1 - pct)}`}
+              strokeDasharray={`${2 * Math.PI * 52}`} strokeDashoffset={`${2 * Math.PI * 52 * (1 - analysisProgress)}`}
               strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.3s', transform: 'rotate(-90deg)', transformOrigin: 'center' }} />
           </svg>
-          <div className="pdfconv-progress-text">
-            <b>{Math.round(pct * 100)}%</b>
-            <span>{batchProgress.done}/{batchProgress.total} files</span>
-          </div>
+          <div className="pdfconv-progress-text"><b>{Math.round(analysisProgress * 100)}%</b><span>Analyzing</span></div>
         </div>
-        <h3 style={{ marginTop: 20 }}>Converting{currentFile ? `: ${currentFile.file.name}` : '...'}</h3>
-        <p className="muted">Processing your files. This may take a moment for large documents.</p>
-        {files.length > 1 && (
-          <div className="pdfconv-batch-list">
-            {files.map((f) => (
-              <div key={f.id} className={`pdfconv-batch-item ${f.status}`}>
-                <Icon name={f.status === 'done' ? 'check-circle' : f.status === 'error' ? 'x' : 'file-text'} size={14} />
-                <span>{f.file.name}</span>
-                {f.status === 'converting' && <span className="mono muted">{Math.round(f.progress * 100)}%</span>}
-              </div>
-            ))}
-          </div>
-        )}
+        <h3 style={{ marginTop: 20 }}>Analyzing Document Structure</h3>
+        <p className="muted">Detecting headings, tables, images, and document type...</p>
       </div>
     );
   }
 
-  // ─── Render: Results ─────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: PROCESSING
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  if (phase === 'done') {
-    const completed = files.filter((f) => f.result);
-    const failed = files.filter((f) => f.status === 'error');
-    const totalBefore = files.reduce((s, f) => s + f.file.size, 0);
-    const totalAfter = completed.reduce((s, f) => s + (f.result?.blob.size || 0), 0);
-
+  if (phase === 'working') {
     return (
-      <div className="pdfconv-results">
-        <div className="pdfconv-results-header">
-          <div className="pdfconv-results-badge">
-            <Icon name="check-circle" size={20} />
-            <span>{completed.length} file{completed.length !== 1 ? 's' : ''} converted successfully</span>
+      <div className="pdfconv-processing">
+        <div className="pdfconv-progress-ring-wrap">
+          <svg className="pdfconv-progress-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-subtle)" strokeWidth="8" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--brand-primary)" strokeWidth="8"
+              strokeDasharray={`${2 * Math.PI * 52}`} strokeDashoffset={`${2 * Math.PI * 52 * (1 - convertProgress)}`}
+              strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.3s', transform: 'rotate(-90deg)', transformOrigin: 'center' }} />
+          </svg>
+          <div className="pdfconv-progress-text"><b>{Math.round(convertProgress * 100)}%</b><span>Converting</span></div>
+        </div>
+        <h3 style={{ marginTop: 20 }}>Converting to {targetFormat ? FORMAT_META[targetFormat].label : 'multiple formats'}...</h3>
+        <p className="muted">Using smart per-page routing for best results</p>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: VISUAL DIFF VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (view === 'diff' && results.length > 0) {
+    const result = results[0];
+    return (
+      <div className="pdfconv-diff-view">
+        <div className="pdfconv-diff-toolbar">
+          <h3><Icon name="split" size={16} /> Visual Diff: Original vs Converted</h3>
+          <div className="pdfconv-diff-nav">
+            <button className="btn btn-ghost btn-sm" disabled={diffPage === 0} onClick={() => setDiffPage((p) => p - 1)}><Icon name="chevron-left" size={14} /></button>
+            <span className="mono">Page {diffPage + 1} / {pdfPages.length}</span>
+            <button className="btn btn-ghost btn-sm" disabled={diffPage >= pdfPages.length - 1} onClick={() => setDiffPage((p) => p + 1)}><Icon name="chevron-right" size={14} /></button>
           </div>
-          {failed.length > 0 && (
-            <div className="pdfconv-results-badge error">
-              <Icon name="x" size={16} />
-              <span>{failed.length} failed</span>
+          <button className="btn btn-ghost btn-sm" onClick={() => setView('results')}><Icon name="x" size={14} /> Close</button>
+        </div>
+        <div className="pdfconv-diff-panels">
+          <div className="pdfconv-diff-panel">
+            <div className="pdfconv-diff-label">Original PDF</div>
+            {pdfPages[diffPage] && <canvas ref={(el) => { if (el && pdfPages[diffPage]) { el.width = pdfPages[diffPage].width; el.height = pdfPages[diffPage].height; el.getContext('2d')?.drawImage(pdfPages[diffPage], 0, 0); } }} />}
+          </div>
+          <div className="pdfconv-diff-panel">
+            <div className="pdfconv-diff-label">Converted ({FORMAT_META[result.format].label})</div>
+            {result.previewHtml ? (
+              <div className="pdfconv-diff-preview" dangerouslySetInnerHTML={{ __html: result.previewHtml }} />
+            ) : (
+              <div className="pdfconv-diff-placeholder"><Icon name="file-text" size={32} /><p>Preview generated on download</p></div>
+            )}
+          </div>
+        </div>
+        <div className="pdfconv-diff-confidence">
+          {structure && confidenceData && (
+            <div className="pdfconv-page-scores">
+              {confidenceData.perPage.slice(0, 10).map((score, i) => (
+                <div key={i} className={`pdfconv-page-score ${score >= 80 ? 'high' : score >= 50 ? 'mid' : 'low'}`}>
+                  <span>P{i + 1}</span>
+                  <div className="pdfconv-score-bar"><div style={{ width: `${score}%` }} /></div>
+                  <span className="mono">{score}%</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
+      </div>
+    );
+  }
 
-        <div className="pdfconv-size-compare">
-          <span>Input: {formatBytes(totalBefore)}</span>
-          <Icon name="chevron-right" size={14} />
-          <span>Output: <b>{formatBytes(totalAfter)}</b></span>
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: MULTI-FORMAT COMPARISON VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (view === 'compare' && results.length > 1) {
+    return (
+      <div className="pdfconv-compare-view">
+        <div className="pdfconv-compare-header">
+          <h3><Icon name="split" size={16} /> Format Comparison</h3>
+          <button className="btn btn-ghost btn-sm" onClick={() => setView('convert')}><Icon name="x" size={14} /> Close</button>
         </div>
-
-        <div className="pdfconv-result-files">
-          {files.map((f) => (
-            <div key={f.id} className={`pdfconv-result-card ${f.status}`}>
-              <div className="pdfconv-result-icon" style={{ background: targetFormat ? FORMAT_META[targetFormat].color + '22' : undefined, color: targetFormat ? FORMAT_META[targetFormat].color : undefined }}>
-                <Icon name={targetFormat ? FORMAT_META[targetFormat].icon : 'file-text'} size={20} />
+        <div className="pdfconv-compare-grid" style={{ gridTemplateColumns: `repeat(${results.length}, 1fr)` }}>
+          {results.map((r) => (
+            <div key={r.format} className="pdfconv-compare-card">
+              <div className="pdfconv-compare-card-head">
+                <div className="pdfconv-fmt-icon" style={{ background: FORMAT_META[r.format].color + '18', color: FORMAT_META[r.format].color }}>
+                  <Icon name={FORMAT_META[r.format].icon} size={20} />
+                </div>
+                <div><b>{FORMAT_META[r.format].label}</b><br /><span className="muted">{formatBytes(r.file.blob.size)}</span></div>
               </div>
-              <div className="pdfconv-result-info">
-                <b>{f.result?.name || f.file.name}</b>
-                <span className="muted">{f.result ? formatBytes(f.result.blob.size) : f.error || 'Failed'}</span>
+              <div className={`pdfconv-confidence-badge ${r.confidence >= 80 ? 'high' : r.confidence >= 50 ? 'mid' : 'low'}`}>
+                {r.confidence}% confidence
               </div>
-              {f.result && (
-                <button className="btn btn-primary btn-sm" onClick={() => downloadFile(f.result!)}>
-                  <Icon name="download" size={14} /> Download
-                </button>
-              )}
+              {r.previewHtml && <div className="pdfconv-compare-preview" dangerouslySetInnerHTML={{ __html: r.previewHtml }} />}
+              <button className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: 12 }} onClick={() => download(r.file)}>
+                <Icon name="download" size={14} /> Download
+              </button>
             </div>
           ))}
         </div>
+        <button className="btn btn-ghost" style={{ marginTop: 16 }} onClick={resetAll}><Icon name="upload" size={15} /> New Conversion</button>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: RESULTS VIEW (with live preview)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (view === 'results' && results.length > 0) {
+    const r = results[0];
+    return (
+      <div className="pdfconv-results">
+        <div className="pdfconv-results-header">
+          <div className="pdfconv-results-badge"><Icon name="check-circle" size={18} /> Conversion Complete</div>
+          <div className={`pdfconv-confidence-badge ${r.confidence >= 80 ? 'high' : r.confidence >= 50 ? 'mid' : 'low'}`}>
+            <Icon name="sparkles" size={13} /> {r.confidence}% Confidence
+          </div>
+        </div>
+
+        {/* Live Preview */}
+        {r.previewHtml && (
+          <div className="pdfconv-live-preview">
+            <div className="pdfconv-live-preview-head">
+              <span><Icon name="eye" size={14} /> Live Preview</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setView('diff')}>
+                <Icon name="split" size={13} /> Visual Diff
+              </button>
+            </div>
+            <div className="pdfconv-live-preview-content" dangerouslySetInnerHTML={{ __html: r.previewHtml }} />
+          </div>
+        )}
+
+        {/* Confidence Issues */}
+        {confidenceData && confidenceData.issues.length > 0 && (
+          <div className="pdfconv-issues">
+            <b><Icon name="alert-triangle" size={13} /> Potential Issues ({confidenceData.issues.length})</b>
+            {confidenceData.issues.map((issue, i) => <p key={i}>{issue}</p>)}
+          </div>
+        )}
+
+        <div className="pdfconv-result-card done">
+          <div className="pdfconv-result-icon" style={{ background: FORMAT_META[r.format].color + '22', color: FORMAT_META[r.format].color }}>
+            <Icon name={FORMAT_META[r.format].icon} size={22} />
+          </div>
+          <div className="pdfconv-result-info">
+            <b>{r.file.name}</b>
+            <span className="muted">{formatBytes(r.file.blob.size)} &middot; {FORMAT_META[r.format].label}</span>
+          </div>
+          <button className="btn btn-primary" onClick={() => download(r.file)}><Icon name="download" size={16} /> Download</button>
+        </div>
 
         <div className="pdfconv-result-actions">
-          {completed.length > 1 && (
-            <button className="btn btn-primary" onClick={() => void downloadAll()}>
-              <Icon name="download" size={16} /> Download All as ZIP
-            </button>
-          )}
-          <button className="btn btn-outline" onClick={() => { setPhase('idle'); setFiles((prev) => prev.map((f) => ({ ...f, status: 'pending' as const, progress: 0, result: undefined, error: undefined }))); setTargetFormat(null); }}>
-            <Icon name="refresh" size={15} /> Convert to Another Format
+          <button className="btn btn-outline" onClick={() => { setView('diff'); setDiffPage(0); }}>
+            <Icon name="split" size={15} /> Visual Diff
+          </button>
+          <button className="btn btn-outline" onClick={() => { setResults([]); setTargetFormat(null); setView('convert'); setPhase('idle'); }}>
+            <Icon name="refresh" size={15} /> Try Another Format
           </button>
           <button className="btn btn-ghost" onClick={resetAll}>
-            <Icon name="upload" size={15} /> New Conversion
+            <Icon name="upload" size={15} /> New File
           </button>
         </div>
       </div>
     );
   }
 
-  // ─── Render: Main Interface ──────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: MAIN CONVERSION VIEW (with structure + format selection)
+  // ═══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className="pdfconv-layout">
-      {/* Upload Area */}
-      <div className="pdfconv-upload-section">
-        <div
-          ref={dropzoneRef}
-          className={`pdfconv-dropzone ${dragOver ? 'drag-active' : ''} ${files.length > 0 ? 'has-files' : ''}`}
-          onClick={() => !files.length && inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); void addFiles(Array.from(e.dataTransfer.files)); }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-        >
-          {files.length === 0 ? (
-            <>
-              <div className="pdfconv-drop-icon">
-                <Icon name="upload" size={32} />
+    <div className="pdfconv-main-view">
+      {/* Document Intelligence Panel */}
+      {structure && (
+        <div className="pdfconv-intel-panel">
+          <div className="pdfconv-intel-header" onClick={() => setStructureOpen(!structureOpen)}>
+            <h3><Icon name="sparkles" size={16} /> Document Intelligence</h3>
+            <Icon name={structureOpen ? 'chevron-up' : 'chevron-down'} size={14} />
+          </div>
+
+          {structureOpen && (
+            <div className="pdfconv-intel-body">
+              {/* Document Type Detection */}
+              <div className="pdfconv-doc-type">
+                <div className="pdfconv-doc-type-badge">
+                  <Icon name="file-text" size={16} />
+                  <span>{structure.documentType === 'unknown' ? 'General Document' : structure.documentType.charAt(0).toUpperCase() + structure.documentType.slice(1)}</span>
+                  <span className={`pdfconv-confidence-pill ${structure.documentTypeConfidence >= 70 ? 'high' : 'mid'}`}>
+                    {structure.documentTypeConfidence}% sure
+                  </span>
+                </div>
+                <div className="pdfconv-doc-stats">
+                  <span>{structure.pageCount} pages</span>
+                  <span>{structure.totalWords.toLocaleString()} words</span>
+                  <span>{structure.tables.length} tables</span>
+                  <span>{structure.images.length} images</span>
+                </div>
               </div>
-              <h3>Drop your PDF files here</h3>
-              <p>or <button className="pdfconv-browse-link" onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}>browse files</button> or paste from clipboard</p>
-              <div className="pdfconv-format-badges">
-                <span>PDF</span><span>DOCX</span><span>XLSX</span><span>JPG</span><span>PNG</span><span>TXT</span><span>HTML</span>
-              </div>
-              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Up to 25MB free &middot; 2GB for Pro &middot; 100% browser-based</p>
-            </>
-          ) : (
-            <div className="pdfconv-file-list">
-              {files.map((cf) => (
-                <div key={cf.id} className="pdfconv-file-card">
-                  {cf.thumbnail ? (
-                    <img src={cf.thumbnail} alt="" className="pdfconv-file-thumb" onClick={() => void openPreview(cf)} />
-                  ) : (
-                    <div className="pdfconv-file-thumb-placeholder">
-                      <Icon name="file-text" size={20} />
+
+              {/* Smart Page Router Visualization */}
+              <div className="pdfconv-page-router">
+                <b>Smart Page Analysis</b>
+                <div className="pdfconv-page-pills">
+                  {strategies.slice(0, 20).map((s) => (
+                    <div key={s.pageNum} className={`pdfconv-page-pill ${s.type}`} title={`Page ${s.pageNum}: ${s.type} (${s.strategy})`}>
+                      {s.pageNum}
                     </div>
-                  )}
-                  <div className="pdfconv-file-meta">
-                    <b>{cf.file.name}</b>
-                    <span className="muted">{formatBytes(cf.file.size)}{cf.pageCount ? ` \u00B7 ${cf.pageCount} pages` : ''}</span>
-                  </div>
-                  <div className="pdfconv-file-actions">
-                    {cf.format === 'pdf' && cf.pageCount && (
-                      <button className="btn btn-ghost btn-sm" onClick={() => void openPreview(cf)} title="Preview">
-                        <Icon name="eye" size={14} />
-                      </button>
-                    )}
-                    <button className="btn btn-ghost btn-sm" onClick={() => removeFile(cf.id)} title="Remove">
-                      <Icon name="x" size={14} />
-                    </button>
+                  ))}
+                  {strategies.length > 20 && <span className="muted">+{strategies.length - 20} more</span>}
+                </div>
+                <div className="pdfconv-page-legend">
+                  <span className="pdfconv-legend text">Text</span>
+                  <span className="pdfconv-legend table">Table</span>
+                  <span className="pdfconv-legend image">Image</span>
+                  <span className="pdfconv-legend mixed">Mixed</span>
+                </div>
+              </div>
+
+              {/* Structure Tree */}
+              {structure.headings.length > 0 && (
+                <div className="pdfconv-structure-tree">
+                  <b>Document Structure</b>
+                  <div className="pdfconv-tree-items">
+                    {structure.headings.slice(0, 15).map((h, i) => (
+                      <div key={i} className="pdfconv-tree-item" style={{ paddingLeft: (h.level - 1) * 16 }}>
+                        <Icon name={h.level === 1 ? 'hash' : 'chevron-right'} size={12} />
+                        <span>{h.text}</span>
+                        <span className="muted">p.{h.page}</span>
+                      </div>
+                    ))}
+                    {structure.headings.length > 15 && <p className="muted" style={{ fontSize: 11 }}>+{structure.headings.length - 15} more headings</p>}
                   </div>
                 </div>
-              ))}
-              <button className="pdfconv-add-more" onClick={() => inputRef.current?.click()}>
-                <Icon name="plus" size={16} /> Add more files
-              </button>
+              )}
             </div>
           )}
         </div>
-        <input ref={inputRef} type="file" hidden accept={tool.accept} multiple onChange={(e) => { if (e.target.files) void addFiles(Array.from(e.target.files)); e.target.value = ''; }} />
-      </div>
+      )}
 
-      {/* Conversion Panel */}
-      {files.length > 0 && (
-        <div className="pdfconv-panel">
-          {/* AI Recommendation */}
-          {aiRec && !targetFormat && (
-            <div className="pdfconv-ai-rec" onClick={() => setTargetFormat(aiRec.format)}>
-              <Icon name="sparkles" size={16} />
-              <span><b>AI recommends: {FORMAT_META[aiRec.format].label}</b> &mdash; {aiRec.reason}</span>
-              <Icon name="chevron-right" size={14} />
-            </div>
-          )}
+      {/* Format Selection + Conversion */}
+      <div className="pdfconv-panel">
+        {/* AI Recommendation */}
+        {structure && (
+          <div className="pdfconv-ai-rec" onClick={() => setTargetFormat(structure.formatRecommendation.format as TargetFormat)}>
+            <Icon name="sparkles" size={16} />
+            <span><b>AI recommends: {FORMAT_META[structure.formatRecommendation.format as TargetFormat]?.label || structure.formatRecommendation.format}</b> &mdash; {structure.formatRecommendation.reason}</span>
+            <Icon name="chevron-right" size={14} />
+          </div>
+        )}
 
-          {/* Format Selection */}
-          <div className="pdfconv-format-section">
-            <h3>Convert to</h3>
-            <div className="pdfconv-format-grid">
-              {PDF_TARGETS.map((fmt) => (
-                <button
-                  key={fmt}
-                  className={`pdfconv-format-btn ${targetFormat === fmt ? 'active' : ''}`}
-                  onClick={() => setTargetFormat(fmt)}
-                >
+        {/* Format Grid */}
+        <div className="pdfconv-format-section">
+          <h3>Convert to</h3>
+          <div className="pdfconv-format-grid">
+            {ALL_TARGETS.map((fmt) => {
+              const conf = structure ? calculateConversionConfidence(structure, fmt) : null;
+              return (
+                <button key={fmt} className={`pdfconv-format-btn ${targetFormat === fmt ? 'active' : ''}`} onClick={() => setTargetFormat(fmt)}>
                   <div className="pdfconv-fmt-icon" style={{ background: FORMAT_META[fmt].color + '18', color: FORMAT_META[fmt].color }}>
                     <Icon name={FORMAT_META[fmt].icon} size={18} />
                   </div>
@@ -508,162 +466,94 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
                     <b>{FORMAT_META[fmt].label}</b>
                     <span>{FORMAT_META[fmt].desc}</span>
                   </div>
+                  {conf && <span className={`pdfconv-mini-score ${conf.overall >= 80 ? 'high' : conf.overall >= 50 ? 'mid' : 'low'}`}>{conf.overall}%</span>}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Quick Options */}
-          {targetFormat && (
-            <div className="pdfconv-options-section">
-              <h3>Options</h3>
+        {/* Confidence Preview */}
+        {targetFormat && confidenceData && (
+          <div className="pdfconv-confidence-section">
+            <div className={`pdfconv-confidence-badge large ${confidenceData.overall >= 80 ? 'high' : confidenceData.overall >= 50 ? 'mid' : 'low'}`}>
+              <b>{confidenceData.overall}%</b> estimated accuracy for {FORMAT_META[targetFormat].label}
+            </div>
+            {confidenceData.issues.length > 0 && (
+              <div className="pdfconv-issues-preview">
+                {confidenceData.issues.slice(0, 3).map((issue, i) => <span key={i}><Icon name="alert-triangle" size={11} /> {issue}</span>)}
+              </div>
+            )}
+          </div>
+        )}
 
-              {(targetFormat === 'jpg' || targetFormat === 'png' || targetFormat === 'webp') && (
-                <div className="pdfconv-opt-row">
-                  <label>Resolution (DPI)</label>
-                  <select value={options.dpi} onChange={(e) => setOptions((o) => ({ ...o, dpi: +e.target.value as AdvancedOptions['dpi'] }))}>
-                    <option value={72}>72 DPI (web)</option>
-                    <option value={150}>150 DPI (standard)</option>
-                    <option value={300}>300 DPI (print)</option>
-                    <option value={600}>600 DPI (ultra)</option>
-                  </select>
-                </div>
-              )}
+        {/* Convert Button */}
+        <button className="btn btn-primary pdfconv-convert-btn" disabled={!targetFormat} onClick={() => void startConversion()}>
+          <Icon name="zap" size={18} />
+          {targetFormat ? `Convert to ${FORMAT_META[targetFormat].label}` : 'Select a format'}
+        </button>
 
-              {(targetFormat === 'jpg' || targetFormat === 'webp') && (
-                <div className="pdfconv-opt-row">
-                  <label>Quality: {options.imageQuality}%</label>
-                  <input type="range" min={30} max={100} value={options.imageQuality} onChange={(e) => setOptions((o) => ({ ...o, imageQuality: +e.target.value }))} />
-                </div>
-              )}
-
-              {(targetFormat === 'docx' || targetFormat === 'rtf') && (
-                <>
-                  <label className="pdfconv-toggle"><input type="checkbox" checked={options.preserveLayout} onChange={(e) => setOptions((o) => ({ ...o, preserveLayout: e.target.checked }))} /> Preserve layout</label>
-                  <label className="pdfconv-toggle"><input type="checkbox" checked={options.preserveImages} onChange={(e) => setOptions((o) => ({ ...o, preserveImages: e.target.checked }))} /> Preserve images</label>
-                </>
-              )}
-
-              {(targetFormat === 'xlsx' || targetFormat === 'csv') && (
-                <label className="pdfconv-toggle"><input type="checkbox" checked={options.enableOcr} onChange={(e) => setOptions((o) => ({ ...o, enableOcr: e.target.checked }))} /> Enable AI table detection</label>
-              )}
-
-              {files.length > 1 && (targetFormat === 'jpg' || targetFormat === 'png' || targetFormat === 'webp') && (
-                <div className="pdfconv-opt-row">
-                  <label>Output</label>
-                  <select value={options.outputMode} onChange={(e) => setOptions((o) => ({ ...o, outputMode: e.target.value as 'individual' | 'zip' }))}>
-                    <option value="individual">Individual files</option>
-                    <option value="zip">ZIP archive</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Advanced toggle */}
-              <button className="pdfconv-advanced-toggle" onClick={() => setShowAdvanced(!showAdvanced)}>
-                <Icon name={showAdvanced ? 'chevron-up' : 'chevron-down'} size={14} />
-                Advanced Settings
+        {/* Multi-Format Comparison */}
+        <div className="pdfconv-compare-section">
+          <button className="pdfconv-advanced-toggle" onClick={() => setCompareFormats((f) => f.length > 0 ? [] : ['docx', 'xlsx'])}>
+            <Icon name="split" size={14} /> Multi-Format Comparison
+          </button>
+          {compareFormats.length > 0 && (
+            <div className="pdfconv-compare-picker">
+              <p className="muted" style={{ fontSize: 12 }}>Select 2-3 formats to compare side-by-side:</p>
+              <div className="pdfconv-compare-chips">
+                {ALL_TARGETS.map((fmt) => (
+                  <button key={fmt} className={`pdfconv-chip ${compareFormats.includes(fmt) ? 'active' : ''}`}
+                    onClick={() => setCompareFormats((prev) => prev.includes(fmt) ? prev.filter((f) => f !== fmt) : prev.length < 3 ? [...prev, fmt] : prev)}>
+                    {FORMAT_META[fmt].label}
+                  </button>
+                ))}
+              </div>
+              <button className="btn btn-outline" disabled={compareFormats.length < 2} onClick={() => void startComparison()} style={{ marginTop: 10 }}>
+                <Icon name="split" size={14} /> Compare {compareFormats.length} Formats
               </button>
-
-              {showAdvanced && (
-                <div className="pdfconv-advanced-panel">
-                  <div className="pdfconv-opt-row">
-                    <label>Page range</label>
-                    <input placeholder="e.g. 1-5, 8, 10-12 (all pages if empty)" value={options.pageRange} onChange={(e) => setOptions((o) => ({ ...o, pageRange: e.target.value }))} />
-                  </div>
-                  <div className="pdfconv-opt-row">
-                    <label>Page size</label>
-                    <select value={options.pageSize} onChange={(e) => setOptions((o) => ({ ...o, pageSize: e.target.value as AdvancedOptions['pageSize'] }))}>
-                      <option value="a4">A4</option>
-                      <option value="letter">Letter (US)</option>
-                      <option value="auto">Auto</option>
-                    </select>
-                  </div>
-                  <label className="pdfconv-toggle"><input type="checkbox" checked={options.enableOcr} onChange={(e) => setOptions((o) => ({ ...o, enableOcr: e.target.checked }))} /> Enable OCR (scanned PDFs)</label>
-                </div>
-              )}
             </div>
           )}
-
-          {/* Convert Button */}
-          <button
-            className="btn btn-primary pdfconv-convert-btn"
-            disabled={!targetFormat || files.length === 0}
-            onClick={() => void convert()}
-          >
-            <Icon name="zap" size={18} />
-            {targetFormat ? `Convert ${files.length > 1 ? `${files.length} files` : ''} to ${FORMAT_META[targetFormat].label}` : 'Select a format'}
-          </button>
-
-          <p className="pdfconv-privacy-note">
-            <Icon name="lock" size={12} /> Files are processed 100% in your browser. Nothing is uploaded to any server.
-          </p>
-
-          {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
         </div>
-      )}
 
-      {/* Conversion History */}
-      {conversionHistory.length > 0 && phase === 'idle' && (
-        <div className="pdfconv-history">
-          <h4>Recent Conversions</h4>
-          {conversionHistory.slice(0, 5).map((h, i) => (
-            <div key={i} className="pdfconv-history-item">
-              <Icon name="check-circle" size={13} />
-              <span>{h.name}</span>
-              <span className="muted">{formatBytes(h.size)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+        <p className="pdfconv-privacy-note"><Icon name="lock" size={12} /> 100% browser-based. Files never leave your device.</p>
+        {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
+      </div>
     </div>
   );
 }
 
 // ─── Conversion Engine ───────────────────────────────────────────────────────
 
-async function convertSingle(
-  file: File,
-  sourceFormat: SourceFormat,
-  target: TargetFormat,
-  opts: AdvancedOptions,
-  onProgress: (p: number) => void,
-): Promise<ResultFile> {
-  const isPdf = sourceFormat === 'pdf';
-
-  if (isPdf && target === 'docx') {
+async function runConversion(file: File, target: TargetFormat, onProgress: (p: number) => void): Promise<ResultFile> {
+  if (target === 'docx') {
     const pages = await extractPdfText(file, (d, t) => onProgress((d / t) * 0.7));
     const { Document, Packer, Paragraph, TextRun, PageBreak } = await import('docx');
-    const children = pages.flatMap((pageText, pi) => {
-      const paras = pageText.split('\n').filter(Boolean).map(
-        (line) => new Paragraph({ children: [new TextRun({ text: line, size: 22 })], spacing: { after: 120 } }),
-      );
+    const children = pages.flatMap((pt, pi) => {
+      const paras = pt.split('\n').filter(Boolean).map((l) => new Paragraph({ children: [new TextRun({ text: l, size: 22 })], spacing: { after: 120 } }));
       if (pi < pages.length - 1) paras.push(new Paragraph({ children: [new PageBreak()] }));
       return paras;
     });
-    const doc = new Document({ sections: [{ children }] });
     onProgress(1);
-    return { name: replaceExt(file.name, 'docx'), blob: await Packer.toBlob(doc) };
+    return { name: replaceExt(file.name, 'docx'), blob: await Packer.toBlob(new Document({ sections: [{ children }] })) };
   }
-
-  if (isPdf && target === 'xlsx') {
+  if (target === 'xlsx' || target === 'csv') {
     const pages = await extractPdfText(file, (d, t) => onProgress((d / t) * 0.7));
+    if (target === 'csv') {
+      const csv = pages.flatMap((p) => p.split('\n').filter(Boolean).map((l) => l.split(/\s{2,}|\t/).map((c) => c.includes(',') ? `"${c.trim()}"` : c.trim()).join(','))).join('\n');
+      onProgress(1);
+      return { name: replaceExt(file.name, 'csv'), blob: new Blob([csv], { type: 'text/csv' }) };
+    }
     const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
-    pages.forEach((pageText, i) => {
-      const rows = pageText.split('\n').map((l) => l.split(/\s{2,}|\t/).map((c) => c.trim())).filter((r) => r.some(Boolean));
+    pages.forEach((pt, i) => {
+      const rows = pt.split('\n').map((l) => l.split(/\s{2,}|\t/).map((c) => c.trim())).filter((r) => r.some(Boolean));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows.length ? rows : [['']]), `Page ${i + 1}`);
     });
     onProgress(1);
     return { name: replaceExt(file.name, 'xlsx'), blob: new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }) };
   }
-
-  if (isPdf && target === 'csv') {
-    const pages = await extractPdfText(file, (d, t) => onProgress(d / t));
-    const csv = pages.flatMap((p) => p.split('\n').filter(Boolean).map((l) => l.split(/\s{2,}|\t/).map((c) => c.includes(',') ? `"${c.trim()}"` : c.trim()).join(','))).join('\n');
-    return { name: replaceExt(file.name, 'csv'), blob: new Blob([csv], { type: 'text/csv' }) };
-  }
-
-  if (isPdf && target === 'pptx') {
+  if (target === 'pptx') {
     const rendered = await renderPdfPages(file, 2, (d, t) => onProgress((d / t) * 0.6));
     const pptxgenjs = (await import('pptxgenjs')).default;
     const pptx = new pptxgenjs();
@@ -675,94 +565,53 @@ async function convertSingle(
     }
     return { name: replaceExt(file.name, 'pptx'), blob: await pptx.write({ outputType: 'blob' }) as Blob };
   }
-
-  if (isPdf && (target === 'jpg' || target === 'png' || target === 'webp')) {
-    const scale = opts.dpi === 72 ? 1 : opts.dpi === 150 ? 2 : opts.dpi === 300 ? 4 : 6;
+  if (target === 'jpg' || target === 'png' || target === 'webp') {
     const mime = target === 'jpg' ? 'image/jpeg' : target === 'png' ? 'image/png' : 'image/webp';
-    const pages = await renderPdfPages(file, scale, (d, t) => onProgress((d / t) * 0.7));
+    const pages = await renderPdfPages(file, 2, (d, t) => onProgress((d / t) * 0.7));
     const JSZip = (await import('jszip')).default;
     const zip = new JSZip();
     for (let i = 0; i < pages.length; i++) {
-      zip.file(`page-${i + 1}.${target}`, await canvasToBlob(pages[i].canvas, mime, opts.imageQuality / 100));
+      zip.file(`page-${i + 1}.${target}`, await canvasToBlob(pages[i].canvas, mime, 0.9));
       onProgress(0.7 + ((i + 1) / pages.length) * 0.3);
     }
     return { name: replaceExt(file.name, 'zip'), blob: await zip.generateAsync({ type: 'blob' }) };
   }
-
-  if (isPdf && target === 'txt') {
+  if (target === 'txt') {
     const pages = await extractPdfText(file, (d, t) => onProgress(d / t));
-    const text = pages.map((p, i) => `--- Page ${i + 1} ---\n${p}`).join('\n\n');
-    return { name: replaceExt(file.name, 'txt'), blob: new Blob([text], { type: 'text/plain' }) };
+    return { name: replaceExt(file.name, 'txt'), blob: new Blob([pages.map((p, i) => `--- Page ${i + 1} ---\n${p}`).join('\n\n')], { type: 'text/plain' }) };
   }
-
-  if (isPdf && target === 'md') {
+  if (target === 'md') {
     const pages = await extractPdfText(file, (d, t) => onProgress(d / t));
-    const md = pages.map((p, i) => {
-      const lines = p.split('\n').map((l) => {
-        const t = l.trim();
-        if (!t) return '';
-        if (t.length < 60 && t === t.toUpperCase() && t.length > 3) return `## ${t}`;
-        return t;
-      }).join('\n');
-      return `---\n### Page ${i + 1}\n\n${lines}`;
-    }).join('\n\n');
+    const md = pages.map((p, i) => `## Page ${i + 1}\n\n${p.split('\n').map((l) => { const t = l.trim(); if (!t) return ''; if (t.length < 60 && t === t.toUpperCase() && t.length > 3) return `### ${t}`; return t; }).join('\n')}`).join('\n\n---\n\n');
     return { name: replaceExt(file.name, 'md'), blob: new Blob([md], { type: 'text/markdown' }) };
   }
-
-  if (isPdf && target === 'html') {
+  if (target === 'html') {
     const pages = await extractPdfText(file, (d, t) => onProgress(d / t));
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.7}.page{margin-bottom:2em;padding-bottom:1em;border-bottom:1px solid #ddd}</style></head><body>${pages.map((p, i) => `<div class="page"><h2>Page ${i + 1}</h2>${p.split('\n').map((l) => `<p>${l || '&nbsp;'}</p>`).join('')}</div>`).join('')}</body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.7;color:#333}.page{margin-bottom:2em;padding-bottom:1em;border-bottom:1px solid #eee}</style></head><body>${pages.map((p, i) => `<div class="page"><h2>Page ${i + 1}</h2>${p.split('\n').map((l) => `<p>${l || '&nbsp;'}</p>`).join('')}</div>`).join('')}</body></html>`;
     return { name: replaceExt(file.name, 'html'), blob: new Blob([html], { type: 'text/html' }) };
   }
-
-  if (isPdf && target === 'rtf') {
+  if (target === 'rtf') {
     const pages = await extractPdfText(file, (d, t) => onProgress(d / t));
-    const rtfContent = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Helvetica;}}\n${pages.map((p) => p.split('\n').map((l) => `\\f0\\fs22 ${l.replace(/[\\{}]/g, '\\$&')}\\par\n`).join('')).join('\\page\n')}}`;
-    return { name: replaceExt(file.name, 'rtf'), blob: new Blob([rtfContent], { type: 'application/rtf' }) };
+    const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Helvetica;}}\n${pages.map((p) => p.split('\n').map((l) => `\\f0\\fs22 ${l.replace(/[\\{}]/g, '\\$&')}\\par\n`).join('')).join('\\page\n')}}`;
+    return { name: replaceExt(file.name, 'rtf'), blob: new Blob([rtf], { type: 'application/rtf' }) };
   }
+  throw new Error(`Unsupported format: ${target}`);
+}
 
-  if (!isPdf && target === 'pdf') {
-    onProgress(0.3);
-    const { PDFDocument, StandardFonts } = await import('@cantoo/pdf-lib');
-    const doc = await PDFDocument.create();
-    const font = await doc.embedFont(StandardFonts.Helvetica);
-
-    if (sourceFormat === 'jpg' || sourceFormat === 'png') {
-      const bytes = await file.arrayBuffer();
-      const embedded = sourceFormat === 'png' ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
-      const page = doc.addPage([embedded.width, embedded.height]);
-      page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
-    } else {
-      let text = '';
-      if (sourceFormat === 'docx') {
-        const mammoth = await import('mammoth');
-        text = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
-      } else {
-        text = await file.text();
-      }
-      const fs = 11; const lh = 15; const m = 50;
-      const pw = 595.28; const ph = 841.89; const mw = pw - m * 2;
-      const lines: string[] = [];
-      for (const para of text.split('\n')) {
-        if (!para.trim()) { lines.push(''); continue; }
-        let cur = '';
-        for (const word of para.split(/\s+/)) {
-          const safe = word.replace(/[^\x20-\x7E]/g, '?');
-          const attempt = cur ? `${cur} ${safe}` : safe;
-          if (font.widthOfTextAtSize(attempt, fs) > mw && cur) { lines.push(cur); cur = safe; } else cur = attempt;
-        }
-        if (cur) lines.push(cur);
-      }
-      let page = doc.addPage([pw, ph]); let y = ph - m;
-      for (const line of lines) {
-        if (y < m) { page = doc.addPage([pw, ph]); y = ph - m; }
-        if (line) page.drawText(line, { x: m, y, size: fs, font });
-        y -= lh;
-      }
-    }
-    onProgress(1);
-    return { name: replaceExt(file.name, 'pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) };
+async function generatePreview(blob: Blob, format: TargetFormat): Promise<string | undefined> {
+  if (format === 'html') {
+    const text = await blob.text();
+    const bodyMatch = text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    return bodyMatch ? `<div class="pdfconv-html-preview">${bodyMatch[1].slice(0, 3000)}</div>` : undefined;
   }
+  if (format === 'txt' || format === 'md' || format === 'csv' || format === 'rtf') {
+    const text = await blob.text();
+    const escaped = text.slice(0, 2000).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    return `<pre class="pdfconv-text-preview">${escaped}</pre>`;
+  }
+  return undefined;
+}
 
-  throw new Error(`Conversion from ${sourceFormat.toUpperCase()} to ${target.toUpperCase()} is not supported yet.`);
+async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((r) => { const rd = new FileReader(); rd.onloadend = () => r(rd.result as string); rd.readAsDataURL(blob); });
 }
