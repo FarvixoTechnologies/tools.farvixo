@@ -16,14 +16,24 @@ export default function PdfConvertRunner({ tool }: { tool: Tool }) {
 
   const mode = tool.mode;
 
-  /** AI-repair shattered Bengali text page-by-page (PDF text layers break Indic scripts). */
+  /** AI-repair shattered Bengali text page-by-page (PDF text layers break Indic scripts).
+   *  Fail-soft: any AI failure keeps that page's original text — conversion never aborts. */
   const repairPages = async (pages: string[]): Promise<string[]> => {
     if (!aiFix || !pages.some((p) => looksBrokenBengali(p))) return pages;
     const fixed: string[] = [];
     for (let i = 0; i < pages.length; i++) {
       setStatus(`Fixing Bengali text with AI (page ${i + 1}/${pages.length})...`);
       setProgress(0.7 + ((i + 1) / pages.length) * 0.25);
-      fixed.push(looksBrokenBengali(pages[i]) ? await restoreBengaliText(pages[i]) : pages[i]);
+      if (!looksBrokenBengali(pages[i])) {
+        fixed.push(pages[i]);
+        continue;
+      }
+      try {
+        const repaired = await restoreBengaliText(pages[i]);
+        fixed.push(repaired.trim() ? repaired : pages[i]);
+      } catch {
+        fixed.push(pages[i]);
+      }
     }
     return fixed;
   };
@@ -37,7 +47,11 @@ export default function PdfConvertRunner({ tool }: { tool: Tool }) {
 
       if (mode === 'pdf2word') {
         setStatus('Extracting text from PDF...');
-        const pages = await repairPages(await extractPdfText(file, (d, t) => setProgress((d / t) * 0.7)));
+        const rawPages = await extractPdfText(file, (d, t) => setProgress((d / t) * 0.7));
+        if (!rawPages.some((p) => p.trim())) {
+          throw new Error('No text layer found in this PDF — it looks like a scanned document. Run PDF OCR first, then convert.');
+        }
+        const pages = await repairPages(rawPages);
         setStatus('Building Word document...');
         const { Document, Packer, Paragraph, TextRun, PageBreak } = await import('docx');
         const children = pages.flatMap((pageText, pi) => {

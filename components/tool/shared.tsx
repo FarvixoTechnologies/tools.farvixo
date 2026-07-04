@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Icon from '../Icon';
 import { formatBytes } from '@/lib/download';
+
+const ShareFab = dynamic(() => import('./ShareFab'), { ssr: false });
 
 /* ─────────── Universal Upload Engine UI ─────────── */
 
@@ -52,6 +55,28 @@ export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropPro
         multiple={multiple}
         onChange={(e) => { add(e.target.files); e.target.value = ''; }}
       />
+      <button
+        className="btn btn-ghost btn-sm mt-2"
+        onClick={async () => {
+          try {
+            const items = await navigator.clipboard.read();
+            const picked: File[] = [];
+            for (const item of items) {
+              const type = item.types.find((t) => t.startsWith('image/') || t === 'application/pdf');
+              if (!type) continue;
+              const blob = await item.getType(type);
+              const ext = type.split('/')[1]?.replace('jpeg', 'jpg') ?? 'png';
+              picked.push(new File([blob], `pasted-${Date.now()}.${ext}`, { type }));
+            }
+            if (picked.length === 0) return;
+            onFiles(multiple ? [...files, ...picked] : picked.slice(0, 1));
+          } catch {
+            /* clipboard permission denied or no file content */
+          }
+        }}
+      >
+        <Icon name="copy" size={14} /> Paste from Clipboard
+      </button>
       {files.length > 0 && (
         <div className="file-list">
           {files.map((f, i) => (
@@ -152,6 +177,7 @@ export function ResultView({
         ))}
         <button className="btn btn-ghost" onClick={onReset}><Icon name="refresh" size={15} /> Process Another File</button>
       </div>
+      {files.length > 0 && <ShareFab file={files[0]} />}
     </div>
   );
 }
