@@ -10,6 +10,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { categories } from '@/data/categories';
 import { searchTools } from '@/data/tools';
 import { initials, isAdminUser } from '@/lib/auth';
+import NotificationBell from './NotificationBell';
 
 const navLinks: { label: string; href: string; badge?: string }[] = [
   { label: 'Home', href: '/' },
@@ -105,10 +106,7 @@ export default function Header() {
           <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
             <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={17} />
           </button>
-          <button className="icon-btn" onClick={() => toast('Notifications: all caught up! 🎉')} aria-label="Notifications">
-            <Icon name="bell" size={17} />
-            <span className="notif-dot">3</span>
-          </button>
+          <NotificationBell />
           {user ? (
             <>
               {isAdminUser(user) && (
@@ -222,10 +220,7 @@ export default function Header() {
               <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
                 <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={17} />
               </button>
-              <button className="icon-btn" onClick={() => toast('Notifications: all caught up! 🎉')} aria-label="Notifications">
-                <Icon name="bell" size={17} />
-                <span className="notif-dot">3</span>
-              </button>
+              <NotificationBell />
             </div>
           </div>
         </div>,
