@@ -189,6 +189,8 @@ code, pre, .mono { font-family: var(--font-mono); }
 .fab-main { background: var(--brand-primary) !important; color: #fff !important; border-color: transparent !important; }
 .fab-main:hover { background: var(--brand-primary-hover) !important; }
 .spinner-sm { width: 14px; height: 14px; border-width: 2px; }
+.paste-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; font-size: 13px; }
+.paste-row .btn { display: inline-flex; align-items: center; gap: 7px; }
 .fab-btn {
   width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;

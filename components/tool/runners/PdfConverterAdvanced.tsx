@@ -11,6 +11,7 @@ import { analyzeDocument, calculateConversionConfidence, buildPageStrategies, ty
 import Icon from '@/components/Icon';
 import dynamic from 'next/dynamic';
 import { looksBrokenBengali, restoreBengaliText } from '@/lib/text-restore';
+import { useUI } from '@/components/GlobalUI';
 
 const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 const ShareModal = dynamic(() => import('../ShareModal'), { ssr: false });
@@ -47,6 +48,7 @@ const ALL_TARGETS: TargetFormat[] = ['docx', 'xlsx', 'pptx', 'txt', 'html', 'rtf
 
 export default function PdfConverterAdvanced() {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
+  const { toast } = useUI();
   const [file, setFile] = useState<File | null>(null);
   const [view, setView] = useState<ViewMode>('upload');
   const [structure, setStructure] = useState<DocumentStructure | null>(null);
@@ -84,6 +86,22 @@ export default function PdfConverterAdvanced() {
       fail(e);
     }
   }, [fail]);
+
+  const pasteFromClipboard = useCallback(async () => {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((t) => t === 'application/pdf');
+        if (!type) continue;
+        const blob = await item.getType(type);
+        void handleFile(new File([blob], `pasted-${Date.now()}.pdf`, { type }));
+        return;
+      }
+      toast('No PDF found in clipboard — copy a PDF file first', 'error');
+    } catch {
+      toast('Clipboard access denied', 'error');
+    }
+  }, [handleFile, toast]);
 
   // Paste support
   useEffect(() => {
@@ -182,6 +200,12 @@ export default function PdfConverterAdvanced() {
             {ALL_TARGETS.map((f) => <span key={f}>{FORMAT_META[f].label}</span>)}
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>AI-powered document intelligence &middot; Visual diff &middot; Confidence scoring</p>
+        </div>
+        <div className="paste-row">
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => void pasteFromClipboard()}>
+            <Icon name="clipboard" size={15} /> Paste from Clipboard
+          </button>
+          <span className="muted">or press Ctrl+V anywhere</span>
         </div>
         <input ref={inputRef} type="file" hidden accept="application/pdf" onChange={(e) => { if (e.target.files?.[0]) void handleFile(e.target.files[0]); e.target.value = ''; }} />
         {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
