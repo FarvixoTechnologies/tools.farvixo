@@ -13,7 +13,6 @@ import dynamic from 'next/dynamic';
 import { looksBrokenBengali, restoreBengaliText } from '@/lib/text-restore';
 
 const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
-const CloudImportButtons = dynamic(() => import('../FabRail').then((m) => m.CloudImportButtons), { ssr: false });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -182,7 +181,6 @@ export default function PdfConverterAdvanced() {
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>AI-powered document intelligence &middot; Visual diff &middot; Confidence scoring</p>
         </div>
-        <CloudImportButtons onPick={(f) => void handleFile(f)} />
         <input ref={inputRef} type="file" hidden accept="application/pdf" onChange={(e) => { if (e.target.files?.[0]) void handleFile(e.target.files[0]); e.target.value = ''; }} />
         {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
       </div>
