@@ -15,6 +15,7 @@ Common extraction errors in the input text include:
 1. Missing or misplaced "Kar" signs (যেমন: ি, ো, ৌ, ে, া).
 2. Broken ligatures/conjuncts (যুক্তাক্ষর ভেঙে যাওয়া, যেমন "ক্ষ", "জ্ঞ", "ক্ট" আলাদা হয়ে যাওয়া).
 3. Incorrect character encoding, random spaces between characters, or raw ANSI strings mixed with Unicode.
+4. OCR misreads where Bengali words are replaced by lookalike Latin letters, digits or symbols (e.g. "ম€180ৰ65 First Name" is actually "Relative's First Name" label, "[39 Name" is "Last Name", "TF" may be "নম্বর"). Bilingual documents (voter cards, government forms) usually repeat each label as "বাংলা লেবেল/English Label" — use the surviving language to reconstruct the damaged one.
 
 Instructions:
 - Carefully analyze the context and reconstruct the words to make them grammatically correct and contextually meaningful in standard Bengali (Unicode/UTF-8).
@@ -28,7 +29,7 @@ export function hasBengaliText(text: string): boolean {
   return /[ঀ-৿]/.test(text);
 }
 
-/** Heuristic: does this Bengali text look shattered by a PDF text layer? */
+/** Heuristic: does this Bengali text look shattered by a PDF text layer or OCR? */
 export function looksBrokenBengali(text: string): boolean {
   if (!hasBengaliText(text)) return false;
   // Dependent vowel signs / hasanta appearing right after whitespace = detached kar signs.
@@ -37,7 +38,11 @@ export function looksBrokenBengali(text: string): boolean {
   const splitWords = (text.match(/[ক-হ]\s+[া-ৌ]/g) || []).length;
   // "ব়" (BA + nukta) is the classic mangled-RA artifact.
   const mangledRa = text.includes('ব়');
-  return mangledRa || detachedKar + splitWords >= 3;
+  // OCR garble: tokens mixing Bengali with Latin letters or stray symbols
+  // inside the same word ("ম€180ৰ65", "তারিখ/20||10"). Digits alone are
+  // excluded — "125-বসিরহাট" is legitimate.
+  const mixedTokens = (text.match(/[ঀ-৿]\S*[A-Za-z€£|[\]{}]|[A-Za-z€£|[\]{}]\S*[ঀ-৿]/g) || []).length;
+  return mangledRa || detachedKar + splitWords >= 3 || mixedTokens >= 2;
 }
 
 async function callRestoreApi(chunk: string): Promise<string> {
