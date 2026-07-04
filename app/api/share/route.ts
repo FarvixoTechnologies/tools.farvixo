@@ -1,19 +1,57 @@
 import { randomBytes } from 'crypto';
 import { apiErr, apiOk } from '@/lib/api-response';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
-import { getSupabaseEnv } from '@/lib/supabase/env';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import {
+  deviceHint,
+  getCallerPlan,
+  hashSharePassword,
+  isProPlan,
+  sharePublicUrl,
+} from '@/lib/share';
 
 export const dynamic = 'force-dynamic';
 
-const MAX_SHARE_BYTES = 25 * 1024 * 1024; // 25MB
-const EXPIRY_HOURS = new Set([1, 24, 168, 720]); // 1h, 24h, 7d, 30d
+const MAX_SHARE_BYTES = 25 * 1024 * 1024;
+const EXPIRY_HOURS = new Set([1, 24, 168, 720]);
 
-/** POST /api/share — upload a processed file and get a secure share link. */
+/** GET /api/share — list current user's active share links (Pro). */
+export async function GET(req: Request) {
+  const { userId, plan } = await getCallerPlan();
+  if (!userId) return apiErr('Sign in to view your share links', 401);
+  if (!isProPlan(plan)) return apiErr('Share links require a Pro plan', 403);
+
+  const admin = createAdminClient();
+  if (!admin) return apiErr('Sharing is not configured', 503);
+
+  const { data, error } = await admin
+    .from('shares')
+    .select('token, file_name, file_size, expires_at, max_downloads, downloads, tool_slug, created_at')
+    .eq('user_id', userId)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) return apiErr('Could not load shares', 500);
+
+  const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+  const shares = (data ?? []).map((s) => ({
+    ...s,
+    url: sharePublicUrl(origin, s.token),
+  }));
+
+  return apiOk({ shares });
+}
+
+/** POST /api/share — upload a processed file and get a secure share link (Pro). */
 export async function POST(req: Request) {
   const rl = rateLimit(`share:${clientIp(req)}`, 10, 60_000);
   if (!rl.allowed) return rateLimitResponse(rl.retryAfterSeconds);
+
+  const { userId, plan } = await getCallerPlan();
+  if (!userId || !isProPlan(plan)) {
+    return apiErr('Secure share links require a Pro plan. Upgrade to unlock.', 403);
+  }
 
   const admin = createAdminClient();
   if (!admin) return apiErr('Sharing is not configured on this server', 503);
@@ -33,14 +71,14 @@ export async function POST(req: Request) {
   const hours = Number(form.get('expiresInHours') ?? 24);
   const expiresInHours = EXPIRY_HOURS.has(hours) ? hours : 24;
   const oneTime = form.get('oneTime') === 'true';
+  const password = String(form.get('password') ?? '').trim();
+  const toolSlug = String(form.get('toolSlug') ?? '').trim().slice(0, 80) || null;
 
-  let userId: string | null = null;
-  if (getSupabaseEnv()) {
-    try {
-      const { supabase } = await createRouteHandlerClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id ?? null;
-    } catch { /* anonymous shares allowed */ }
+  let maxDownloads: number | null = oneTime ? 1 : null;
+  const limitRaw = form.get('downloadLimit');
+  if (limitRaw !== null && limitRaw !== '') {
+    const n = Number(limitRaw);
+    if (Number.isFinite(n) && n >= 1 && n <= 100) maxDownloads = Math.floor(n);
   }
 
   const token = randomBytes(16).toString('base64url');
@@ -56,6 +94,8 @@ export async function POST(req: Request) {
   }
 
   const expiresAt = new Date(Date.now() + expiresInHours * 3600_000).toISOString();
+  const passwordHash = password.length >= 4 ? hashSharePassword(password) : null;
+
   const { error: insertError } = await admin.from('shares').insert({
     token,
     user_id: userId,
@@ -64,7 +104,11 @@ export async function POST(req: Request) {
     mime_type: file.type || 'application/octet-stream',
     storage_path: storagePath,
     expires_at: expiresAt,
-    max_downloads: oneTime ? 1 : null,
+    max_downloads: maxDownloads,
+    password_hash: passwordHash,
+    tool_slug: toolSlug,
+    device_hint: deviceHint(req),
+    share_events: [{ type: 'share_created', at: new Date().toISOString() }],
   });
   if (insertError) {
     console.error('[share] insert failed:', insertError.message);
@@ -75,7 +119,8 @@ export async function POST(req: Request) {
   const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
   return apiOk({
     token,
-    url: `${origin}/api/share/${token}`,
+    url: sharePublicUrl(origin, token),
     expiresAt,
+    hasPassword: !!passwordHash,
   });
 }

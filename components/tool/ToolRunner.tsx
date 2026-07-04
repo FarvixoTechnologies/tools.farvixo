@@ -32,6 +32,7 @@ const CalculatorRunner = dynamic(() => import('./runners/CalculatorRunner'), { s
 const FileConvertRunner = dynamic(() => import('./runners/FileConvertRunner'), { ssr: false, loading });
 const SocialRunner = dynamic(() => import('./runners/SocialRunner'), { ssr: false, loading });
 const GovPhotoRunner = dynamic(() => import('./runners/GovPhotoRunner'), { ssr: false, loading });
+const PdfEditorRunner = dynamic(() => import('./runners/PdfEditorRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'ocr': return <OcrRunner tool={tool} />;
     case 'pdf': return <PdfRunner tool={tool} />;
     case 'pdf-convert': return <PdfConvertRunner tool={tool} />;
-    case 'pdf-converter': return <PdfConverterAdvanced tool={tool} />;
+    case 'pdf-converter': return <PdfConverterAdvanced />;
     case 'ffmpeg': return <FfmpegRunner tool={tool} />;
     case 'speech': return <SpeechRunner tool={tool} />;
     case 'ai-text': return <AiTextRunner tool={tool} />;
@@ -63,6 +64,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'file-convert': return <FileConvertRunner tool={tool} />;
     case 'social': return <SocialRunner tool={tool} />;
     case 'gov-photo-advanced': return <GovPhotoRunner tool={tool} />;
+    case 'pdf-editor': return <PdfEditorRunner tool={tool} />;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }

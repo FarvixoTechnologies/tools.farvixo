@@ -23,7 +23,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return apiErr('Sign in to view notifications', 401);
 
-  let { data: notifications, error } = await supabase
+  const { data: fetched, error } = await supabase
     .from('notifications')
     .select('id, type, title, body, href, read, created_at')
     .order('created_at', { ascending: false })
@@ -35,6 +35,7 @@ export async function GET() {
   }
 
   // First visit: seed a welcome notification so the inbox is never empty.
+  let notifications = fetched;
   if (!notifications || notifications.length === 0) {
     const { data: seeded } = await supabase
       .from('notifications')

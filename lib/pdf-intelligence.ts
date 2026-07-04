@@ -88,8 +88,8 @@ export async function analyzeDocument(
     let pageChars = 0;
     let lineCount = 0;
     let tableIndicators = 0;
-    let fontSizes: number[] = [];
-    let xPositions: number[] = [];
+    const fontSizes: number[] = [];
+    const xPositions: number[] = [];
     let lastY = -1;
 
     for (const item of items) {

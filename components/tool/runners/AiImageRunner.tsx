@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { ErrorBox, Processing, useToolPhase } from '../shared';
 import { aiImage } from '@/lib/ai';
 import { downloadDataUrl } from '@/lib/download';
 import Icon from '../../Icon';
+
+const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 
 const sizes = [
   { label: 'Square (1024×1024)', w: 1024, h: 1024 },
@@ -21,6 +24,7 @@ export default function AiImageRunner() {
   const [sizeIdx, setSizeIdx] = useState(0);
   const [style, setStyle] = useState('None');
   const [imgUrl, setImgUrl] = useState('');
+  const [imgBlob, setImgBlob] = useState<Blob | null>(null);
 
   const run = async () => {
     if (!prompt.trim()) return;
@@ -29,6 +33,8 @@ export default function AiImageRunner() {
       const full = style === 'None' ? prompt : `${prompt}, ${style.toLowerCase()} style, high quality`;
       const url = await aiImage(full, sizes[sizeIdx].w, sizes[sizeIdx].h);
       setImgUrl(url);
+      const blob = await fetch(url).then((r) => r.blob());
+      setImgBlob(blob);
       setPhase('done');
     } catch (e) {
       fail(e);
@@ -66,6 +72,7 @@ export default function AiImageRunner() {
               <button className="btn btn-primary" onClick={() => downloadDataUrl(imgUrl, 'toolnest-ai-image.png')}><Icon name="download" size={15} /> Download</button>
               <button className="btn btn-ghost" onClick={() => void run()}><Icon name="refresh" size={15} /> Regenerate</button>
             </div>
+            {imgBlob && <FabRail file={{ name: 'toolnest-ai-image.png', blob: imgBlob }} toolSlug="ai-image-generator" />}
           </div>
         )}
         {phase === 'idle' && <div className="output-area" style={{ minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Your generated image will appear here ✨</div>}

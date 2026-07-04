@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { FileDrop, Processing, ErrorBox, useToolPhase } from '../shared';
+import dynamic from 'next/dynamic';
 import Icon from '@/components/Icon';
 import { formatBytes } from '@/lib/download';
 import {
@@ -20,6 +21,8 @@ import {
 } from '@/lib/engines/image-compression-engine';
 import { socialPresets, govPresets, responsiveSizes, getPresetsByPlatform } from '@/lib/engines/image-presets';
 import { analyzeImageWithAI, getSmartCompressionSettings, type AIAnalysisResult } from '@/lib/engines/image-analysis-engine';
+
+const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 
 interface BatchItem {
   file: File;
@@ -456,6 +459,16 @@ export default function ImageCompressorRunner() {
             <Icon name="refresh" size={15} /> Compress More
           </button>
         </div>
+        {(() => {
+          const done = batchItems.find((b) => b.status === 'done' && b.result);
+          if (!done?.result) return null;
+          return (
+            <FabRail
+              file={{ name: generateFilename(done.file.name, done.result.format as OutputFormat), blob: done.result.blob }}
+              toolSlug="image-compressor"
+            />
+          );
+        })()}
       </div>
     );
   }

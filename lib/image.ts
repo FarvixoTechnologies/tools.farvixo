@@ -2,14 +2,128 @@
 
 /** Universal Image Engine — canvas-based helpers. */
 
-export function loadImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Could not read this image file.'));
-    img.src = url;
-  });
+export function mimeFromFilename(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() ?? '';
+  const map: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    jpe: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    bmp: 'image/bmp',
+    heic: 'image/heic',
+    heif: 'image/heif',
+    svg: 'image/svg+xml',
+  };
+  return map[ext] ?? '';
+}
+
+/** Re-wrap blobs that have empty or generic MIME (common on Windows uploads). */
+export async function sniffImageMime(file: File): Promise<string> {
+  try {
+    const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return 'image/jpeg';
+    if (head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47) return 'image/png';
+    if (head[0] === 0x47 && head[1] === 0x49 && head[2] === 0x46) return 'image/gif';
+    if (head[0] === 0x42 && head[1] === 0x4d) return 'image/bmp';
+    if (head[0] === 0x52 && head[1] === 0x49 && head[2] === 0x46 && head[3] === 0x46) return 'image/webp';
+  } catch {
+    /* ignore */
+  }
+  return '';
+}
+
+export function fileToTypedBlob(file: File): Blob {
+  const type = file.type.toLowerCase();
+  if (type && type !== 'application/octet-stream') return file;
+  const mime = mimeFromFilename(file.name);
+  if (mime) return new File([file], file.name, { type: mime });
+  return file;
+}
+
+export async function fileToTypedBlobAsync(file: File): Promise<File> {
+  const typed = fileToTypedBlob(file);
+  if (typed !== file || (typed.type && typed.type !== 'application/octet-stream')) {
+    return typed instanceof File ? typed : new File([typed], file.name, { type: typed.type });
+  }
+  const sniffed = await sniffImageMime(file);
+  if (sniffed) return new File([file], file.name, { type: sniffed });
+  return file;
+}
+
+function imageLoadError(name: string): Error {
+  const ext = name.split('.').pop()?.toLowerCase() ?? '';
+  if (ext === 'heic' || ext === 'heif') {
+    return new Error('HEIC/HEIF is not supported in this browser. Save the photo as JPG or PNG first.');
+  }
+  if (ext === 'pdf') {
+    return new Error('PDF cannot be read as an image. Select Document type to upload PDF files.');
+  }
+  return new Error(`Could not read "${name}". Please use a valid JPG or PNG photo.`);
+}
+
+async function loadImageViaBitmap(blob: Blob, name: string): Promise<HTMLImageElement | null> {
+  if (typeof createImageBitmap !== 'function') return null;
+  try {
+    const bitmap = await createImageBitmap(blob);
+    if (bitmap.width < 1 || bitmap.height < 1) {
+      bitmap.close();
+      return null;
+    }
+    const [c, ctx] = makeCanvas(bitmap.width, bitmap.height);
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(imageLoadError(name));
+      img.src = c.toDataURL('image/png');
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function loadImage(file: File | Blob, filename = 'upload.jpg'): Promise<HTMLImageElement> {
+  const name = file instanceof File ? file.name : filename;
+
+  const load = (blob: Blob) =>
+    loadImageViaBitmap(blob, name).then((bitmapImg) => {
+      if (bitmapImg) return bitmapImg;
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          if (img.width < 1 || img.height < 1) {
+            reject(imageLoadError(name));
+            return;
+          }
+          resolve(img);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(imageLoadError(name));
+        };
+        img.src = url;
+      });
+    });
+
+  if (file instanceof File) {
+    return fileToTypedBlobAsync(file).then((typed) => load(typed));
+  }
+  return load(file);
+}
+
+/** Load any supported upload into a canvas (validates decode succeeds). */
+export async function loadImageToCanvas(file: File): Promise<HTMLCanvasElement> {
+  const img = await loadImage(file);
+  const [c, ctx] = makeCanvas(img.width, img.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(img, 0, 0);
+  return c;
 }
 
 export function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {

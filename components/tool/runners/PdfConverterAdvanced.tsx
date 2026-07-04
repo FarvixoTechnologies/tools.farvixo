@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import type { Tool } from '@/data/tools';
-import { Processing, ErrorBox, useToolPhase, type ResultFile } from '../shared';
-import { extractPdfText, renderPdfPages, loadPdfJs } from '@/lib/pdf';
+
+import { ErrorBox, useToolPhase, type ResultFile } from '../shared';
+import { extractPdfText, renderPdfPages } from '@/lib/pdf';
 import { canvasToBlob } from '@/lib/image';
 import { replaceExt, formatBytes } from '@/lib/download';
 import { analyzeDocument, calculateConversionConfidence, buildPageStrategies, type DocumentStructure, type PageStrategy } from '@/lib/pdf-intelligence';
 import Icon from '@/components/Icon';
+import dynamic from 'next/dynamic';
+
+const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -39,7 +42,7 @@ const ALL_TARGETS: TargetFormat[] = ['docx', 'xlsx', 'pptx', 'txt', 'html', 'rtf
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
-export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
+export default function PdfConverterAdvanced() {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
   const [file, setFile] = useState<File | null>(null);
   const [view, setView] = useState<ViewMode>('upload');
@@ -363,6 +366,7 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
             <Icon name="upload" size={15} /> New File
           </button>
         </div>
+        <FabRail file={r.file} toolSlug="pdf-converter" />
       </div>
     );
   }

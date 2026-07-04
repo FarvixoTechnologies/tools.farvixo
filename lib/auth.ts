@@ -50,6 +50,10 @@ export function isAdminRoleString(role: string | null | undefined): boolean {
   return r === 'ADMIN' || r === 'SUPER_ADMIN';
 }
 
+export function isProPlan(plan: UserPlan): boolean {
+  return plan === 'pro' || plan === 'enterprise';
+}
+
 /** Where to send the user after login / OAuth. Admins land on /admin by default. */
 export function resolvePostLoginPath(
   requested: string | null | undefined,

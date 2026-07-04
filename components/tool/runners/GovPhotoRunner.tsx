@@ -11,6 +11,7 @@ import {
   complianceScore,
   downloadZip,
   generatePrintSheet,
+  isPdfFileAsync,
   prepareSourceCanvas,
   processPanFile,
   renderToSpec,
@@ -22,8 +23,19 @@ import {
   type PanPortal,
 } from '@/lib/gov-photo';
 import { ErrorBox, Processing, useToolPhase } from '../shared';
+import dynamic from 'next/dynamic';
+import {
+  GOV_SPECS,
+  getGovSpec,
+  govSpecToPanSpec,
+  portalAcceptanceScore,
+  autoTrimSignature,
+  type GovSpec,
+} from '@/lib/engines/gov-photo-engine';
 
-type Step = 'portal' | 'type' | 'upload' | 'edit' | 'result';
+const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
+
+type Step = 'portal' | 'spec' | 'type' | 'upload' | 'edit' | 'result';
 
 interface BatchItem {
   id: string;
@@ -34,6 +46,11 @@ interface BatchItem {
   compliance: ComplianceItem[];
   ready: boolean;
 }
+
+const PORTAL_LOGOS: Record<PanPortal, { src: string; alt: string }> = {
+  nsdl: { src: '/logos/protean-egov.svg', alt: 'Protean e-Gov Technologies (NSDL)' },
+  uti: { src: '/logos/utiitsl.svg', alt: 'UTIITSL' },
+};
 
 const LABELS = {
   en: {
@@ -127,8 +144,14 @@ const LABELS = {
 };
 
 export default function GovPhotoRunner({ tool }: { tool: Tool }) {
+  const isPanMode = tool.mode === 'pan-card';
+  const specIds = (tool.config?.specIds as string[] | undefined) ?? [];
   const { phase, setPhase, error, fail, reset: resetPhase } = useToolPhase();
-  const [step, setStep] = useState<Step>('portal');
+  const [step, setStep] = useState<Step>(isPanMode ? 'portal' : 'spec');
+  const [selectedSpecId, setSelectedSpecId] = useState<string | null>(specIds.length === 1 ? specIds[0] : null);
+  const [govSpec, setGovSpec] = useState<GovSpec | null>(
+    specIds.length === 1 ? getGovSpec(specIds[0]) ?? null : null,
+  );
   const [portal, setPortal] = useState<PanPortal | null>(null);
   const [fileType, setFileType] = useState<PanFileType | null>(null);
   const [lang, setLang] = useState<'en' | 'hi'>('en');
@@ -139,7 +162,12 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [sourceCanvas, setSourceCanvas] = useState<HTMLCanvasElement | null>(null);
   const [face, setFace] = useState<FaceAnalysis | null>(null);
-  const [edit, setEdit] = useState<EditState>(DEFAULT_EDIT);
+  const [edit, setEdit] = useState<EditState & { saturation?: number; exposure?: number; gamma?: number }>({
+    ...DEFAULT_EDIT,
+    saturation: 100,
+    exposure: 100,
+    gamma: 100,
+  });
   const [originalPreview, setOriginalPreview] = useState('');
   const [comparePos, setComparePos] = useState(50);
 
@@ -158,8 +186,12 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
   const streamRef = useRef<MediaStream | null>(null);
 
   const t = LABELS[lang];
-  const spec = portal && fileType ? PAN_SPECS[portal][fileType] : null;
+  const genericSpec = govSpec ? govSpecToPanSpec(govSpec) : null;
+  const spec = portal && fileType
+    ? PAN_SPECS[portal][fileType]
+    : genericSpec;
   const score = complianceScore(compliance);
+  const portalSim = portalAcceptanceScore(compliance, true);
 
   const stepNum = step === 'portal' ? 1 : step === 'type' ? 2 : step === 'upload' ? 3 : step === 'edit' ? 3 : 4;
 
@@ -207,6 +239,12 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
     try {
       setStatus(t.working);
       if (fileType === 'document') {
+        if ((await isPdfFileAsync(file)) && file.size / 1024 > PAN_SPECS[portal].document.maxKB) {
+          throw new Error(`PDF exceeds ${PAN_SPECS[portal].document.maxKB} KB limit. Compress the PDF first.`);
+        }
+        if (!(await isPdfFileAsync(file)) && !/^image\//i.test(file.type) && !/\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name)) {
+          throw new Error('Unsupported document file. Upload a PDF or a JPG/PNG scan of your document.');
+        }
         const { canvas } = await prepareSourceCanvas(file, fileType, false);
         setSourceCanvas(canvas);
         setFace(null);
@@ -413,7 +451,44 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
 
       {phase === 'error' && <ErrorBox message={error} onRetry={resetPhase} />}
 
-      {step === 'portal' && (
+      {step === 'spec' && !isPanMode && (
+        <section className="gov-step">
+          <h3>Select specification</h3>
+          <p className="muted">Choose the exact government ID format for {tool.name}</p>
+          <div className="gov-portal-grid">
+            {specIds.map((id) => {
+              const s = GOV_SPECS[id];
+              if (!s) return null;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`gov-choice-card glass ${selectedSpecId === id ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedSpecId(id);
+                    setGovSpec(s);
+                    setFileType(s.fileKind === 'signature' ? 'signature' : s.fileKind === 'document' ? 'document' : 'photo');
+                    setPortal('nsdl');
+                  }}
+                >
+                  <b>{s.label}</b>
+                  <span>{s.width}×{s.height}px · ≤{s.maxKB}KB · {s.dpi} DPI</span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary mt-3"
+            disabled={!selectedSpecId}
+            onClick={() => setStep('upload')}
+          >
+            Continue <Icon name="arrow-right" size={15} />
+          </button>
+        </section>
+      )}
+
+      {step === 'portal' && isPanMode && (
         <section className="gov-step">
           <h3>{t.portal}</h3>
           <p className="muted">{t.portalSub}</p>
@@ -425,7 +500,14 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
                 className={`gov-choice-card glass ${portal === p ? 'active' : ''}`}
                 onClick={() => setPortal(p)}
               >
-                <Icon name="landmark" size={28} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={PORTAL_LOGOS[p].src}
+                  alt={PORTAL_LOGOS[p].alt}
+                  className="gov-portal-logo"
+                  width={200}
+                  height={60}
+                />
                 <b>{p === 'nsdl' ? t.nsdl : t.uti}</b>
                 <span>{p === 'nsdl' ? t.nsdlSub : t.utiSub}</span>
               </button>
@@ -437,7 +519,7 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
         </section>
       )}
 
-      {step === 'type' && portal && (
+      {step === 'type' && isPanMode && portal && (
         <section className="gov-step">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setStep('portal')}>← {t.back}</button>
           <h3>{t.fileType}</h3>
@@ -599,6 +681,20 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
                   <div className="field">
                     <label>{t.contrast} <span className="range-value">{edit.contrast}%</span></label>
                     <input type="range" min={50} max={150} value={edit.contrast} onChange={(e) => setEdit({ ...edit, contrast: +e.target.value })} />
+                    <label>Saturation <span className="range-value">{edit.saturation ?? 100}%</span></label>
+                    <input type="range" min={0} max={200} value={edit.saturation ?? 100} onChange={(e) => setEdit({ ...edit, saturation: +e.target.value })} />
+                    <label>Exposure <span className="range-value">{edit.exposure ?? 100}%</span></label>
+                    <input type="range" min={50} max={150} value={edit.exposure ?? 100} onChange={(e) => setEdit({ ...edit, exposure: +e.target.value })} />
+                    <label>Gamma <span className="range-value">{edit.gamma ?? 100}%</span></label>
+                    <input type="range" min={50} max={150} value={edit.gamma ?? 100} onChange={(e) => setEdit({ ...edit, gamma: +e.target.value })} />
+                    {fileType === 'signature' && sourceCanvas && (
+                      <button type="button" className="btn btn-ghost btn-sm mt-2" onClick={() => {
+                        const trimmed = autoTrimSignature(sourceCanvas);
+                        setSourceCanvas(trimmed);
+                      }}>
+                        <Icon name="crop" size={14} /> Auto-trim signature
+                      </button>
+                    )}
                   </div>
                   {face && (
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEdit(autoEditFromFace(face, sourceCanvas.width, sourceCanvas.height, spec))}>
@@ -633,9 +729,9 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
 
       {step === 'result' && resultBlob && (
         <section className="gov-step gov-result">
-          <span className={`gov-ready-badge ${score.ready ? 'pass' : 'warn'}`}>
-            <Icon name={score.ready ? 'check-circle' : 'shield'} size={16} />
-            {score.ready ? t.ready : t.notReady}
+          <span className={`gov-ready-badge ${portalSim.ready ? 'pass' : 'warn'}`}>
+            <Icon name={portalSim.ready ? 'check-circle' : 'shield'} size={16} />
+            Portal Score: {portalSim.score}/100 — {portalSim.ready ? t.ready : t.notReady}
           </span>
 
           {resultPreview && fileType !== 'document' && (
@@ -704,6 +800,10 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
       <p className="muted mt-4" style={{ fontSize: 12 }}>
         {tool.name} · 100% browser-based · Files never uploaded to ToolNest servers
       </p>
+
+      {resultBlob && step === 'result' && (
+        <FabRail file={{ name: resultName, blob: resultBlob }} toolSlug={tool.slug} />
+      )}
     </div>
   );
 }

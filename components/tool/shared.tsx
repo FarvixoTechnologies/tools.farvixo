@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import Icon from '../Icon';
 import { formatBytes } from '@/lib/download';
 
-const ShareFab = dynamic(() => import('./ShareFab'), { ssr: false });
+const FabRail = dynamic(() => import('./FabRail'), { ssr: false });
 
 /* ─────────── Universal Upload Engine UI ─────────── */
 
@@ -177,7 +177,7 @@ export function ResultView({
         ))}
         <button className="btn btn-ghost" onClick={onReset}><Icon name="refresh" size={15} /> Process Another File</button>
       </div>
-      {files.length > 0 && <ShareFab file={files[0]} />}
+      {files.length > 0 && <FabRail file={files[0]} />}
     </div>
   );
 }
