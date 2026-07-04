@@ -5,7 +5,21 @@ import dynamic from 'next/dynamic';
 import Icon from '../Icon';
 import { formatBytes } from '@/lib/download';
 
-const FabRail = dynamic(() => import('./FabRail'), { ssr: false });
+const ShareModal = dynamic(() => import('./ShareModal'), { ssr: false });
+
+/* ─────────── Inline share button (secure URL + QR + Web Share) ─────────── */
+
+export function ShareButton({ file, toolSlug }: { file: ResultFile; toolSlug?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button className="btn btn-outline" onClick={() => setOpen(true)}>
+        <Icon name="link" size={15} /> Share Link
+      </button>
+      {open && <ShareModal open={open} onClose={() => setOpen(false)} file={file} toolSlug={toolSlug} />}
+    </>
+  );
+}
 
 /* ─────────── Universal Upload Engine UI ─────────── */
 
@@ -175,9 +189,9 @@ export function ResultView({
             <Icon name="download" size={16} /> Download {files.length > 1 ? f.name : ''}
           </button>
         ))}
+        {files.length > 0 && <ShareButton file={files[0]} />}
         <button className="btn btn-ghost" onClick={onReset}><Icon name="refresh" size={15} /> Process Another File</button>
       </div>
-      {files.length > 0 && <FabRail file={files[0]} />}
     </div>
   );
 }

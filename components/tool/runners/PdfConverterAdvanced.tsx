@@ -13,7 +13,6 @@ import dynamic from 'next/dynamic';
 import { looksBrokenBengali, restoreBengaliText } from '@/lib/text-restore';
 import { useUI } from '@/components/GlobalUI';
 
-const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 const ShareModal = dynamic(() => import('../ShareModal'), { ssr: false });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -180,10 +179,6 @@ export default function PdfConverterAdvanced() {
   if (view === 'upload') {
     return (
       <div className="pdfconv-layout">
-        <FabRail
-          toolSlug="pdf-converter"
-          onFilesPasted={(fs) => { const f = fs[0]; if (f) void handleFile(f); }}
-        />
         <div
           className={`pdfconv-dropzone ${dragOver ? 'drag-active' : ''}`}
           onClick={() => inputRef.current?.click()}
@@ -404,7 +399,6 @@ export default function PdfConverterAdvanced() {
         {shareOpen && (
           <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} file={r.file} toolSlug="pdf-converter" />
         )}
-        <FabRail file={r.file} toolSlug="pdf-converter" />
       </div>
     );
   }

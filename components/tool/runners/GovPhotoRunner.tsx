@@ -22,8 +22,7 @@ import {
   type PanFileType,
   type PanPortal,
 } from '@/lib/gov-photo';
-import { ErrorBox, Processing, useToolPhase } from '../shared';
-import dynamic from 'next/dynamic';
+import { ErrorBox, Processing, ShareButton, useToolPhase } from '../shared';
 import {
   GOV_SPECS,
   getGovSpec,
@@ -32,8 +31,6 @@ import {
   autoTrimSignature,
   type GovSpec,
 } from '@/lib/engines/gov-photo-engine';
-
-const FabRail = dynamic(() => import('../FabRail'), { ssr: false });
 
 type Step = 'portal' | 'spec' | 'type' | 'upload' | 'edit' | 'result';
 
@@ -802,7 +799,9 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
       </p>
 
       {resultBlob && step === 'result' && (
-        <FabRail file={{ name: resultName, blob: resultBlob }} toolSlug={tool.slug} />
+        <div className="result-actions mt-4">
+          <ShareButton file={{ name: resultName, blob: resultBlob }} toolSlug={tool.slug} />
+        </div>
       )}
     </div>
   );

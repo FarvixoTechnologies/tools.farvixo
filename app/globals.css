@@ -177,37 +177,10 @@ code, pre, .mono { font-family: var(--font-mono); }
 .ai-assistant-btn:hover { background: var(--brand-primary-hover); box-shadow: var(--shadow-glow-strong); }
 .user-chip { display: flex; align-items: center; gap: 9px; padding: 4px 10px 4px 4px; border-radius: var(--radius-pill); border: 1px solid var(--border-subtle); }
 
-/* Floating action rail + Share modal */
-.fab-rail {
-  position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
-  display: flex; flex-direction: column; align-items: flex-end; gap: 12px; z-index: 90;
-  animation: fabIn 0.25s ease-out;
-}
-@keyframes fabIn { from { opacity: 0; transform: translateY(-50%) translateX(16px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
-.fab-items { display: flex; flex-direction: column; gap: 12px; animation: fabItemsIn 0.2s ease-out; }
-@keyframes fabItemsIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
-.fab-main { background: var(--brand-primary) !important; color: #fff !important; border-color: transparent !important; }
-.fab-main:hover { background: var(--brand-primary-hover) !important; }
+/* Share modal */
 .spinner-sm { width: 14px; height: 14px; border-width: 2px; }
 .paste-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; font-size: 13px; }
 .paste-row .btn { display: inline-flex; align-items: center; gap: 7px; }
-.fab-btn {
-  width: 56px; height: 56px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg-surface); color: var(--brand-primary-hover);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(124, 58, 237, 0.2);
-  transition: transform 0.2s ease-out, box-shadow 0.2s;
-}
-.fab-btn:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 12px 36px rgba(124, 58, 237, 0.35); }
-.fab-btn:active { transform: scale(0.96); }
-.fab-btn:disabled { opacity: 0.5; }
-@media (max-width: 1023px) { .fab-btn { width: 52px; height: 52px; } }
-@media (max-width: 767px) {
-  .fab-rail { right: 10px; top: auto; bottom: calc(120px + env(safe-area-inset-bottom, 0px)); transform: none; }
-  .fab-btn { width: 48px; height: 48px; }
-}
-@media (prefers-reduced-motion: reduce) { .fab-rail { animation: none; } .fab-btn { transition: none; } }
 
 .share-modal-overlay {
   position: fixed; inset: 0; z-index: 140;
@@ -236,14 +209,6 @@ code, pre, .mono { font-family: var(--font-mono); }
 .share-qr p { font-size: 12px; }
 .share-social { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .share-qr-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.fab-btn-locked { position: relative; }
-.fab-lock {
-  position: absolute; bottom: 4px; right: 4px;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: var(--gold-premium); color: #1a1a28;
-  display: flex; align-items: center; justify-content: center;
-}
-.share-pro-hint { font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 .link-btn { background: none; border: none; color: var(--brand-primary-hover); cursor: pointer; text-decoration: underline; padding: 0; font: inherit; }
 .pro-upgrade-modal { text-align: center; }
 .tool-workspace { position: relative; }
