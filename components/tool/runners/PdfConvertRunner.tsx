@@ -5,14 +5,28 @@ import type { Tool } from '@/data/tools';
 import { FileDrop, Processing, ErrorBox, ResultView, useToolPhase, type ResultFile } from '../shared';
 import { extractPdfText } from '@/lib/pdf';
 import { replaceExt } from '@/lib/download';
+import { looksBrokenBengali, restoreBengaliText } from '@/lib/text-restore';
 
 export default function PdfConvertRunner({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset, progress, setProgress } = useToolPhase();
   const [files, setFiles] = useState<File[]>([]);
   const [results, setResults] = useState<ResultFile[]>([]);
   const [status, setStatus] = useState('Converting...');
+  const [aiFix, setAiFix] = useState(true);
 
   const mode = tool.mode;
+
+  /** AI-repair shattered Bengali text page-by-page (PDF text layers break Indic scripts). */
+  const repairPages = async (pages: string[]): Promise<string[]> => {
+    if (!aiFix || !pages.some((p) => looksBrokenBengali(p))) return pages;
+    const fixed: string[] = [];
+    for (let i = 0; i < pages.length; i++) {
+      setStatus(`Fixing Bengali text with AI (page ${i + 1}/${pages.length})...`);
+      setProgress(0.7 + ((i + 1) / pages.length) * 0.25);
+      fixed.push(looksBrokenBengali(pages[i]) ? await restoreBengaliText(pages[i]) : pages[i]);
+    }
+    return fixed;
+  };
 
   const run = async () => {
     const file = files[0];
@@ -23,7 +37,7 @@ export default function PdfConvertRunner({ tool }: { tool: Tool }) {
 
       if (mode === 'pdf2word') {
         setStatus('Extracting text from PDF...');
-        const pages = await extractPdfText(file, (d, t) => setProgress((d / t) * 0.7));
+        const pages = await repairPages(await extractPdfText(file, (d, t) => setProgress((d / t) * 0.7)));
         setStatus('Building Word document...');
         const { Document, Packer, Paragraph, TextRun, PageBreak } = await import('docx');
         const children = pages.flatMap((pageText, pi) => {
@@ -146,6 +160,12 @@ export default function PdfConvertRunner({ tool }: { tool: Tool }) {
       <div className="options-panel">
         <h3>Options</h3>
         <p className="muted" style={{ fontSize: 13 }}>{notes[mode]}</p>
+        {mode === 'pdf2word' && (
+          <label className="checkbox-row">
+            <input type="checkbox" checked={aiFix} onChange={(e) => setAiFix(e.target.checked)} />
+            AI Bengali text repair — ভাঙা কার/যুক্তাক্ষর ঠিক করুন
+          </label>
+        )}
         {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
         <button className="btn btn-primary" disabled={files.length === 0} onClick={() => void run()}>Convert Now</button>
       </div>

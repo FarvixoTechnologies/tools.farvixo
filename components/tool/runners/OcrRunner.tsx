@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Tool } from '@/data/tools';
 import { FileDrop, Processing, ErrorBox, OutputBlock, useToolPhase } from '../shared';
 import { renderPdfPages } from '@/lib/pdf';
+import { hasBengaliText, restoreBengaliText } from '@/lib/text-restore';
 import Icon from '../../Icon';
 
 export default function OcrRunner({ tool }: { tool: Tool }) {
@@ -12,6 +13,8 @@ export default function OcrRunner({ tool }: { tool: Tool }) {
   const [text, setText] = useState('');
   const [lang, setLang] = useState('eng');
   const [status, setStatus] = useState('Recognizing text...');
+  const [aiFix, setAiFix] = useState(true);
+  const [fixing, setFixing] = useState(false);
 
   const run = async () => {
     const file = files[0];
@@ -41,7 +44,16 @@ export default function OcrRunner({ tool }: { tool: Tool }) {
         result = data.text;
       }
       await worker.terminate();
-      setText(result.trim() || '(No text detected)');
+      let finalText = result.trim();
+      if (finalText && aiFix && hasBengaliText(finalText)) {
+        setStatus('Fixing Bengali text with AI...');
+        try {
+          finalText = await restoreBengaliText(finalText, (d, t) => setProgress(d / t));
+        } catch {
+          /* keep raw OCR text if AI repair is unavailable */
+        }
+      }
+      setText(finalText || '(No text detected)');
       setPhase('done');
     } catch (e) {
       fail(e);
@@ -56,6 +68,19 @@ export default function OcrRunner({ tool }: { tool: Tool }) {
       <div className="result-box">
         <span className="result-badge"><Icon name="check-circle" size={16} /> Text extracted</span>
         <OutputBlock text={text} filename="extracted-text.txt" />
+        {hasBengaliText(text) && (
+          <button
+            className="btn btn-ghost"
+            disabled={fixing}
+            onClick={async () => {
+              setFixing(true);
+              try { setText(await restoreBengaliText(text)); } catch { /* keep as-is */ }
+              setFixing(false);
+            }}
+          >
+            <Icon name="sparkles" size={15} /> {fixing ? 'Fixing…' : 'Fix Bengali Text with AI'}
+          </button>
+        )}
         <button className="btn btn-ghost" onClick={resetAll}><Icon name="refresh" size={15} /> Process Another File</button>
       </div>
     );
@@ -79,6 +104,10 @@ export default function OcrRunner({ tool }: { tool: Tool }) {
             <option value="chi_sim">Chinese (Simplified)</option>
           </select>
         </div>
+        <label className="checkbox-row">
+          <input type="checkbox" checked={aiFix} onChange={(e) => setAiFix(e.target.checked)} />
+          AI Bengali text repair — ভাঙা কার/যুক্তাক্ষর ঠিক করুন
+        </label>
         <p className="muted" style={{ fontSize: 13 }}>OCR runs 100% in your browser — files never leave your device. First run downloads the language model.</p>
         {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
         <button className="btn btn-primary" disabled={files.length === 0} onClick={() => void run()}>Extract Text</button>
