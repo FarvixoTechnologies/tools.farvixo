@@ -60,7 +60,9 @@ export default function AdminProfilePage() {
   const sendReset = async () => {
     if (!data?.email) return;
     const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email);
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/admin/profile')}`,
+    });
     if (error) toast(error.message, 'error');
     else toast('Reset email sent', 'success');
   };
