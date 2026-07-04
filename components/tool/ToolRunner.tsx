@@ -40,7 +40,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
 
   switch (tool.runner) {
     case 'image': return <ImageRunner tool={tool} />;
-    case 'image-compressor': return <ImageCompressorRunner tool={tool} />;
+    case 'image-compressor': return <ImageCompressorRunner />;
     case 'bg-remove': return <BgRemoveRunner tool={tool} />;
     case 'ocr': return <OcrRunner tool={tool} />;
     case 'pdf': return <PdfRunner tool={tool} />;

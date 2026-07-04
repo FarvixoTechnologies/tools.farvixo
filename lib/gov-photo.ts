@@ -2,7 +2,7 @@
 
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
-import { canvasToBlob, loadImage, makeCanvas } from '@/lib/image';
+import { canvasToBlob, fileToTypedBlobAsync, loadImage, loadImageToCanvas, makeCanvas } from '@/lib/image';
 
 /* ─── PAN Card portal specifications ─── */
 
@@ -81,11 +81,46 @@ export interface ComplianceItem {
 
 type Landmark = { x: number; y: number; z?: number };
 
+/** MediaPipe WASM logs INFO lines via stderr → console.error; Next.js dev overlay treats them as crashes. */
+let mediaPipeLogFilterInstalled = false;
+function installMediaPipeLogFilter(): void {
+  if (mediaPipeLogFilterInstalled || typeof console === 'undefined') return;
+  mediaPipeLogFilterInstalled = true;
+  const origError = console.error.bind(console);
+  console.error = (...args: unknown[]) => {
+    const msg = args
+      .map((a) => (typeof a === 'string' ? a : a instanceof Error ? a.message : String(a)))
+      .join(' ');
+    if (/^INFO:/i.test(msg)) return;
+    if (/TensorFlow Lite|XNNPACK|vision_wasm|mediapipe|W0000|I0000/i.test(msg)) return;
+    origError(...args);
+  };
+}
+
+if (typeof window !== 'undefined') installMediaPipeLogFilter();
+
+function downscaleForFaceDetection(source: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
+  const sw = 'naturalWidth' in source ? source.naturalWidth : source.width;
+  const sh = 'naturalHeight' in source ? source.naturalHeight : source.height;
+  const maxDim = 640;
+  if (Math.max(sw, sh) <= maxDim) {
+    if (source instanceof HTMLCanvasElement) return source;
+    const [c, ctx] = makeCanvas(sw, sh);
+    ctx.drawImage(source, 0, 0);
+    return c;
+  }
+  const scale = maxDim / Math.max(sw, sh);
+  const [c, ctx] = makeCanvas(Math.round(sw * scale), Math.round(sh * scale));
+  ctx.drawImage(source, 0, 0, c.width, c.height);
+  return c;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let faceLandmarkerPromise: Promise<any> | null = null;
 
 async function getFaceLandmarker(): Promise<{ detect: (img: HTMLCanvasElement | HTMLImageElement) => { faceLandmarks?: Landmark[][] } }> {
   if (!faceLandmarkerPromise) {
+    installMediaPipeLogFilter();
     faceLandmarkerPromise = (async () => {
       const dynamicImport = new Function('u', 'return import(u)') as (u: string) => Promise<unknown>;
       const mp = await dynamicImport('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm') as {
@@ -99,7 +134,7 @@ async function getFaceLandmarker(): Promise<{ detect: (img: HTMLCanvasElement | 
         baseOptions: {
           modelAssetPath:
             'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-          delegate: 'GPU',
+          delegate: 'CPU',
         },
         runningMode: 'IMAGE',
         numFaces: 1,
@@ -131,8 +166,10 @@ function bboxFromLandmarks(pts: Landmark[]): FaceBBox {
 
 export async function detectFace(source: HTMLCanvasElement | HTMLImageElement): Promise<FaceAnalysis | null> {
   try {
+    installMediaPipeLogFilter();
     const landmarker = await getFaceLandmarker();
-    const result = landmarker.detect(source);
+    const sample = downscaleForFaceDetection(source);
+    const result = landmarker.detect(sample);
     const pts = result.faceLandmarks?.[0];
     if (!pts?.length) return null;
 
@@ -169,7 +206,7 @@ function detectGlare(
 ): boolean {
   const w = 'naturalWidth' in source ? source.naturalWidth : source.width;
   const h = 'naturalHeight' in source ? source.naturalHeight : source.height;
-  const [c, ctx] = makeCanvas(w, h);
+  const [, ctx] = makeCanvas(w, h);
   ctx.drawImage(source, 0, 0);
   const data = ctx.getImageData(0, 0, w, h).data;
   const check = (lm: Landmark) => {
@@ -237,11 +274,7 @@ export function isBackgroundLight(canvas: HTMLCanvasElement, threshold = 220): b
 /* ─── Image rendering & encoding ─── */
 
 export function fileToCanvas(file: File): Promise<HTMLCanvasElement> {
-  return loadImage(file).then((img) => {
-    const [c, ctx] = makeCanvas(img.width, img.height);
-    ctx.drawImage(img, 0, 0);
-    return c;
-  });
+  return loadImageToCanvas(file);
 }
 
 export function autoEditFromFace(
@@ -626,7 +659,8 @@ export async function generatePrintSheet(
 /* ─── Document → PDF ─── */
 
 export async function imageFileToPdf(file: File, maxKB: number): Promise<Blob> {
-  const img = await loadImage(file);
+  const typed = await fileToTypedBlobAsync(file);
+  const img = await loadImage(typed, file.name);
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const [c, ctx] = makeCanvas(img.width, img.height);
@@ -674,18 +708,32 @@ export async function downloadZip(files: { name: string; blob: Blob }[]): Promis
 
 /* ─── HEIC / normalize upload ─── */
 
-export async function normalizeUploadFile(file: File): Promise<File> {
+export function isPdfFile(file: File): boolean {
   const type = file.type.toLowerCase();
-  if (type === 'image/jpeg' || type === 'image/jpg' || type === 'image/png' || type === 'image/webp') {
-    return file;
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+  return type === 'application/pdf' || type === 'application/x-pdf' || ext === 'pdf';
+}
+
+/** Detect PDF even when extension/MIME are missing (checks %PDF header). */
+export async function isPdfFileAsync(file: File): Promise<boolean> {
+  if (isPdfFile(file)) return true;
+  try {
+    const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+    return head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
+  } catch {
+    return false;
   }
-  const img = await loadImage(file);
-  const [c, ctx] = makeCanvas(img.width, img.height);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, c.width, c.height);
-  ctx.drawImage(img, 0, 0);
-  const blob = await canvasToBlob(c, 'image/jpeg', 0.92);
-  return new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+}
+
+export async function normalizeUploadFile(file: File): Promise<File> {
+  if (await isPdfFileAsync(file)) {
+    throw new Error('PDF cannot be opened as an image. Choose Document type to upload PDF files.');
+  }
+
+  const canvas = await loadImageToCanvas(file);
+  const blob = await canvasToBlob(canvas, 'image/jpeg', 0.92);
+  const base = file.name.replace(/\.[^.]+$/, '') || 'upload';
+  return new File([blob], `${base}.jpg`, { type: 'image/jpeg' });
 }
 
 /* ─── Full processing pipeline ─── */
@@ -710,7 +758,7 @@ export async function processPanFile(input: ProcessInput): Promise<{
 
   if (input.fileType === 'document') {
     let blob: Blob;
-    if (input.file.type === 'application/pdf') {
+    if (await isPdfFileAsync(input.file)) {
       blob = input.file;
       if (blob.size / 1024 > spec.maxKB) {
         throw new Error(`PDF exceeds ${spec.maxKB} KB limit. Use Aadhaar PDF Compressor first.`);
@@ -755,6 +803,12 @@ export async function prepareSourceCanvas(
   fileType: PanFileType,
   removeBackground: boolean,
 ): Promise<{ canvas: HTMLCanvasElement; face: FaceAnalysis | null }> {
+  /** Document uploads (PDF or scanned JPG) are converted only on Generate — never decoded here. */
+  if (fileType === 'document') {
+    const [c] = makeCanvas(1, 1);
+    return { canvas: c, face: null };
+  }
+
   const normalized = await normalizeUploadFile(file);
   let canvas = await fileToCanvas(normalized);
   let face: FaceAnalysis | null = null;
