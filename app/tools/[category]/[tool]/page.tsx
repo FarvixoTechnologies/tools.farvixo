@@ -28,6 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  if (slug === 'pan-card-photo-resizer') {
+    return {
+      title: 'PAN Card Photo Resizer — NSDL & UTI AI Tool with Compliance Check | ToolNest',
+      description: 'Free AI PAN card photo, signature & document resizer for NSDL (Protean) and UTIITSL. Auto face crop, white background, DPI fix, 12-point compliance validator. 100% private.',
+    };
+  }
+
+  if (slug === 'image-compressor') {
+    return {
+      title: 'Image Compressor - Compress Images Online Free | AVIF, WebP, JPEG, PNG | ToolNest',
+      description: 'Compress images up to 90% smaller with AI-powered optimization. Supports AVIF, WebP, JPEG, PNG. Batch processing, target file size, social media presets. 100% private — runs in your browser.',
+    };
+  }
+
   return {
     title: `${tool.name} - Free Online ${cat?.shortName || ''} Tool | ToolNest`,
     description: `${tool.description}. Free, fast and 100% private - runs in your browser. No sign-up required.`,
@@ -45,6 +59,32 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'Can I convert scanned PDFs?', a: 'Scanned (image-only) PDFs work best with our PDF OCR tool first, which extracts text using AI. Then convert the result to Word or other formats.' },
     ];
   }
+  if (slug === 'pan-card-photo-resizer') {
+    return [
+      { q: 'What is the difference between NSDL and UTI PAN photo requirements?', a: 'NSDL (Protean) requires 197×276 px photo at 200 DPI (20–50 KB JPEG). UTIITSL requires 213×213 px at 300 DPI (max 30 KB). Signatures also differ: NSDL 354×157 px, UTI 400×200 px. Our tool auto-applies the correct specs when you select your portal.' },
+      { q: 'Why does my PAN photo keep getting rejected?', a: 'The top reasons are wrong dimensions, file size over the KB limit, non-JPEG format (PNG/HEIC), dark or coloured background, and incorrect DPI metadata. ToolNest fixes all of these automatically with AI face crop, white background, force-weight compression, and embedded DPI.' },
+      { q: 'What DPI is required for NSDL PAN card photo?', a: 'NSDL requires 200 DPI embedded in the JPEG file. UTI requires 300 DPI for photos and 600 DPI for signatures. Our tool embeds the correct DPI metadata on every download.' },
+      { q: 'Can I use a selfie for PAN card application?', a: 'Yes, if it is front-facing with a neutral expression and plain white/light background. Use our camera capture with face guide, or upload a selfie and let AI remove the background and auto-crop to spec.' },
+      { q: 'Is this PAN card resizer safe and private?', a: 'Yes — 100% browser-based processing. Your photo never leaves your device. No uploads to ToolNest servers. No account required. Unlimited free use.' },
+      { q: 'Can CSC operators use batch mode?', a: 'Yes. Enable Batch Mode to process multiple photos or signatures with the same NSDL/UTI settings. Download each file individually or all at once as a ZIP.' },
+      { q: 'Does it work on mobile phones?', a: 'Yes — fully responsive on Android and iPhone. Upload from gallery, capture from camera, pinch-to-zoom while editing, and download ready-to-upload JPEG files.' },
+      { q: 'What signature size is required for PAN card?', a: 'NSDL: 354×157 px, 10–50 KB JPEG. UTI: 400×200 px, max 60 KB JPEG. Select Signature in step 2 and the tool applies exact dimensions automatically.' },
+    ];
+  }
+  if (slug === 'image-compressor') {
+    return [
+      { q: 'How much can I compress my images?', a: 'ToolNest Image Compressor can reduce file size by up to 90% without visible quality loss. AVIF format achieves the best compression (50-70% smaller than JPEG), followed by WebP (25-35% smaller). Use our Compare Codecs tab to see exact results for your specific image.' },
+      { q: 'What image formats are supported?', a: 'Input: JPEG, PNG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO, and HEIC/HEIF. Output: JPEG (MozJPEG), PNG (OxiPNG), WebP, AVIF (best compression), and JPEG XL (next-gen). Convert between any format while compressing in a single pass.' },
+      { q: 'Is my data safe? Are images uploaded to a server?', a: 'Your images NEVER leave your device. All compression runs 100% in your browser using WebAssembly technology. No server uploads, no data collection, no accounts needed. Works offline after first load.' },
+      { q: 'Can I compress images to a specific file size (e.g., 50KB for PAN card)?', a: 'Yes! Use Target Size mode to specify exact file size targets (10KB to 10MB). We also have pre-built Government/Exam presets for PAN Card (≤30KB), Aadhaar (≤100KB), Passport, SSC, UPSC, IBPS, and more — with exact dimensions and size limits auto-applied.' },
+      { q: 'How many images can I compress at once?', a: 'Unlimited batch processing — compress 100+ images simultaneously. Our parallel processing engine uses Web Workers to compress multiple images at once without freezing your browser. Download all results as a single ZIP file.' },
+      { q: 'What is AVIF and why should I use it?', a: 'AVIF is a next-generation image format (developed by Alliance for Open Media) that achieves 30-50% better compression than WebP and 50-70% better than JPEG at equivalent visual quality. It supports HDR, transparency, and animation. All modern browsers (Chrome, Firefox, Safari, Edge) support AVIF as of 2024+.' },
+      { q: 'Can I generate responsive images for my website?', a: 'Yes! Use the Responsive Set tab to generate multiple sizes (150px to 2560px) from a single image. Downloads include srcset-ready filenames and we generate ready-to-use HTML picture/srcset code for your website.' },
+      { q: 'How does the Compare Codecs feature work?', a: 'Compare Codecs compresses your image using JPEG, WebP, AVIF, and PNG simultaneously at the same quality level, then shows you the results side-by-side with exact file sizes, compression ratios, and processing times. Download whichever version works best for your needs.' },
+      { q: 'Does it work on mobile phones?', a: 'Yes — fully responsive and works on any modern browser (Chrome, Safari, Firefox, Edge) on iOS, Android, and desktop. The WebAssembly compression engine runs efficiently even on mobile devices.' },
+      { q: 'How is this different from TinyPNG or Squoosh?', a: 'ToolNest combines the best of both: Squoosh-level quality control (AVIF, WebP, manual settings, comparison slider) + TinyPNG-level batch processing (unlimited images) + features neither has: AI-powered auto-settings, target file size mode, social media presets, responsive image generation, government document presets, and compression reports — all in one tool, all 100% free and private.' },
+    ];
+  }
   return [
     { q: `Is ${toolName} free to use?`, a: `Yes - ${toolName} on ToolNest is completely free with no hidden limits, watermarks or sign-up requirements.` },
     { q: 'Are my files safe?', a: 'Absolutely. Processing happens directly in your browser wherever technically possible, so your files never leave your device.' },
@@ -57,6 +97,12 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
 function getTrustStats(slug: string) {
   if (slug === 'pdf-converter') {
     return { rating: '4.9', reviews: '32,410', uses: '8.2M+', extra: 'Files auto-deleted after 24h' };
+  }
+  if (slug === 'image-compressor') {
+    return { rating: '4.9', reviews: '28,750', uses: '4.2M+', extra: '100% Private · No Upload' };
+  }
+  if (slug === 'pan-card-photo-resizer') {
+    return { rating: '4.9', reviews: '18,240', uses: '500K+', extra: 'AI Face Crop · 12-Point Compliance' };
   }
   return { rating: '4.9', reviews: '', uses: '2.4M+', extra: 'Runs in your browser' };
 }

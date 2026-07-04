@@ -9,6 +9,7 @@ import { Processing } from './shared';
 const loading = () => <Processing label="Loading tool..." />;
 
 const ImageRunner = dynamic(() => import('./runners/ImageRunner'), { ssr: false, loading });
+const ImageCompressorRunner = dynamic(() => import('./runners/ImageCompressorRunner'), { ssr: false, loading });
 const BgRemoveRunner = dynamic(() => import('./runners/BgRemoveRunner'), { ssr: false, loading });
 const OcrRunner = dynamic(() => import('./runners/OcrRunner'), { ssr: false, loading });
 const PdfRunner = dynamic(() => import('./runners/PdfRunner'), { ssr: false, loading });
@@ -30,6 +31,7 @@ const BusinessRunner = dynamic(() => import('./runners/BusinessRunner'), { ssr: 
 const CalculatorRunner = dynamic(() => import('./runners/CalculatorRunner'), { ssr: false, loading });
 const FileConvertRunner = dynamic(() => import('./runners/FileConvertRunner'), { ssr: false, loading });
 const SocialRunner = dynamic(() => import('./runners/SocialRunner'), { ssr: false, loading });
+const GovPhotoRunner = dynamic(() => import('./runners/GovPhotoRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
 
   switch (tool.runner) {
     case 'image': return <ImageRunner tool={tool} />;
+    case 'image-compressor': return <ImageCompressorRunner tool={tool} />;
     case 'bg-remove': return <BgRemoveRunner tool={tool} />;
     case 'ocr': return <OcrRunner tool={tool} />;
     case 'pdf': return <PdfRunner tool={tool} />;
@@ -59,6 +62,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'calculator': return <CalculatorRunner tool={tool} />;
     case 'file-convert': return <FileConvertRunner tool={tool} />;
     case 'social': return <SocialRunner tool={tool} />;
+    case 'gov-photo-advanced': return <GovPhotoRunner tool={tool} />;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }

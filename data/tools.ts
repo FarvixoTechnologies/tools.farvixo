@@ -1,5 +1,6 @@
 export type RunnerKind =
   | 'image'
+  | 'image-compressor'
   | 'bg-remove'
   | 'ocr'
   | 'pdf'
@@ -20,7 +21,8 @@ export type RunnerKind =
   | 'business'
   | 'calculator'
   | 'file-convert'
-  | 'social';
+  | 'social'
+  | 'gov-photo-advanced';
 
 export type ToolConfig = Record<string, unknown>;
 
@@ -47,7 +49,7 @@ export const tools: Tool[] = [
   // ─── 🏛 Government Tools (8) ───────────────────────────────────────────
   { id: 1, slug: 'passport-photo-maker', name: 'Passport Photo Maker', description: 'Create compliant passport photos with country presets', category: 'government', icon: 'user-square', runner: 'image', mode: 'gov-photo', accept: IMG, config: { presets: [ { label: 'India Passport (35×45 mm, 2×2 in print)', w: 413, h: 531, kb: 100 }, { label: 'US Passport (2×2 in)', w: 600, h: 600, kb: 240 }, { label: 'UK Passport (35×45 mm)', w: 413, h: 531, kb: 100 }, { label: 'Schengen Visa (35×45 mm)', w: 413, h: 531, kb: 100 } ] }, keywords: ['passport', 'photo', 'visa', 'id'] },
   { id: 2, slug: 'passport-signature-resizer', name: 'Passport Signature Resizer', description: 'Resize signature to passport upload specifications', category: 'government', icon: 'pen', runner: 'image', mode: 'gov-photo', accept: IMG, config: { presets: [ { label: 'Passport Seva Signature (small)', w: 200, h: 100, kb: 20 }, { label: 'Passport Seva Signature (large)', w: 400, h: 200, kb: 50 } ] } },
-  { id: 3, slug: 'pan-card-photo-resizer', name: 'PAN Card Photo Resizer', description: 'Resize photo to NSDL / UTIITSL PAN specifications', category: 'government', icon: 'user-square', runner: 'image', mode: 'gov-photo', accept: IMG, config: { presets: [ { label: 'PAN Photo (213×213 px, ≤30KB)', w: 213, h: 213, kb: 30 }, { label: 'PAN Signature (213×71 px, ≤30KB)', w: 213, h: 71, kb: 30 } ] } },
+  { id: 3, slug: 'pan-card-photo-resizer', name: 'PAN Card Photo Resizer', description: 'AI-powered NSDL & UTI photo, signature & document resizer with 12-point compliance check', category: 'government', icon: 'user-square', badge: 'new', runner: 'gov-photo-advanced', mode: 'pan-card', accept: `${IMG},${PDF}`, multiple: true, config: { portals: ['nsdl', 'uti'], types: ['photo', 'signature', 'document'] }, keywords: ['pan card', 'nsdl', 'uti', 'pan photo', 'pan signature', 'protean', 'utiitsl', 'government id'] },
   { id: 4, slug: 'aadhaar-photo-resizer', name: 'Aadhaar Photo Resizer', description: 'Resize photo to UIDAI Aadhaar specifications', category: 'government', icon: 'user-square', runner: 'image', mode: 'gov-photo', accept: IMG, config: { presets: [ { label: 'Aadhaar Photo (300×400 px, ≤100KB)', w: 300, h: 400, kb: 100 } ] } },
   { id: 5, slug: 'aadhaar-pdf-compressor', name: 'Aadhaar PDF Compressor', description: 'Compress Aadhaar PDF to UIDAI upload size limits', category: 'government', icon: 'file-down', runner: 'pdf', mode: 'compress', accept: PDF, config: { targetKB: 200 } },
   { id: 6, slug: 'voter-id-photo-resizer', name: 'Voter ID Photo Resizer', description: 'Resize photo to Voter ID (EPIC) specifications', category: 'government', icon: 'user-square', runner: 'image', mode: 'gov-photo', accept: IMG, config: { presets: [ { label: 'Voter ID Photo (240×320 px, ≤100KB)', w: 240, h: 320, kb: 100 } ] } },
@@ -71,7 +73,7 @@ export const tools: Tool[] = [
 
   // ─── 🖼 Image Tools (12 + 1 alias) ─────────────────────────────────────
   { id: 21, slug: 'image-converter', name: 'Image Converter', description: 'Convert images between PNG, JPG, WebP and more', category: 'image', icon: 'image', badge: 'popular', runner: 'image', mode: 'convert', accept: IMG },
-  { id: 22, slug: 'image-compressor', name: 'Image Compressor', description: 'Compress images without losing quality', category: 'image', icon: 'image-down', badge: 'popular', runner: 'image', mode: 'compress', accept: IMG },
+  { id: 22, slug: 'image-compressor', name: 'Image Compressor', description: 'Compress images up to 90% smaller with AI-powered AVIF, WebP, JPEG & PNG optimization — 100% private, runs in your browser', category: 'image', icon: 'image-down', badge: 'popular', runner: 'image-compressor', mode: 'compress', accept: IMG, multiple: true, keywords: ['compress', 'image compressor', 'reduce size', 'optimize', 'webp', 'avif', 'jpeg', 'png', 'batch', 'bulk', 'resize', 'photo compressor', 'compress image to 50kb', 'compress for passport', 'compress for pan card'] },
   { id: 23, slug: 'image-resizer', name: 'Image Resizer', description: 'Resize images to exact dimensions', category: 'image', icon: 'scaling', runner: 'image', mode: 'resize', accept: IMG },
   { id: 24, slug: 'crop-image', name: 'Crop Image', description: 'Crop images to any size or aspect ratio', category: 'image', icon: 'crop', runner: 'image', mode: 'crop', accept: IMG },
   { id: 25, slug: 'rotate-flip-image', name: 'Rotate & Flip Image', description: 'Rotate or mirror images in one click', category: 'image', icon: 'rotate', runner: 'image', mode: 'rotate', accept: IMG },
