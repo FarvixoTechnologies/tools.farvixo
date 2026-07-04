@@ -119,9 +119,9 @@ export default function PdfConverterAdvanced() {
 
   const convertToFormat = async (fmt: TargetFormat): Promise<ConversionResult> => {
     if (!file) throw new Error('No file');
-    const result = await runConversion(file, fmt, (p) => setConvertProgress(p));
+    const { file: result, previewHtml: enginePreview } = await runConversion(file, fmt, (p) => setConvertProgress(p));
     const conf = structure ? calculateConversionConfidence(structure, fmt) : { overall: 80, perPage: [], issues: [] };
-    const previewHtml = await generatePreview(result.blob, fmt);
+    const previewHtml = enginePreview ?? (await generatePreview(result.blob, fmt));
     return { format: fmt, file: result, confidence: conf.overall, previewHtml };
   };
 
@@ -579,7 +579,20 @@ async function repairBengaliPages(pages: string[], onProgress: (p: number) => vo
   return fixed;
 }
 
-async function runConversion(file: File, target: TargetFormat, onProgress: (p: number) => void): Promise<ResultFile> {
+function textPreview(text: string): string {
+  const escaped = text.slice(0, 2000).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  return `<pre class="pdfconv-text-preview">${escaped}</pre>`;
+}
+
+function imagePreview(canvas: HTMLCanvasElement): string {
+  return `<div class="pdfconv-img-preview"><img src="${canvas.toDataURL('image/jpeg', 0.82)}" alt="Converted page preview" style="max-width:100%;height:auto;border-radius:8px" /></div>`;
+}
+
+async function runConversion(
+  file: File,
+  target: TargetFormat,
+  onProgress: (p: number) => void,
+): Promise<{ file: ResultFile; previewHtml?: string }> {
   if (target === 'docx') {
     const { pages: rawPages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.6));
     const pages = await repairBengaliPages(rawPages, onProgress);
@@ -590,14 +603,17 @@ async function runConversion(file: File, target: TargetFormat, onProgress: (p: n
       return paras;
     });
     onProgress(1);
-    return { name: replaceExt(file.name, 'docx'), blob: await Packer.toBlob(new Document({ sections: [{ children }] })) };
+    return {
+      file: { name: replaceExt(file.name, 'docx'), blob: await Packer.toBlob(new Document({ sections: [{ children }] })) },
+      previewHtml: textPreview(pages.join('\n\n')),
+    };
   }
   if (target === 'xlsx' || target === 'csv') {
     const { pages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.7));
     if (target === 'csv') {
       const csv = pages.flatMap((p) => p.split('\n').filter(Boolean).map((l) => l.split(/\s{2,}|\t/).map((c) => c.includes(',') ? `"${c.trim()}"` : c.trim()).join(','))).join('\n');
       onProgress(1);
-      return { name: replaceExt(file.name, 'csv'), blob: new Blob([csv], { type: 'text/csv' }) };
+      return { file: { name: replaceExt(file.name, 'csv'), blob: new Blob([csv], { type: 'text/csv' }) } };
     }
     const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
@@ -606,7 +622,10 @@ async function runConversion(file: File, target: TargetFormat, onProgress: (p: n
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows.length ? rows : [['']]), `Page ${i + 1}`);
     });
     onProgress(1);
-    return { name: replaceExt(file.name, 'xlsx'), blob: new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }) };
+    return {
+      file: { name: replaceExt(file.name, 'xlsx'), blob: new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }) },
+      previewHtml: textPreview(pages.join('\n\n')),
+    };
   }
   if (target === 'pptx') {
     const rendered = await renderPdfPages(file, 2, (d, t) => onProgress((d / t) * 0.6));
@@ -618,7 +637,10 @@ async function runConversion(file: File, target: TargetFormat, onProgress: (p: n
       slide.addImage({ data: b64, x: 0, y: 0, w: '100%', h: '100%' });
       onProgress(0.6 + ((i + 1) / rendered.length) * 0.4);
     }
-    return { name: replaceExt(file.name, 'pptx'), blob: await pptx.write({ outputType: 'blob' }) as Blob };
+    return {
+      file: { name: replaceExt(file.name, 'pptx'), blob: await pptx.write({ outputType: 'blob' }) as Blob },
+      previewHtml: rendered[0] ? imagePreview(rendered[0].canvas) : undefined,
+    };
   }
   if (target === 'jpg' || target === 'png' || target === 'webp') {
     const mime = target === 'jpg' ? 'image/jpeg' : target === 'png' ? 'image/png' : 'image/webp';
@@ -629,30 +651,33 @@ async function runConversion(file: File, target: TargetFormat, onProgress: (p: n
       zip.file(`page-${i + 1}.${target}`, await canvasToBlob(pages[i].canvas, mime, 0.9));
       onProgress(0.7 + ((i + 1) / pages.length) * 0.3);
     }
-    return { name: replaceExt(file.name, 'zip'), blob: await zip.generateAsync({ type: 'blob' }) };
+    return {
+      file: { name: replaceExt(file.name, 'zip'), blob: await zip.generateAsync({ type: 'blob' }) },
+      previewHtml: pages[0] ? imagePreview(pages[0].canvas) : undefined,
+    };
   }
   if (target === 'txt') {
     const { pages: rawPages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.7));
     const pages = await repairBengaliPages(rawPages, onProgress);
-    return { name: replaceExt(file.name, 'txt'), blob: new Blob([pages.map((p, i) => `--- Page ${i + 1} ---\n${p}`).join('\n\n')], { type: 'text/plain' }) };
+    return { file: { name: replaceExt(file.name, 'txt'), blob: new Blob([pages.map((p, i) => `--- Page ${i + 1} ---\n${p}`).join('\n\n')], { type: 'text/plain' }) } };
   }
   if (target === 'md') {
     const { pages: rawPages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.7));
     const pages = await repairBengaliPages(rawPages, onProgress);
     const md = pages.map((p, i) => `## Page ${i + 1}\n\n${p.split('\n').map((l) => { const t = l.trim(); if (!t) return ''; if (t.length < 60 && t === t.toUpperCase() && t.length > 3) return `### ${t}`; return t; }).join('\n')}`).join('\n\n---\n\n');
-    return { name: replaceExt(file.name, 'md'), blob: new Blob([md], { type: 'text/markdown' }) };
+    return { file: { name: replaceExt(file.name, 'md'), blob: new Blob([md], { type: 'text/markdown' }) } };
   }
   if (target === 'html') {
     const { pages: rawPages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.7));
     const pages = await repairBengaliPages(rawPages, onProgress);
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:system-ui;max-width:900px;margin:40px auto;padding:20px;line-height:1.7;color:#333}.page{margin-bottom:2em;padding-bottom:1em;border-bottom:1px solid #eee}</style></head><body>${pages.map((p, i) => `<div class="page"><h2>Page ${i + 1}</h2>${p.split('\n').map((l) => `<p>${l || '&nbsp;'}</p>`).join('')}</div>`).join('')}</body></html>`;
-    return { name: replaceExt(file.name, 'html'), blob: new Blob([html], { type: 'text/html' }) };
+    return { file: { name: replaceExt(file.name, 'html'), blob: new Blob([html], { type: 'text/html' }) } };
   }
   if (target === 'rtf') {
     const { pages: rawPages } = await extractPdfTextSmart(file, (d, t) => onProgress((d / t) * 0.7));
     const pages = await repairBengaliPages(rawPages, onProgress);
     const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Helvetica;}}\n${pages.map((p) => p.split('\n').map((l) => `\\f0\\fs22 ${l.replace(/[\\{}]/g, '\\$&')}\\par\n`).join('')).join('\\page\n')}}`;
-    return { name: replaceExt(file.name, 'rtf'), blob: new Blob([rtf], { type: 'application/rtf' }) };
+    return { file: { name: replaceExt(file.name, 'rtf'), blob: new Blob([rtf], { type: 'application/rtf' }) } };
   }
   throw new Error(`Unsupported format: ${target}`);
 }
