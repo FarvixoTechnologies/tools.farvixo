@@ -29,7 +29,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="container dashboard-layout">
       <aside className="dash-sidebar glass">
         <div className="dash-user">
-          <span className="user-avatar">{initials(user.fullName)}</span>
+          <span className="user-avatar">
+            {user.avatarUrl
+              ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" />
+              : initials(user.fullName)}
+          </span>
           <div>
             <b>{user.fullName}</b>
             <span className={`pill ${user.plan === 'pro' ? 'pill-pro' : ''}`}>{user.plan.toUpperCase()}</span>

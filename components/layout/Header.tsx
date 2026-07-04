@@ -36,6 +36,7 @@ export default function Header() {
   const [cat, setCat] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(true);
 
   useEffect(() => {
@@ -116,7 +117,11 @@ export default function Header() {
                 </Link>
               )}
               <Link href={isAdminUser(user) ? '/admin' : '/dashboard'} className="user-chip">
-                <span className="user-avatar">{initials(user.fullName)}</span>
+                <span className="user-avatar">
+                  {user.avatarUrl
+                    ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" />
+                    : initials(user.fullName)}
+                </span>
                 <span className="user-meta">
                   <span className="user-name">{user.fullName}</span>
                   {isAdminUser(user) ? (
@@ -148,7 +153,11 @@ export default function Header() {
             <div className="mobile-menu-head">
               {user ? (
                 <Link href={isAdminUser(user) ? '/admin' : '/dashboard'} className="user-chip" onClick={() => setMenuOpen(false)}>
-                  <span className="user-avatar">{initials(user.fullName)}</span>
+                  <span className="user-avatar">
+                    {user.avatarUrl
+                      ? <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" />
+                      : initials(user.fullName)}
+                  </span>
                   <span className="user-meta">
                     <span className="user-name">{user.fullName}</span>
                     {isAdminUser(user) ? (
@@ -171,7 +180,7 @@ export default function Header() {
             </button>
 
             <div className="mobile-menu-links">
-              {navLinks.map((l) => (
+              {navLinks.slice(0, 3).map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
@@ -182,14 +191,28 @@ export default function Header() {
                   {l.badge && <span className="pill pill-nav-new">{l.badge}</span>}
                 </Link>
               ))}
-              {['security', 'calculator', 'social', 'government'].map((slug) => {
-                const c = categories.find((x) => x.slug === slug)!;
-                return (
-                  <Link key={slug} href={`/tools/${slug}`} className="mobile-menu-link" onClick={() => setMenuOpen(false)}>
-                    {c.name}
-                  </Link>
-                );
-              })}
+              <button
+                className="mobile-menu-link mobile-cat-toggle"
+                onClick={() => setCatOpen((o) => !o)}
+                aria-expanded={catOpen}
+              >
+                Tool Categories
+                <Icon name={catOpen ? 'chevron-up' : 'chevron-down'} size={14} />
+              </button>
+              {catOpen && (
+                <div className="mobile-cat-list">
+                  {categories.map((c) => (
+                    <Link
+                      key={c.slug}
+                      href={`/tools/${c.slug}`}
+                      className={`mobile-menu-link ${pathname === `/tools/${c.slug}` ? 'active' : ''}`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Icon name={c.icon} size={15} /> {c.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="mobile-menu-foot">
