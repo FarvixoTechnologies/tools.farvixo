@@ -16,6 +16,7 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
   { label: 'Home', href: '/' },
   { label: 'All Tools', href: '/tools' },
   { label: 'AI Tools', href: '/tools/ai', badge: 'NEW' },
+  { label: 'Government', href: '/tools/government' },
   { label: 'PDF', href: '/tools/pdf' },
   { label: 'Image', href: '/tools/image' },
   { label: 'Video', href: '/tools/video' },
@@ -255,7 +256,7 @@ export default function Header() {
                 style={{ position: 'absolute', top: '100%', right: 0, minWidth: 200, padding: 8, zIndex: 50, background: 'var(--bg-surface)' }}
                 onMouseLeave={() => setMoreOpen(false)}
               >
-                {['security', 'calculator', 'social', 'government'].map((slug) => {
+                {['security', 'calculator', 'social'].map((slug) => {
                   const c = categories.find((x) => x.slug === slug)!;
                   return (
                     <Link key={slug} href={`/tools/${slug}`} className="sidebar-item" onClick={() => setMoreOpen(false)}>
