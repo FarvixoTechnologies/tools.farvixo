@@ -54,17 +54,22 @@ export function ToolPreFooterAd() {
   );
 }
 
-/** Desktop right-sidebar ads — 300×250 rectangles, sticky beside the tool. */
+function SidebarRectangle() {
+  return (
+    <HighPerformanceAd
+      adKey={AD_UNITS.sidebarRectangle.key}
+      width={AD_UNITS.sidebarRectangle.width}
+      height={AD_UNITS.sidebarRectangle.height}
+    />
+  );
+}
+
+/** Desktop right-sidebar ads — two stacked 300×250 rectangles, sticky. */
 export function ToolSidebarAd() {
   return (
     <aside className="tool-page-sidebar-ads">
-      <AdSlot minHeight={250}>
-        <HighPerformanceAd
-          adKey={AD_UNITS.sidebarRectangle.key}
-          width={AD_UNITS.sidebarRectangle.width}
-          height={AD_UNITS.sidebarRectangle.height}
-        />
-      </AdSlot>
+      <AdSlot minHeight={250}><SidebarRectangle /></AdSlot>
+      <AdSlot minHeight={250}><SidebarRectangle /></AdSlot>
     </aside>
   );
 }
