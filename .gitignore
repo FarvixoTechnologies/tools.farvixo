@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# MCP config (contains access token)
+.mcp.json
