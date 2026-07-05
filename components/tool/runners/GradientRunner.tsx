@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useUI } from '@/components/GlobalUI';
 
@@ -191,6 +191,96 @@ function exportJSON(g: GState): string {
   }, null, 2);
 }
 
+function exportReact(g: GState): string {
+  const style = g.animate
+    ? `{\n  backgroundImage: '${buildCSS(g)}',\n  backgroundSize: '200% 200%',\n  animation: 'gradient ${g.speed}s ease infinite',\n}`
+    : `{\n  backgroundImage: '${buildCSS(g)}',\n}`;
+  return `const gradientStyle = ${style};\n\n<div style={gradientStyle} />`;
+}
+
+function exportFlutter(g: GState): string {
+  const sorted = [...g.stops].sort((a, b) => a.pos - b.pos);
+  const colors = sorted.map((s) => `    Color(0xFF${s.color.slice(1).toUpperCase()}),`).join('\n');
+  const stops = sorted.map((s) => (s.pos / 100).toFixed(2)).join(', ');
+  const rad = ((g.angle - 90) * Math.PI) / 180;
+  const x = Math.cos(rad).toFixed(2);
+  const y = Math.sin(rad).toFixed(2);
+  return `Container(\n  decoration: BoxDecoration(\n    gradient: LinearGradient(\n      begin: Alignment(${-x}, ${-y}),\n      end: Alignment(${x}, ${y}),\n      colors: [\n${colors}\n      ],\n      stops: [${stops}],\n    ),\n  ),\n)`;
+}
+
+function exportSwiftUI(g: GState): string {
+  const sorted = [...g.stops].sort((a, b) => a.pos - b.pos);
+  const stops = sorted.map((s) => {
+    const [r, gr, b] = hexToRgb(s.color);
+    return `    .init(color: Color(red: ${(r / 255).toFixed(3)}, green: ${(gr / 255).toFixed(3)}, blue: ${(b / 255).toFixed(3)}), location: ${(s.pos / 100).toFixed(2)}),`;
+  }).join('\n');
+  return `LinearGradient(\n  stops: [\n${stops}\n  ],\n  startPoint: .topLeading,\n  endPoint: .bottomTrailing\n)`;
+}
+
+/* Harmony generation from a base color (HSL rotation) */
+function hexToHsl(hex: string): [number, number, number] {
+  const [r, g, b] = hexToRgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const hh = ((h % 360) + 360) % 360 / 360;
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const f = (t: number) => {
+    let tt = t;
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+    if (tt < 1 / 2) return q;
+    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+    return p;
+  };
+  const rgb = s === 0 ? [l, l, l] : [f(hh + 1 / 3), f(hh), f(hh - 1 / 3)];
+  return `#${rgb.map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function harmony(base: string, kind: 'complement' | 'analogous' | 'triadic' | 'mono'): string[] {
+  const [h, s, l] = hexToHsl(base);
+  switch (kind) {
+    case 'complement': return [base, hslToHex(h + 180, s, l)];
+    case 'analogous': return [hslToHex(h - 30, s, l), base, hslToHex(h + 30, s, l)];
+    case 'triadic': return [base, hslToHex(h + 120, s, l), hslToHex(h + 240, s, l)];
+    case 'mono': return [hslToHex(h, s, Math.min(0.92, l + 0.28)), base, hslToHex(h, s, Math.max(0.08, l - 0.28))];
+  }
+}
+
+/* URL share: state <-> #g= base64 */
+function encodeState(g: GState): string {
+  return btoa(JSON.stringify({ t: g.type, a: g.angle, an: g.animate, sp: g.speed, s: g.stops.map((x) => [x.color, x.pos]) }));
+}
+
+function decodeState(hash: string): GState | null {
+  try {
+    const j = JSON.parse(atob(hash)) as { t: GType; a: number; an: boolean; sp: number; s: [string, number][] };
+    if (!Array.isArray(j.s) || j.s.length < 2) return null;
+    return {
+      type: j.t, angle: j.a || 0, animate: !!j.an, speed: j.sp || 8,
+      stops: j.s.map(([color, pos]) => ({ id: nid(), color, pos })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+const PNG_SIZES = [
+  { label: 'Desktop 1920×1080', w: 1920, h: 1080 },
+  { label: 'Phone 1080×1920', w: 1080, h: 1920 },
+  { label: '4K 3840×2160', w: 3840, h: 2160 },
+  { label: 'OG Image 1200×630', w: 1200, h: 630 },
+] as const;
+
 function exportSVG(g: GState): string {
   const sorted = [...g.stops].sort((a, b) => a.pos - b.pos);
   const stops = sorted.map((s) => `    <stop offset="${s.pos}%" stop-color="${s.color}"/>`).join('\n');
@@ -221,8 +311,56 @@ export default function GradientRunner() {
   const [aiBusy, setAiBusy] = useState(false);
   const [preview, setPreview] = useState<(typeof PREVIEWS)[number]>('Canvas');
   const [presetCat, setPresetCat] = useState('All');
-  const [exportTab, setExportTab] = useState<'css' | 'tailwind' | 'scss' | 'json'>('css');
+  const [exportTab, setExportTab] = useState<'css' | 'tailwind' | 'scss' | 'json' | 'react' | 'flutter' | 'swiftui'>('css');
+  const [pngSize, setPngSize] = useState(0);
+  const [saved, setSaved] = useState<string[]>([]); // encoded states
   const imgInputRef = useRef<HTMLInputElement>(null);
+
+  /* Load shared gradient from URL hash + saved gallery from localStorage */
+  useEffect(() => {
+    const m = window.location.hash.match(/#g=([A-Za-z0-9+/=]+)/);
+    if (m) {
+      const st = decodeState(m[1]);
+      if (st) setG(st);
+    }
+    try {
+      const raw = localStorage.getItem('tn-gradients');
+      const arr = raw ? (JSON.parse(raw) as unknown) : [];
+      if (Array.isArray(arr)) setSaved(arr.filter((x): x is string => typeof x === 'string'));
+    } catch { /* ignore */ }
+  }, []);
+
+  const persistSaved = (next: string[]) => {
+    setSaved(next);
+    try { localStorage.setItem('tn-gradients', JSON.stringify(next)); } catch { /* full */ }
+  };
+
+  const saveCurrent = () => {
+    const enc = encodeState(g);
+    if (saved.includes(enc)) { toast('Already saved'); return; }
+    persistSaved([enc, ...saved].slice(0, 24));
+    toast('Saved to My Gradients ✓');
+  };
+
+  const shareLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}#g=${encodeState(g)}`;
+    void navigator.clipboard.writeText(url);
+    toast('Share link copied ✓');
+  };
+
+  const pickFromScreen = async () => {
+    const W = window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
+    if (!W.EyeDropper) { toast('Eyedropper is Chrome/Edge only', 'error'); return; }
+    try {
+      const { sRGBHex } = await new W.EyeDropper().open();
+      apply((cur) => ({ ...cur, stops: [...cur.stops, { id: nid(), color: sRGBHex, pos: 50 }] }));
+      toast(`Picked ${sRGBHex} ✓`);
+    } catch { /* user cancelled */ }
+  };
+
+  const applyHarmony = (kind: 'complement' | 'analogous' | 'triadic' | 'mono') => {
+    apply((cur) => ({ ...cur, stops: distribute(harmony(cur.stops[0]?.color ?? '#7c3aed', kind)) }));
+  };
 
   const apply = useCallback((next: GState | ((cur: GState) => GState)) => {
     setG((cur) => {
@@ -355,7 +493,14 @@ export default function GradientRunner() {
   };
 
   /* Exports */
-  const exportText = exportTab === 'css' ? exportCSS(g) : exportTab === 'tailwind' ? exportTailwind(g) : exportTab === 'scss' ? exportSCSS(g) : exportJSON(g);
+  const exportText =
+    exportTab === 'css' ? exportCSS(g) :
+    exportTab === 'tailwind' ? exportTailwind(g) :
+    exportTab === 'scss' ? exportSCSS(g) :
+    exportTab === 'react' ? exportReact(g) :
+    exportTab === 'flutter' ? exportFlutter(g) :
+    exportTab === 'swiftui' ? exportSwiftUI(g) :
+    exportJSON(g);
 
   const copy = (text: string, label: string) => {
     void navigator.clipboard.writeText(text);
@@ -363,44 +508,47 @@ export default function GradientRunner() {
   };
 
   const downloadPNG = () => {
+    const { w: W, h: H } = PNG_SIZES[pngSize];
+    const cx = W / 2;
+    const cy = H / 2;
     const c = document.createElement('canvas');
-    c.width = 1920; c.height = 1080;
+    c.width = W; c.height = H;
     const ctx = c.getContext('2d')!;
     const sorted = [...g.stops].sort((a, b) => a.pos - b.pos);
     if (g.type === 'radial' || g.type === 'conic') {
       const grad = g.type === 'conic'
-        ? ctx.createConicGradient((g.angle * Math.PI) / 180, 960, 540)
-        : ctx.createRadialGradient(960, 432, 0, 960, 432, 1100);
+        ? ctx.createConicGradient((g.angle * Math.PI) / 180, cx, cy)
+        : ctx.createRadialGradient(cx, cy * 0.8, 0, cx, cy * 0.8, Math.max(W, H) * 0.6);
       sorted.forEach((s) => grad.addColorStop(s.pos / 100, s.color));
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1920, 1080);
+      ctx.fillRect(0, 0, W, H);
     } else if (g.type === 'mesh' || g.type === 'aurora') {
       ctx.fillStyle = sorted[sorted.length - 1].color;
-      ctx.fillRect(0, 0, 1920, 1080);
-      const spots = [[300, 220], [1620, 160], [380, 900], [1540, 860], [960, 540], [1820, 540], [100, 540]];
+      ctx.fillRect(0, 0, W, H);
+      const spots = [[0.15, 0.2], [0.85, 0.15], [0.2, 0.85], [0.8, 0.8], [0.5, 0.5], [0.95, 0.5], [0.05, 0.5]];
       sorted.forEach((s, i) => {
-        const [x, y] = spots[i % spots.length];
-        const rg = ctx.createRadialGradient(x, y, 0, x, y, 900);
+        const [fx, fy] = spots[i % spots.length];
+        const rg = ctx.createRadialGradient(fx * W, fy * H, 0, fx * W, fy * H, Math.max(W, H) * 0.48);
         rg.addColorStop(0, s.color + (g.type === 'aurora' ? '66' : 'ff'));
         rg.addColorStop(1, s.color + '00');
         ctx.fillStyle = rg;
-        ctx.fillRect(0, 0, 1920, 1080);
+        ctx.fillRect(0, 0, W, H);
       });
     } else {
       const rad = ((g.angle - 90) * Math.PI) / 180;
       const grad = ctx.createLinearGradient(
-        960 - Math.cos(rad) * 960, 540 - Math.sin(rad) * 540,
-        960 + Math.cos(rad) * 960, 540 + Math.sin(rad) * 540,
+        cx - Math.cos(rad) * cx, cy - Math.sin(rad) * cy,
+        cx + Math.cos(rad) * cx, cy + Math.sin(rad) * cy,
       );
       sorted.forEach((s) => grad.addColorStop(s.pos / 100, s.color));
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1920, 1080);
+      ctx.fillRect(0, 0, W, H);
     }
     c.toBlob((blob) => {
       if (!blob) return;
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'toolnest-gradient.png';
+      a.download = `toolnest-gradient-${W}x${H}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
     }, 'image/png');
@@ -532,9 +680,21 @@ export default function GradientRunner() {
             </div>
             <div className="grad-stop-actions">
               <button className="btn btn-ghost btn-sm" onClick={addStop}><Icon name="check" size={13} /> Add color</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => void pickFromScreen()} title="Pick a color from anywhere on screen"><Icon name="crop" size={13} /> Eyedropper</button>
               <button className="btn btn-ghost btn-sm" onClick={random}><Icon name="refresh" size={13} /> Random</button>
               <button className="btn btn-ghost btn-sm" onClick={shuffle}><Icon name="repeat" size={13} /> Shuffle</button>
               <button className="btn btn-ghost btn-sm" onClick={reverse}><Icon name="split" size={13} /> Reverse</button>
+            </div>
+          </div>
+
+          {/* Color harmony from first color */}
+          <div className="field">
+            <label>Harmony (base: <span className="mono">{g.stops[0]?.color}</span>)</label>
+            <div className="grad-stop-actions" style={{ marginTop: 4 }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => applyHarmony('complement')}>Complement</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => applyHarmony('analogous')}>Analogous</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => applyHarmony('triadic')}>Triadic</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => applyHarmony('mono')}>Monochrome</button>
             </div>
           </div>
 
@@ -556,21 +716,60 @@ export default function GradientRunner() {
           <div className="field">
             <label>Export</label>
             <div className="atx-chips">
-              {(['css', 'tailwind', 'scss', 'json'] as const).map((t) => (
-                <button key={t} className={`atx-chip ${exportTab === t ? 'active' : ''}`} onClick={() => setExportTab(t)}>{t.toUpperCase()}</button>
+              {(['css', 'tailwind', 'scss', 'react', 'flutter', 'swiftui', 'json'] as const).map((t) => (
+                <button key={t} className={`atx-chip ${exportTab === t ? 'active' : ''}`} onClick={() => setExportTab(t)}>
+                  {t === 'swiftui' ? 'SwiftUI' : t === 'flutter' ? 'Flutter' : t === 'react' ? 'React' : t.toUpperCase()}
+                </button>
               ))}
             </div>
             <pre className="grad-code">{exportText}</pre>
             <div className="grad-stop-actions">
               <button className="btn btn-primary btn-sm" onClick={() => copy(exportText, exportTab.toUpperCase())}><Icon name="copy" size={13} /> Copy</button>
-              <button className="btn btn-outline btn-sm" onClick={downloadPNG}><Icon name="download" size={13} /> PNG 1920×1080</button>
+              <select value={pngSize} onChange={(e) => setPngSize(+e.target.value)} aria-label="PNG size" style={{ fontSize: 12 }}>
+                {PNG_SIZES.map((s, i) => <option key={s.label} value={i}>{s.label}</option>)}
+              </select>
+              <button className="btn btn-outline btn-sm" onClick={downloadPNG}><Icon name="download" size={13} /> PNG</button>
               <button className="btn btn-outline btn-sm" onClick={downloadSVG} disabled={g.type === 'mesh' || g.type === 'aurora' || g.type === 'noise'} title={g.type === 'mesh' || g.type === 'aurora' || g.type === 'noise' ? 'SVG sirf linear/radial/conic ke liye' : 'Download SVG'}>
                 <Icon name="download" size={13} /> SVG
               </button>
             </div>
+            <div className="grad-stop-actions">
+              <button className="btn btn-outline btn-sm" onClick={shareLink}><Icon name="link" size={13} /> Share Link</button>
+              <button className="btn btn-outline btn-sm" onClick={saveCurrent}><Icon name="star" size={13} /> Save</button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* My gradients (saved) */}
+      {saved.length > 0 && (
+        <div className="grad-presets">
+          <div className="grad-row">
+            <h3><Icon name="folder" size={15} /> My Gradients ({saved.length})</h3>
+          </div>
+          <div className="grad-preset-grid">
+            {saved.map((enc) => {
+              const st = decodeState(enc);
+              if (!st) return null;
+              return (
+                <div key={enc} className="grad-saved-wrap">
+                  <button
+                    className="grad-preset"
+                    style={{ backgroundImage: buildCSS(st) }}
+                    onClick={() => apply(() => st)}
+                    title="Apply"
+                  >
+                    <span>{st.type} · {st.stops.length} colors</span>
+                  </button>
+                  <button className="grad-saved-del" aria-label="Delete saved gradient" onClick={() => persistSaved(saved.filter((s) => s !== enc))}>
+                    <Icon name="x" size={11} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Presets */}
       <div className="grad-presets">
