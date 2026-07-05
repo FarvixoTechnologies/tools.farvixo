@@ -8,22 +8,22 @@
  * so we route the text through the AI engine with a restoration prompt.
  */
 
-const RESTORE_SYSTEM_PROMPT = `You are an expert system specializing in Bengali computational linguistics and text restoration.
-Your task is to fix broken, garbled, or misaligned Bengali text that has been extracted from a PDF file through an OCR or PDF-to-text parser.
+const RESTORE_SYSTEM_PROMPT = `You are an expert in Bengali (Bangla) computational linguistics. You repair Bengali text that a PDF/OCR parser has shattered, and you output ONLY the corrected text — no notes, no explanations, no code fences.
 
-Common extraction errors in the input text include:
-1. Missing or misplaced "Kar" signs (যেমন: ি, ো, ৌ, ে, া).
-2. Broken ligatures/conjuncts (যুক্তাক্ষর ভেঙে যাওয়া, যেমন "ক্ষ", "জ্ঞ", "ক্ট" আলাদা হয়ে যাওয়া).
-3. Incorrect character encoding, random spaces between characters, or raw ANSI strings mixed with Unicode.
-4. OCR misreads where Bengali words are replaced by lookalike Latin letters, digits or symbols (e.g. "ম€180ৰ65 First Name" is actually "Relative's First Name" label, "[39 Name" is "Last Name", "TF" may be "নম্বর"). Bilingual documents (voter cards, government forms) usually repeat each label as "বাংলা লেবেল/English Label" — use the surviving language to reconstruct the damaged one.
+The input has these specific corruptions. Fix ALL of them:
+1. Detached vowel signs (kar): spaces split a consonant from its matra, e.g. "ক িম শন" → "কমিশন", "তা ির খ" → "তারিখ", "না ম" → "নাম".
+2. The artifact "ব়" (BA + nukta) is almost always the letter "র" (RA). e.g. "ভাব়েতব়" → "ভারতের", "ব়" → "র", "পব়গণা" → "পরগণা", "বসিব়হাট"/"ব িস ব় হাট" → "বসিরহাট", "উত্তব়" → "উত্তর", "নিব়্বাচন"/"িন বব়্া চন" → "নির্বাচন".
+3. Broken conjuncts (যুক্তাক্ষর) split apart: "ম ন্ড ল" → "মন্ডল", "ন্দর্" → "ন্দ্র", "প তর্" → "পত্র", "িন শ্চ য়তা" → "নিশ্চয়তা", "ক েডর্" → "কার্ডে".
+4. Reph/ya-phala misplacement: "গর্ ণ" → "গ্রহণ", "কর্ িম ক" → "ক্রমিক", "নিবর্াচন" → "নির্বাচন", "উ েদ্দ েশয্" → "উদ্দেশ্য", "বয্ তীত" → "ব্যতীত", "অ নয্" → "অন্য".
+5. Random spaces inside words: join them into correct Bengali words using context.
 
-Instructions:
-- Carefully analyze the context and reconstruct the words to make them grammatically correct and contextually meaningful in standard Bengali (Unicode/UTF-8).
-- Use standard fonts like SolaimanLipi or Kalpurush as the semantic baseline.
-- Maintain the original sentence structure, paragraph breaks, and overall meaning. Do not summarize, skip, or add any new information.
-- Keep English words, numbers, and punctuation marks exactly as they are in the original text.
-- If the text contains Hindi or other Indic scripts with the same kinds of breakage, restore those the same way.
-- Respond ONLY with the corrected text. Do not include any explanations, greetings, or markdown code blocks.`;
+Rules:
+- Output valid, natural, grammatically correct standard Bengali (Unicode). Every word must be a real word.
+- Bilingual government documents (voter ID, EPIC cards) repeat each field as "বাংলা লেবেল / English Label". Use the English side to confirm the Bengali reconstruction (e.g. next to "Polling Station Address" the Bengali is "ভোট গ্রহণ কেন্দ্রের ঠিকানা").
+- Keep ALL English words, numbers, dates, URLs, IDs and punctuation EXACTLY as in the input.
+- Preserve line breaks, "###" markers, and the overall layout/order. Do not summarize, drop, merge or add lines.
+- Fix Hindi/Devanagari the same way if present.
+- Respond with ONLY the corrected text.`;
 
 export function hasBengaliText(text: string): boolean {
   return /[ঀ-৿]/.test(text);
@@ -85,20 +85,26 @@ async function callRestoreApi(chunk: string): Promise<string> {
       try {
         const parsed = JSON.parse(payload) as { text?: string; error?: string };
         if (parsed.error) throw new Error(parsed.error);
-        if (parsed.text) out += parsed.text;
+        // The server streams the ACCUMULATED text on every event, so replace
+        // (not append) — appending duplicates every chunk into garbage.
+        if (parsed.text) out = parsed.text;
       } catch (e) {
         if (e instanceof Error && e.message && !(e instanceof SyntaxError)) throw e;
       }
     }
   }
 
-  const cleaned = out.trim();
+  // Strip a stray ```...``` fence if the model wrapped its answer despite instructions.
+  let cleaned = out.trim();
+  const fence = cleaned.match(/^```[a-z]*\n?([\s\S]*?)\n?```$/i);
+  if (fence) cleaned = fence[1].trim();
   if (!cleaned) throw new Error('AI text repair returned no text');
   return cleaned;
 }
 
-/** Split text into chunks at paragraph boundaries, each ≤ maxChars. */
-function chunkText(text: string, maxChars = 5000): string[] {
+/** Split text into chunks at paragraph boundaries, each ≤ maxChars.
+ *  Smaller chunks = the model reconstructs more reliably. */
+function chunkText(text: string, maxChars = 2500): string[] {
   if (text.length <= maxChars) return [text];
   const paragraphs = text.split('\n');
   const chunks: string[] = [];
