@@ -43,6 +43,26 @@ const FORMAT_META: Record<TargetFormat, { label: string; icon: string; color: st
 
 const ALL_TARGETS: TargetFormat[] = ['docx', 'xlsx', 'pptx', 'txt', 'html', 'rtf', 'jpg', 'png', 'webp', 'csv', 'md'];
 
+// ─── Step indicator ──────────────────────────────────────────────────────────
+
+const STEPS = ['Upload', 'Analyze', 'Convert', 'Download'] as const;
+
+function Steps({ current }: { current: number }) {
+  return (
+    <div className="pdfconv-steps" aria-label="Conversion progress">
+      {STEPS.map((s, i) => (
+        <div key={s} className={`pdfconv-step ${i < current ? 'done' : ''} ${i === current ? 'active' : ''}`}>
+          <span className="pdfconv-step-dot">
+            {i < current ? <Icon name="check" size={12} /> : i + 1}
+          </span>
+          <span className="pdfconv-step-label">{s}</span>
+          {i < STEPS.length - 1 && <span className="pdfconv-step-line" aria-hidden />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function PdfConverterAdvanced() {
@@ -172,6 +192,11 @@ export default function PdfConverterAdvanced() {
     return calculateConversionConfidence(structure, targetFormat);
   }, [structure, targetFormat]);
 
+  const pageThumbs = useMemo(
+    () => pdfPages.map((c) => c.toDataURL('image/jpeg', 0.6)),
+    [pdfPages],
+  );
+
   // ═══════════════════════════════════════════════════════════════════════════
   // RENDER: UPLOAD VIEW
   // ═══════════════════════════════════════════════════════════════════════════
@@ -179,6 +204,7 @@ export default function PdfConverterAdvanced() {
   if (view === 'upload') {
     return (
       <div className="pdfconv-layout">
+        <Steps current={0} />
         <div
           className={`pdfconv-dropzone ${dragOver ? 'drag-active' : ''}`}
           onClick={() => inputRef.current?.click()}
@@ -192,7 +218,11 @@ export default function PdfConverterAdvanced() {
           <h3>Drop your PDF here</h3>
           <p>or <button className="pdfconv-browse-link" onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}>browse files</button> or paste from clipboard</p>
           <div className="pdfconv-format-badges">
-            {ALL_TARGETS.map((f) => <span key={f}>{FORMAT_META[f].label}</span>)}
+            {ALL_TARGETS.map((f) => (
+              <span key={f} style={{ color: FORMAT_META[f].color, borderColor: FORMAT_META[f].color + '55', background: FORMAT_META[f].color + '14' }}>
+                {FORMAT_META[f].label}
+              </span>
+            ))}
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>AI-powered document intelligence &middot; Visual diff &middot; Confidence scoring</p>
         </div>
@@ -215,6 +245,7 @@ export default function PdfConverterAdvanced() {
   if (view === 'analysis') {
     return (
       <div className="pdfconv-processing">
+        <Steps current={1} />
         <div className="pdfconv-progress-ring-wrap">
           <svg className="pdfconv-progress-ring" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-subtle)" strokeWidth="8" />
@@ -237,6 +268,7 @@ export default function PdfConverterAdvanced() {
   if (phase === 'working') {
     return (
       <div className="pdfconv-processing">
+        <Steps current={2} />
         <div className="pdfconv-progress-ring-wrap">
           <svg className="pdfconv-progress-ring" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-subtle)" strokeWidth="8" />
@@ -343,6 +375,7 @@ export default function PdfConverterAdvanced() {
     const r = results[0];
     return (
       <div className="pdfconv-results">
+        <Steps current={3} />
         <div className="pdfconv-results-header">
           <div className="pdfconv-results-badge"><Icon name="check-circle" size={18} /> Conversion Complete</div>
           <div className={`pdfconv-confidence-badge ${r.confidence >= 80 ? 'high' : r.confidence >= 50 ? 'mid' : 'low'}`}>
@@ -409,6 +442,41 @@ export default function PdfConverterAdvanced() {
 
   return (
     <div className="pdfconv-main-view">
+      <Steps current={2} />
+
+      {/* File info bar */}
+      {file && (
+        <div className="pdfconv-filebar">
+          <span className="pdfconv-filebar-icon"><Icon name="file-text" size={18} /></span>
+          <div className="pdfconv-filebar-meta">
+            <b>{file.name}</b>
+            <span className="muted">
+              {formatBytes(file.size)}
+              {structure ? ` · ${structure.pageCount} page${structure.pageCount === 1 ? '' : 's'}` : ''}
+            </span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={resetAll}>
+            <Icon name="refresh" size={13} /> Change file
+          </button>
+        </div>
+      )}
+
+      {/* Page thumbnails */}
+      {pageThumbs.length > 0 && (
+        <div className="pdfconv-thumbs" aria-label="Document pages">
+          {pageThumbs.map((src, i) => (
+            <figure key={i} className="pdfconv-thumb">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt={`Page ${i + 1}`} loading="lazy" />
+              <figcaption>{i + 1}</figcaption>
+            </figure>
+          ))}
+          {structure && structure.pageCount > pageThumbs.length && (
+            <div className="pdfconv-thumb pdfconv-thumb-more">+{structure.pageCount - pageThumbs.length}</div>
+          )}
+        </div>
+      )}
+
       {/* Document Intelligence Panel */}
       {structure && (
         <div className="pdfconv-intel-panel">
