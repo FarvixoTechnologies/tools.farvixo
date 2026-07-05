@@ -24,7 +24,9 @@ export type RunnerKind =
   | 'social'
   | 'gov-photo-advanced'
   | 'pdf-editor'
-  | 'merge-pdf';
+  | 'merge-pdf'
+  | 'pdf-to-word'
+  | 'gradient';
 
 export type ToolConfig = Record<string, unknown>;
 
@@ -65,7 +67,7 @@ export const tools: Tool[] = [
   { id: 12, slug: 'split-pdf', name: 'Split PDF', description: 'Split a PDF into separate pages or ranges', category: 'pdf', icon: 'split', runner: 'pdf', mode: 'split', accept: PDF },
   { id: 13, slug: 'compress-pdf', name: 'PDF Compressor', description: 'Reduce PDF file size without quality loss', category: 'pdf', icon: 'file-down', badge: 'popular', runner: 'pdf', mode: 'compress', accept: PDF },
   { id: 14, slug: 'pdf-ocr', name: 'PDF OCR', description: 'Make scanned PDFs searchable with OCR', category: 'pdf', icon: 'scan-text', badge: 'ai', runner: 'ocr', mode: 'pdf', accept: PDF },
-  { id: 15, slug: 'pdf-to-word', name: 'PDF to Word', description: 'Convert PDF files to editable Word documents', category: 'pdf', icon: 'file-text', badge: 'popular', runner: 'pdf-convert', mode: 'pdf2word', accept: PDF },
+  { id: 15, slug: 'pdf-to-word', name: 'PDF to Word', description: 'Convert PDF to editable Word with AI layout repair, OCR, tables & Indic script support — 100% private', category: 'pdf', icon: 'file-text', badge: 'popular', runner: 'pdf-to-word', mode: 'pdf2word', accept: PDF, multiple: true, keywords: ['pdf to word', 'pdf to docx', 'scanned pdf to word', 'bengali pdf to word', 'hindi pdf to word', 'form 16 pdf to word', 'ocr pdf word'] },
   { id: 16, slug: 'word-to-pdf', name: 'Word to PDF', description: 'Convert Word documents (DOCX) to PDF', category: 'pdf', icon: 'file-text', runner: 'pdf-convert', mode: 'word2pdf', accept: '.docx' },
   { id: 17, slug: 'pdf-to-excel', name: 'PDF to Excel', description: 'Convert PDF files to Excel sheets', category: 'pdf', icon: 'table', badge: 'popular', runner: 'pdf-convert', mode: 'pdf2excel', accept: PDF },
   { id: 18, slug: 'excel-to-pdf', name: 'Excel to PDF', description: 'Convert Excel spreadsheets (XLSX/CSV) to PDF', category: 'pdf', icon: 'table', runner: 'pdf-convert', mode: 'excel2pdf', accept: '.xlsx,.xls,.csv' },
@@ -130,6 +132,7 @@ export const tools: Tool[] = [
   { id: 60, slug: 'ai-pdf-assistant', name: 'AI PDF Assistant', description: 'Upload a PDF and ask questions about it', category: 'ai', icon: 'file-text', badge: 'ai', runner: 'ai-chat', mode: 'pdf', accept: PDF },
 
   // ─── 💻 Developer Tools (8) ────────────────────────────────────────────
+  { id: 138, slug: 'gradient-generator', name: 'AI Gradient Generator', description: 'Design studio for gradients — AI prompt, image palette extraction, mesh/aurora/noise types, animation & 6 export formats', category: 'developer', icon: 'wand', badge: 'ai', runner: 'gradient', mode: 'studio', keywords: ['gradient', 'css gradient', 'mesh gradient', 'aurora', 'background', 'tailwind gradient', 'color palette', 'design'] },
   { id: 61, slug: 'json-formatter', name: 'JSON Formatter', description: 'Pretty-print and minify JSON', category: 'developer', icon: 'braces', badge: 'popular', runner: 'dev', mode: 'json-format' },
   { id: 62, slug: 'json-validator', name: 'JSON Validator', description: 'Validate JSON and locate syntax errors', category: 'developer', icon: 'braces', runner: 'dev', mode: 'json-validate' },
   { id: 63, slug: 'base64-encoder-decoder', name: 'Base64 Encoder & Decoder', description: 'Encode and decode Base64 text and files', category: 'developer', icon: 'binary', runner: 'dev', mode: 'base64' },

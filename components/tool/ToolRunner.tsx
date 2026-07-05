@@ -34,6 +34,8 @@ const SocialRunner = dynamic(() => import('./runners/SocialRunner'), { ssr: fals
 const GovPhotoRunner = dynamic(() => import('./runners/GovPhotoRunner'), { ssr: false, loading });
 const PdfEditorRunner = dynamic(() => import('./runners/PdfEditorRunner'), { ssr: false, loading });
 const MergePdfRunner = dynamic(() => import('./runners/MergePdfRunner'), { ssr: false, loading });
+const PdfToWordRunner = dynamic(() => import('./runners/PdfToWordRunner'), { ssr: false, loading });
+const GradientRunner = dynamic(() => import('./runners/GradientRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -67,6 +69,8 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'gov-photo-advanced': return <GovPhotoRunner tool={tool} />;
     case 'pdf-editor': return <PdfEditorRunner tool={tool} />;
     case 'merge-pdf': return <MergePdfRunner tool={tool} />;
+    case 'pdf-to-word': return <PdfToWordRunner tool={tool} />;
+    case 'gradient': return <GradientRunner />;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }
