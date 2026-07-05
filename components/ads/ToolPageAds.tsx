@@ -54,6 +54,21 @@ export function ToolPreFooterAd() {
   );
 }
 
+/** Desktop right-sidebar ads — 300×250 rectangles, sticky beside the tool. */
+export function ToolSidebarAd() {
+  return (
+    <aside className="tool-page-sidebar-ads">
+      <AdSlot minHeight={250}>
+        <HighPerformanceAd
+          adKey={AD_UNITS.sidebarRectangle.key}
+          width={AD_UNITS.sidebarRectangle.width}
+          height={AD_UNITS.sidebarRectangle.height}
+        />
+      </AdSlot>
+    </aside>
+  );
+}
+
 /** Optional Smartlink — an explicit "more free tools" link, never an auto-redirect. */
 export function ToolSmartlink() {
   return (

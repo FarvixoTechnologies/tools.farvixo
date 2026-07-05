@@ -6,7 +6,7 @@ import ToolCard from '@/components/ToolCard';
 import ToolRunner from '@/components/tool/ToolRunner';
 import ToolUsageStat from '@/components/tool/ToolUsageStat';
 import FeatureStrip from '@/components/homepage/FeatureStrip';
-import { ToolTopAd, ToolMidAd, ToolPreFooterAd, ToolSmartlink } from '@/components/ads/ToolPageAds';
+import { ToolTopAd, ToolMidAd, ToolPreFooterAd, ToolSidebarAd, ToolSmartlink } from '@/components/ads/ToolPageAds';
 import { getCategory } from '@/data/categories';
 import { getTool, getToolsByCategory, tools } from '@/data/tools';
 
@@ -173,6 +173,8 @@ export default async function ToolPage({ params }: Props) {
           {/* Ad 2 — below primary action (728×90 desktop) */}
           <ToolMidAd />
         </div>
+        {/* Desktop right sidebar ad (300×250) */}
+        <ToolSidebarAd />
       </div>
 
       <section className="hiw">

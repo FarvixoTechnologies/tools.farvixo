@@ -1318,25 +1318,22 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
 
 /* ═══ ADS SYSTEM ═════════════════════════════════════════════════════════ */
 
-/* Tool page — single column, no sidebar ads (Adsterra spec) */
-.tool-page-layout { margin-bottom: 32px; }
+/* Tool page — content + right ad sidebar on desktop */
+.tool-page-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; margin-bottom: 32px; align-items: start; }
 .tool-page-main { min-width: 0; }
+.tool-page-sidebar-ads { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 100px; }
+@media (max-width: 1024px) {
+  .tool-page-layout { grid-template-columns: 1fr; }
+  .tool-page-sidebar-ads { display: none; }
+}
 
 /* Ad containers */
 .ad-container { border-radius: 8px; overflow: hidden; }
 
-/* CLS-safe ad slot: reserves height, subtle "Advertisement" label */
+/* CLS-safe ad slot: reserves exactly the ad height — no border, box, or label */
 .ad-slot {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  margin: 20px auto 0; max-width: 100%;
-  border-radius: 10px; background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  padding: 20px 12px 12px;
-}
-.ad-slot-label {
-  position: absolute; top: 6px; left: 10px;
-  font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted); opacity: 0.6;
+  display: flex; align-items: center; justify-content: center;
+  margin: 16px auto 0; max-width: 100%;
 }
 .ad-native { border-radius: 8px; }
 

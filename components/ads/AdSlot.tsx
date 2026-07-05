@@ -39,9 +39,10 @@ export default function AdSlot({ minHeight, className, children }: AdSlotProps) 
   // Don't reserve space (or flash an ad) for Pro users, and wait for auth to resolve.
   if (loading || isPro) return null;
 
+  // Reserves exactly the ad height (CLS-safe) with no border/box/label/padding —
+  // the ad takes only its own size.
   return (
     <div ref={ref} className={`ad-slot ${className ?? ''}`} style={{ minHeight }} aria-hidden>
-      <span className="ad-slot-label">Advertisement</span>
       {inView && children}
     </div>
   );
