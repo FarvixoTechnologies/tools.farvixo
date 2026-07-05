@@ -30,8 +30,52 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
   const drawing = useRef(false);
   const [hasSignature, setHasSignature] = useState(false);
 
+  // P0 tool options
+  const [numFormat, setNumFormat] = useState<'n' | 'n-of-total' | 'page-n'>('n-of-total');
+  const [numPos, setNumPos] = useState<'bottom-center' | 'bottom-right' | 'bottom-left' | 'top-center'>('bottom-center');
+  const [numStart, setNumStart] = useState(1);
+  const [overlayOpacity, setOverlayOpacity] = useState(100);
+  const [nupCount, setNupCount] = useState<2 | 4 | 8>(2);
+  const [pageList, setPageList] = useState('');
+  const [meta, setMeta] = useState({ title: '', author: '', subject: '', keywords: '' });
+  const [metaLoaded, setMetaLoaded] = useState(false);
+
   const mode = tool.mode;
   const targetKB = (tool.config?.targetKB as number) || 0;
+
+  /** Parse "2, 5-7" into 0-based page indices (clamped, deduped, sorted). */
+  const parsePageList = (input: string, total: number): number[] => {
+    const set = new Set<number>();
+    for (const part of input.split(',')) {
+      const p = part.trim();
+      if (!p) continue;
+      const m = p.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (m) {
+        const a = Math.max(1, +m[1]);
+        const b = Math.min(total, +m[2]);
+        for (let i = a; i <= b; i++) set.add(i - 1);
+      } else if (/^\d+$/.test(p)) {
+        const n = +p;
+        if (n >= 1 && n <= total) set.add(n - 1);
+      }
+    }
+    return [...set].sort((a, b) => a - b);
+  };
+
+  // Metadata mode: read existing metadata as soon as a file is chosen.
+  const loadMetadata = async (f: File) => {
+    try {
+      const { PDFDocument } = await import('@cantoo/pdf-lib');
+      const doc = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true, updateMetadata: false });
+      setMeta({
+        title: doc.getTitle() ?? '',
+        author: doc.getAuthor() ?? '',
+        subject: doc.getSubject() ?? '',
+        keywords: doc.getKeywords() ?? '',
+      });
+      setMetaLoaded(true);
+    } catch { /* leave fields empty */ }
+  };
 
   const sigDraw = (e: React.PointerEvent<HTMLCanvasElement>, kind: 'down' | 'move' | 'up') => {
     const c = sigCanvasRef.current;
@@ -171,6 +215,104 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
           }
         });
         out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-edited.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'flatten') {
+        setStatus('Flattening PDF (rasterizing pages)...');
+        const pages = await renderPdfPages(files[0], 2, (d, t) => setProgress((d / t) * 0.7));
+        const doc = await PDFDocument.create();
+        for (let i = 0; i < pages.length; i++) {
+          const jpg = await canvasToBlob(pages[i].canvas, 'image/jpeg', 0.92);
+          const img = await doc.embedJpg(await jpg.arrayBuffer());
+          const page = doc.addPage([pages[i].width, pages[i].height]);
+          page.drawImage(img, { x: 0, y: 0, width: pages[i].width, height: pages[i].height });
+          setProgress(0.7 + ((i + 1) / pages.length) * 0.3);
+        }
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-flattened.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'pagenum') {
+        setStatus('Stamping page numbers...');
+        const doc = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
+        const font = await doc.embedFont(StandardFonts.Helvetica);
+        const pages = doc.getPages();
+        pages.forEach((page, i) => {
+          const n = numStart + i;
+          const label =
+            numFormat === 'n' ? String(n) :
+            numFormat === 'page-n' ? `Page ${n} of ${numStart + pages.length - 1}` :
+            `${n} / ${numStart + pages.length - 1}`;
+          const size = 10;
+          const w = font.widthOfTextAtSize(label, size);
+          const x = numPos.includes('center') ? (page.getWidth() - w) / 2 : numPos.includes('right') ? page.getWidth() - w - 36 : 36;
+          const y = numPos.startsWith('top') ? page.getHeight() - 28 : 18;
+          page.drawText(label, { x, y, size, font, color: rgb(0.35, 0.35, 0.45) });
+        });
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-numbered.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'overlay') {
+        setStatus('Overlaying letterhead...');
+        if (files.length < 2) throw new Error('Add 2 PDFs: pehla content, doosra letterhead/overlay.');
+        const doc = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
+        const overlaySrc = await PDFDocument.load(await files[1].arrayBuffer(), { ignoreEncryption: true });
+        const [stamp] = await doc.embedPdf(overlaySrc, [0]);
+        for (const page of doc.getPages()) {
+          page.drawPage(stamp, {
+            x: 0, y: 0,
+            width: page.getWidth(), height: page.getHeight(),
+            opacity: Math.max(0.05, Math.min(1, overlayOpacity / 100)),
+          });
+        }
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-overlaid.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'nup') {
+        setStatus(`Placing ${nupCount} pages per sheet...`);
+        const src = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
+        const doc = await PDFDocument.create();
+        const embedded = await doc.embedPdf(src, src.getPageIndices());
+        // A4: landscape for 2-up, portrait for 4/8-up grids
+        const sheetW = nupCount === 2 ? 841.89 : 595.28;
+        const sheetH = nupCount === 2 ? 595.28 : 841.89;
+        const cols = nupCount === 2 ? 2 : 2;
+        const rows = nupCount === 2 ? 1 : nupCount === 4 ? 2 : 4;
+        const margin = 18;
+        const cellW = (sheetW - margin * (cols + 1)) / cols;
+        const cellH = (sheetH - margin * (rows + 1)) / rows;
+        for (let i = 0; i < embedded.length; i += nupCount) {
+          const sheet = doc.addPage([sheetW, sheetH]);
+          for (let j = 0; j < nupCount && i + j < embedded.length; j++) {
+            const ep = embedded[i + j];
+            const s = Math.min(cellW / ep.width, cellH / ep.height);
+            const w = ep.width * s;
+            const h = ep.height * s;
+            const col = j % cols;
+            const row = Math.floor(j / cols);
+            const x = margin + col * (cellW + margin) + (cellW - w) / 2;
+            const y = sheetH - margin - (row + 1) * cellH - row * margin + (cellH - h) / 2;
+            sheet.drawPage(ep, { x, y, width: w, height: h });
+          }
+          setProgress(Math.min(1, (i + nupCount) / embedded.length));
+        }
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, `-${nupCount}up.pdf`), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'metadata') {
+        setStatus('Writing metadata...');
+        const doc = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
+        doc.setTitle(meta.title);
+        doc.setAuthor(meta.author);
+        doc.setSubject(meta.subject);
+        doc.setKeywords(meta.keywords.split(',').map((k) => k.trim()).filter(Boolean));
+        doc.setProducer('ToolNest');
+        doc.setModificationDate(new Date());
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-metadata.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
+      } else if (mode === 'pagedel' || mode === 'pageext') {
+        const src = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
+        const total = src.getPageCount();
+        const selected = parsePageList(pageList, total);
+        if (selected.length === 0) throw new Error('Page list likho — jaise "2, 5-7"');
+        const keep = mode === 'pageext'
+          ? selected
+          : src.getPageIndices().filter((i) => !selected.includes(i));
+        if (keep.length === 0) throw new Error('Result me koi page nahi bachega — list check karo.');
+        setStatus(mode === 'pageext' ? 'Extracting pages...' : 'Removing pages...');
+        const doc = await PDFDocument.create();
+        const pages = await doc.copyPages(src, keep);
+        pages.forEach((p) => doc.addPage(p));
+        const suffix = mode === 'pageext' ? '-extracted' : '-removed';
+        out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, `${suffix}.pdf`), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
       } else {
         throw new Error(`Unknown PDF mode: ${mode}`);
       }
@@ -191,12 +333,26 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
     return <ResultView files={results} before={mode === 'compress' ? before : undefined} after={mode === 'compress' ? after : undefined} onReset={resetAll} />;
   }
 
-  const cta: Record<string, string> = { merge: 'Merge Now', split: 'Split Now', compress: 'Compress Now', protect: 'Protect Now', sign: 'Sign Now', img2pdf: 'Convert Now', convert: 'Convert Now', edit: 'Apply Edits' };
+  const cta: Record<string, string> = {
+    merge: 'Merge Now', split: 'Split Now', compress: 'Compress Now', protect: 'Protect Now',
+    sign: 'Sign Now', img2pdf: 'Convert Now', convert: 'Convert Now', edit: 'Apply Edits',
+    flatten: 'Flatten Now', pagenum: 'Add Numbers', overlay: 'Apply Overlay', nup: 'Combine Pages',
+    metadata: 'Save Metadata', pagedel: 'Remove Pages', pageext: 'Extract Pages',
+  };
 
   return (
     <div className="workspace-grid">
       <div>
-        <FileDrop accept={tool.accept} multiple={tool.multiple || mode === 'merge'} files={files} onFiles={setFiles} />
+        <FileDrop
+          accept={tool.accept}
+          multiple={tool.multiple || mode === 'merge'}
+          files={files}
+          onFiles={(fs) => {
+            setFiles(fs);
+            if (mode === 'metadata' && fs[0]) void loadMetadata(fs[0]);
+          }}
+          hint={mode === 'overlay' ? '2 PDFs: pehla = content, doosra = letterhead/overlay' : undefined}
+        />
       </div>
       <div className="options-panel">
         <h3>Options</h3>
@@ -288,6 +444,60 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
               </select></div>
             <label className="checkbox-row"><input type="checkbox" checked={addPageNumbers} onChange={(e) => setAddPageNumbers(e.target.checked)} /> Add page numbers</label>
           </>
+        )}
+
+        {mode === 'flatten' && (
+          <p className="muted" style={{ fontSize: 13 }}>Forms, annotations aur layers permanent flat images ban jayenge — content edit nahi ho payega.</p>
+        )}
+
+        {mode === 'pagenum' && (
+          <>
+            <div className="field"><label>Format</label>
+              <select value={numFormat} onChange={(e) => setNumFormat(e.target.value as typeof numFormat)}>
+                <option value="n-of-total">1 / 10</option>
+                <option value="n">1</option>
+                <option value="page-n">Page 1 of 10</option>
+              </select></div>
+            <div className="field"><label>Position</label>
+              <select value={numPos} onChange={(e) => setNumPos(e.target.value as typeof numPos)}>
+                <option value="bottom-center">Bottom center</option>
+                <option value="bottom-right">Bottom right</option>
+                <option value="bottom-left">Bottom left</option>
+                <option value="top-center">Top center</option>
+              </select></div>
+            <div className="field"><label>Start from</label><input type="number" min={1} value={numStart} onChange={(e) => setNumStart(Math.max(1, +e.target.value))} /></div>
+          </>
+        )}
+
+        {mode === 'overlay' && (
+          <div className="field"><label>Overlay opacity <span className="range-value">{overlayOpacity}%</span></label>
+            <input type="range" min={10} max={100} step={5} value={overlayOpacity} onChange={(e) => setOverlayOpacity(+e.target.value)} /></div>
+        )}
+
+        {mode === 'nup' && (
+          <div className="field"><label>Pages per sheet</label>
+            <select value={nupCount} onChange={(e) => setNupCount(+e.target.value as 2 | 4 | 8)}>
+              <option value={2}>2-up (A4 landscape)</option>
+              <option value={4}>4-up (A4 portrait)</option>
+              <option value={8}>8-up (A4 portrait)</option>
+            </select></div>
+        )}
+
+        {mode === 'metadata' && (
+          <>
+            {metaLoaded && <p className="muted" style={{ fontSize: 12 }}>Current metadata loaded — edit karke save karo.</p>}
+            <div className="field"><label>Title</label><input value={meta.title} onChange={(e) => setMeta((m) => ({ ...m, title: e.target.value }))} /></div>
+            <div className="field"><label>Author</label><input value={meta.author} onChange={(e) => setMeta((m) => ({ ...m, author: e.target.value }))} /></div>
+            <div className="field"><label>Subject</label><input value={meta.subject} onChange={(e) => setMeta((m) => ({ ...m, subject: e.target.value }))} /></div>
+            <div className="field"><label>Keywords (comma separated)</label><input value={meta.keywords} onChange={(e) => setMeta((m) => ({ ...m, keywords: e.target.value }))} /></div>
+          </>
+        )}
+
+        {(mode === 'pagedel' || mode === 'pageext') && (
+          <div className="field">
+            <label>{mode === 'pagedel' ? 'Pages to remove' : 'Pages to extract'}</label>
+            <input value={pageList} placeholder='e.g. "2, 5-7"' onChange={(e) => setPageList(e.target.value)} />
+          </div>
         )}
 
         {phase === 'error' && <ErrorBox message={error} onRetry={reset} />}
