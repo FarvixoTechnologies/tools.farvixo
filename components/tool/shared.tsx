@@ -45,10 +45,10 @@ export function fileMatchesAccept(file: File, accept?: string): boolean {
   });
 }
 
-/** Human label + icon for an accept string — "PDF files", "Images", ... */
-export function acceptKind(accept?: string): { label: string; icon: string } {
+/** Human label + icon + accent for an accept string — "PDF", "Images", ... */
+export function acceptKind(accept?: string): { label: string; icon: string; accent: string } {
   const a = (accept ?? '').toLowerCase();
-  if (!a) return { label: 'Any input', icon: 'upload' };
+  if (!a) return { label: 'Files', icon: 'upload', accent: 'var(--brand-primary)' };
   const kinds: string[] = [];
   if (a.includes('pdf')) kinds.push('PDF');
   if (a.includes('image')) kinds.push('Images');
@@ -56,12 +56,19 @@ export function acceptKind(accept?: string): { label: string; icon: string } {
   if (a.includes('audio')) kinds.push('Audio');
   if (/\.docx?|\.xlsx?|\.csv|\.txt|\.md|\.html/.test(a)) kinds.push('Documents');
   const label = kinds.length ? kinds.join(' · ') : accept!.toUpperCase();
+  const primary = kinds[0] ?? '';
   const icon =
-    kinds[0] === 'PDF' ? 'file-text' :
-    kinds[0] === 'Images' ? 'image' :
-    kinds[0] === 'Video' ? 'video' :
-    kinds[0] === 'Audio' ? 'music' : 'file-text';
-  return { label, icon };
+    primary === 'PDF' ? 'file-text' :
+    primary === 'Images' ? 'image' :
+    primary === 'Video' ? 'video' :
+    primary === 'Audio' ? 'music' : 'file-text';
+  const accent =
+    primary === 'PDF' ? 'var(--accent-pdf, #ef4444)' :
+    primary === 'Images' ? 'var(--accent-image, #22c55e)' :
+    primary === 'Video' ? 'var(--accent-video, #a855f7)' :
+    primary === 'Audio' ? 'var(--accent-audio, #f97316)' :
+    'var(--brand-primary)';
+  return { label, icon, accent };
 }
 
 export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropProps) {
@@ -90,7 +97,8 @@ export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropPro
   return (
     <div>
       <div
-        className={`dropzone ${drag ? 'drag-over' : ''} ${rejected ? 'drop-rejected' : ''}`}
+        className={`dropzone dz-hero ${drag ? 'drag-over' : ''} ${rejected ? 'drop-rejected' : ''}`}
+        style={{ '--dz-accent': kind.accent } as React.CSSProperties}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
@@ -100,10 +108,13 @@ export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropPro
         aria-label={`Upload ${kind.label}`}
         onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
       >
-        <span className="dropzone-icon"><Icon name={kind.icon} size={26} /></span>
-        <b>{drag ? `Drop your ${kind.label} here` : 'Drag & drop or click to browse'}</b>
-        <span className="dropzone-kind">{kind.label}{multiple ? ' · multiple files' : ''}</span>
-        <span>{hint || 'Processed 100% in your browser — files kabhi upload nahi hote'}</span>
+        <span className="dz-icon"><Icon name={kind.icon} size={34} /></span>
+        <b className="dz-title">Drag &amp; Drop {kind.label} Here</b>
+        <span className="dz-sub">or click to browse files</span>
+        <span className="btn btn-primary dz-btn">
+          Choose {kind.label === 'Files' ? 'File' : `${kind.label.split(' · ')[0]} File${multiple ? 's' : ''}`}
+        </span>
+        <span className="dz-note">{hint || `${kind.label}${multiple ? ' · multiple files' : ''} · 100% private — browser me hi process`}</span>
       </div>
       {rejected && (
         <p className="dropzone-error" role="alert">

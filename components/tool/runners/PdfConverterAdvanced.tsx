@@ -314,7 +314,8 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
       <div className="pdfconv-shell pdfconv-layout mergepdf-upload-layout">
         <Steps current={0} />
         <div
-          className={`pdfconv-drop ${dragOver ? 'drag-active' : ''}`}
+          className={`dropzone dz-hero ${dragOver ? 'drag-over' : ''}`}
+          style={{ '--dz-accent': 'var(--accent-pdf, #ef4444)' } as React.CSSProperties}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -323,13 +324,11 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
           aria-label="Upload a file to convert"
           onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
         >
-          <div className="pdfconv-drop-inner">
-            <span className="pdfconv-drop-icon"><Icon name="upload" size={22} /></span>
-            <div className="pdfconv-drop-text">
-              <b>Drop files or <span className="pdfconv-browse-link">browse</span></b>
-              <span className="muted">PDF · Word · Excel · Images · Text · 11 output formats · 100% private</span>
-            </div>
-          </div>
+          <span className="dz-icon"><Icon name="file-text" size={34} /></span>
+          <b className="dz-title">Drag &amp; Drop Files Here</b>
+          <span className="dz-sub">or click to browse files</span>
+          <span className="btn btn-primary dz-btn">Choose File</span>
+          <span className="dz-note">PDF · Word · Excel · Images · Text · 11 output formats · 100% private</span>
         </div>
         <input
           ref={inputRef}

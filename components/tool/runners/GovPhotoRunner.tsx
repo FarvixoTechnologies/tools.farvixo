@@ -558,7 +558,8 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
           )}
 
           <div
-            className="dropzone mt-4"
+            className="dropzone dz-hero mt-4"
+            style={{ '--dz-accent': 'var(--accent-image, #22c55e)' } as React.CSSProperties}
             onClick={() => document.getElementById('gov-file-input')?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
@@ -579,9 +580,11 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
             role="button"
             tabIndex={0}
           >
-            <span className="dropzone-icon"><Icon name="upload" size={26} /></span>
-            <b>{batchMode ? 'Drop multiple files' : 'Drag & drop or click to upload'}</b>
-            <span>{fileType === 'document' ? 'PDF, JPG, PNG' : 'JPG, PNG, WebP, HEIC'}</span>
+            <span className="dz-icon"><Icon name={fileType === 'document' ? 'file-text' : 'user-square'} size={34} /></span>
+            <b className="dz-title">Drag &amp; Drop {fileType === 'document' ? 'Document' : 'Photo'} Here</b>
+            <span className="dz-sub">or click to browse files</span>
+            <span className="btn btn-primary dz-btn">Choose {batchMode ? 'Files' : 'File'}</span>
+            <span className="dz-note">{fileType === 'document' ? 'PDF, JPG, PNG' : 'JPG, PNG, WebP, HEIC'} · 100% private</span>
           </div>
           <input
             id="gov-file-input"
