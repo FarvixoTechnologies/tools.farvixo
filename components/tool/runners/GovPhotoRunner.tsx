@@ -580,7 +580,7 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
             role="button"
             tabIndex={0}
           >
-            <span className="dz-icon"><Icon name={fileType === 'document' ? 'file-text' : 'user-square'} size={26} /></span>
+            <span className="dz-icon"><Icon name={fileType === 'document' ? 'file-text' : 'user-square'} size={22} /></span>
             <b className="dz-title">Drag &amp; Drop {fileType === 'document' ? 'Document' : 'Photo'} Here</b>
             <span className="dz-sub">or click to browse files</span>
             <span className="btn btn-primary dz-btn">Choose {batchMode ? 'Files' : 'File'}</span>
