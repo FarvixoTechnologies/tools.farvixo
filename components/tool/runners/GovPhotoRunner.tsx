@@ -563,10 +563,18 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
-              const f = e.dataTransfer.files;
-              if (!f.length) return;
-              if (batchMode) void runBatchFiles(Array.from(f));
-              else void ingestFile(f[0]!);
+              const ok = Array.from(e.dataTransfer.files).filter(
+                (f) =>
+                  f.type.startsWith('image/') ||
+                  f.type === 'application/pdf' ||
+                  /\.(jpe?g|png|webp|heic|heif|pdf)$/i.test(f.name),
+              );
+              if (!ok.length) {
+                fail(new Error('Ye tool sirf photo (JPG/PNG/WebP/HEIC) ya PDF leta hai.'));
+                return;
+              }
+              if (batchMode) void runBatchFiles(ok);
+              else void ingestFile(ok[0]!);
             }}
             role="button"
             tabIndex={0}

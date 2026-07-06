@@ -252,6 +252,8 @@ export default function PdfCompressorRunner({ tool }: { tool: Tool }) {
         const v = await validatePdfFile(f);
         if (v.ok) pdfs.push(f);
         else toast(v.error ?? 'Invalid PDF', 'error');
+      } else {
+        toast(`${f.name} — ye tool sirf PDF (ya PDF wali ZIP) leta hai`, 'error');
       }
     }
     if (!pdfs.length) return;
