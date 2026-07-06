@@ -2639,3 +2639,26 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
   .dz-hero { min-height: 260px; padding: 36px 16px; }
   .dz-icon { width: 72px; height: 72px; border-radius: 18px; }
 }
+
+/* dz-hero: floating particle backdrop (GPU transform-only, very slow) */
+.dz-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.dz-particles i {
+  position: absolute; display: block; border-radius: 50%;
+  width: calc(5px + (var(--i) * 1.5px));
+  height: calc(5px + (var(--i) * 1.5px));
+  left: calc(8% + (var(--i) * 11.5%));
+  bottom: -12px;
+  background: color-mix(in srgb, var(--dz-accent, var(--brand-primary)) 55%, transparent);
+  opacity: 0;
+  animation: dz-float calc(9s + (var(--i) * 1.7s)) linear infinite;
+  animation-delay: calc(var(--i) * -2.3s);
+  will-change: transform, opacity;
+}
+@keyframes dz-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  12% { opacity: 0.55; }
+  85% { opacity: 0.35; }
+  100% { transform: translateY(-340px) translateX(14px); opacity: 0; }
+}
+.dz-hero.drag-over .dz-particles i { animation-duration: calc(3.5s + (var(--i) * 0.6s)); }
+@media (prefers-reduced-motion: reduce) { .dz-particles { display: none; } }

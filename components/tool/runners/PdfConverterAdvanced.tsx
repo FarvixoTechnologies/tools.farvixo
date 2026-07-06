@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
 import { ErrorBox, fileMatchesAccept, useToolPhase, type ResultFile } from '../shared';
+import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { renderPdfPages } from '@/lib/pdf';
 import { extractPdfTextSmart } from '@/lib/pdf-smart-text';
 import { canvasToBlob } from '@/lib/image';
@@ -104,7 +105,6 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
   const [compareFormats, setCompareFormats] = useState<TargetFormat[]>([]);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [convertProgress, setConvertProgress] = useState(0);
-  const [dragOver, setDragOver] = useState(false);
   const [pdfPages, setPdfPages] = useState<HTMLCanvasElement[]>([]);
   const [diffPage, setDiffPage] = useState(0);
   const [structureOpen, setStructureOpen] = useState(false);
@@ -313,23 +313,15 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
     return (
       <div className="pdfconv-shell pdfconv-layout mergepdf-upload-layout">
         <Steps current={0} />
-        <div
-          className={`dropzone dz-hero ${dragOver ? 'drag-over' : ''}`}
-          style={{ '--dz-accent': 'var(--accent-pdf, #ef4444)' } as React.CSSProperties}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); stageFiles(e.dataTransfer.files); }}
-          role="button" tabIndex={0}
-          aria-label="Upload a file to convert"
-          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-        >
-          <span className="dz-icon"><Icon name="file-text" size={34} /></span>
-          <b className="dz-title">Drag &amp; Drop Files Here</b>
-          <span className="dz-sub">or click to browse files</span>
-          <span className="btn btn-primary dz-btn">Choose File</span>
-          <span className="dz-note">PDF · Word · Excel · Images · Text · 11 output formats · 100% private</span>
-        </div>
+        <UniversalDragDropUploader
+          accept={accept}
+          multiple
+          onFiles={(fs) => stageFiles(fs)}
+          title="Drag & Drop Files Here"
+          buttonLabel="Choose File"
+          note="PDF · Word · Excel · Images · Text · 11 output formats · 100% private"
+          accent="var(--accent-pdf, #ef4444)"
+        />
         <input
           ref={inputRef}
           type="file"

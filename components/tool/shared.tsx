@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Icon from '../Icon';
 import { formatBytes } from '@/lib/download';
+import UniversalDragDropUploader, { fileMatchesAccept as matchesAccept } from './UniversalDragDropUploader';
 
 const ShareModal = dynamic(() => import('./ShareModal'), { ssr: false });
 
@@ -31,103 +32,25 @@ export interface FileDropProps {
   hint?: string;
 }
 
-/** Does a file match an HTML accept string (.ext, type/*, exact mime)? */
-export function fileMatchesAccept(file: File, accept?: string): boolean {
-  if (!accept?.trim()) return true;
-  const ext = `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`;
-  const mime = file.type.toLowerCase();
-  return accept.split(',').some((raw) => {
-    const t = raw.trim().toLowerCase();
-    if (!t) return false;
-    if (t.endsWith('/*')) return mime.startsWith(t.slice(0, -1));
-    if (t.startsWith('.')) return ext === t;
-    return mime === t;
-  });
-}
-
-/** Human label + icon + accent for an accept string — "PDF", "Images", ... */
-export function acceptKind(accept?: string): { label: string; icon: string; accent: string } {
-  const a = (accept ?? '').toLowerCase();
-  if (!a) return { label: 'Files', icon: 'upload', accent: 'var(--brand-primary)' };
-  const kinds: string[] = [];
-  if (a.includes('pdf')) kinds.push('PDF');
-  if (a.includes('image')) kinds.push('Images');
-  if (a.includes('video')) kinds.push('Video');
-  if (a.includes('audio')) kinds.push('Audio');
-  if (/\.docx?|\.xlsx?|\.csv|\.txt|\.md|\.html/.test(a)) kinds.push('Documents');
-  const label = kinds.length ? kinds.join(' · ') : accept!.toUpperCase();
-  const primary = kinds[0] ?? '';
-  const icon =
-    primary === 'PDF' ? 'file-text' :
-    primary === 'Images' ? 'image' :
-    primary === 'Video' ? 'video' :
-    primary === 'Audio' ? 'music' : 'file-text';
-  const accent =
-    primary === 'PDF' ? 'var(--accent-pdf, #ef4444)' :
-    primary === 'Images' ? 'var(--accent-image, #22c55e)' :
-    primary === 'Video' ? 'var(--accent-video, #a855f7)' :
-    primary === 'Audio' ? 'var(--accent-audio, #f97316)' :
-    'var(--brand-primary)';
-  return { label, icon, accent };
-}
+// Single source of truth for accept matching + kind derivation lives with the
+// universal uploader; re-exported here for existing importers.
+export { fileMatchesAccept, acceptKind } from './UniversalDragDropUploader';
 
 export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [drag, setDrag] = useState(false);
-  const [rejected, setRejected] = useState<string | null>(null);
-  const kind = acceptKind(accept);
-
   const add = useCallback(
-    (incoming: FileList | File[] | null) => {
-      if (!incoming) return;
-      const arr = Array.from(incoming);
-      const ok = arr.filter((f) => fileMatchesAccept(f, accept));
-      const bad = arr.filter((f) => !fileMatchesAccept(f, accept));
-      if (bad.length > 0) {
-        setRejected(`${bad[0].name} — ye tool sirf ${kind.label} leta hai`);
-        setTimeout(() => setRejected(null), 4000);
-      }
-      if (ok.length === 0) return;
-      setRejected(null);
-      onFiles(multiple ? [...files, ...ok] : ok.slice(0, 1));
+    (incoming: File[]) => {
+      onFiles(multiple ? [...files, ...incoming] : incoming.slice(0, 1));
     },
-    [files, multiple, onFiles, accept, kind.label],
+    [files, multiple, onFiles],
   );
 
   return (
     <div>
-      <div
-        className={`dropzone dz-hero ${drag ? 'drag-over' : ''} ${rejected ? 'drop-rejected' : ''}`}
-        style={{ '--dz-accent': kind.accent } as React.CSSProperties}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-        onDragLeave={() => setDrag(false)}
-        onDrop={(e) => { e.preventDefault(); setDrag(false); add(e.dataTransfer.files); }}
-        role="button"
-        tabIndex={0}
-        aria-label={`Upload ${kind.label}`}
-        onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-      >
-        <span className="dz-icon"><Icon name={kind.icon} size={34} /></span>
-        <b className="dz-title">Drag &amp; Drop {kind.label} Here</b>
-        <span className="dz-sub">or click to browse files</span>
-        <span className="btn btn-primary dz-btn">
-          Choose {kind.label === 'Files' ? 'File' : `${kind.label.split(' · ')[0]} File${multiple ? 's' : ''}`}
-        </span>
-        <span className="dz-note">{hint || `${kind.label}${multiple ? ' · multiple files' : ''} · 100% private — browser me hi process`}</span>
-      </div>
-      {rejected && (
-        <p className="dropzone-error" role="alert">
-          <Icon name="alert-triangle" size={13} /> {rejected}
-        </p>
-      )}
-      <input
-        ref={inputRef}
-        type="file"
-        hidden
+      <UniversalDragDropUploader
         accept={accept}
         multiple={multiple}
-        onChange={(e) => { add(e.target.files); e.target.value = ''; }}
+        onFiles={add}
+        note={hint}
       />
       <button
         className="btn btn-ghost btn-sm mt-2"
@@ -142,8 +65,9 @@ export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropPro
               const ext = type.split('/')[1]?.replace('jpeg', 'jpg') ?? 'png';
               picked.push(new File([blob], `pasted-${Date.now()}.${ext}`, { type }));
             }
-            if (picked.length === 0) return;
-            add(picked); // same type validation as drag & drop
+            const ok = picked.filter((f) => matchesAccept(f, accept));
+            if (ok.length === 0) return;
+            add(ok);
           } catch {
             /* clipboard permission denied or no file content */
           }

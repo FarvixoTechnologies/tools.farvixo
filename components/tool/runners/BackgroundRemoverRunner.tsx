@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
 import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { downloadBlob, formatBytes, replaceExt } from '@/lib/download';
 import { recordJob } from '@/lib/jobs';
@@ -195,7 +196,6 @@ export default function BackgroundRemoverRunner({ tool }: { tool: Tool }) {
   const [options, setOptions] = useState<RemoveOptions>(DEFAULT_REMOVE_OPTIONS);
   const [status, setStatus] = useState('');
   const [progress, setProgress] = useState(0);
-  const [dragOver, setDragOver] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
   const [urlValue, setUrlValue] = useState('');
   const [previewMode, setPreviewMode] = useState<PreviewMode>('after');
@@ -586,19 +586,15 @@ export default function BackgroundRemoverRunner({ tool }: { tool: Tool }) {
   return (
     <div className="bgrem-shell pdfconv-layout mergepdf-upload-layout">
       <Steps current={0} />
-      <div
-        className={`pdfconv-drop ${dragOver ? 'drag-active' : ''}`}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); void addFiles(e.dataTransfer.files); }}
-        role="button" tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-      >
-        <Icon name="upload" size={32} />
-        <b>Drop images here or click to browse</b>
-        <span>PNG · JPG · WEBP · HEIC · AVIF · GIF · BMP · TIFF · ZIP batch</span>
-      </div>
+      <UniversalDragDropUploader
+        accept="image/*,.zip"
+        multiple
+        onFiles={(fs) => void addFiles(fs)}
+        title="Drag & Drop Images Here"
+        buttonLabel="Choose Images"
+        note="PNG · JPG · WEBP · HEIC · AVIF · GIF · BMP · TIFF · ZIP batch · 100% private"
+        accent="var(--accent-image, #22c55e)"
+      />
       <input ref={inputRef} type="file" hidden accept="image/*,.zip" multiple onChange={(e) => { void addFiles(e.target.files ?? []); e.target.value = ''; }} />
       <input ref={cameraRef} type="file" hidden accept="image/*" capture="environment" onChange={(e) => { void addFiles(e.target.files ?? []); e.target.value = ''; }} />
       <input ref={zipRef} type="file" hidden accept=".zip" onChange={(e) => { void addFiles(e.target.files ?? []); e.target.value = ''; }} />

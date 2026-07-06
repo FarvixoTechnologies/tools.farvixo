@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
 import { ErrorBox, useToolPhase, type ResultFile } from '../shared';
+import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { formatBytes } from '@/lib/download';
 import { recordJob } from '@/lib/jobs';
@@ -283,7 +284,6 @@ export default function MergePdfRunner({ tool }: { tool: Tool }) {
   const [mergeMode, setMergeMode] = useState<MergeMode>('normal');
   const [result, setResult] = useState<ResultFile | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
   const [urlValue, setUrlValue] = useState('');
   const [urlBusy, setUrlBusy] = useState(false);
@@ -743,41 +743,31 @@ export default function MergePdfRunner({ tool }: { tool: Tool }) {
       <div className="pdfconv-layout mergepdf-upload-layout">
         <Steps current={0} />
 
-        <div
-          className={`pdfconv-drop ${dragOver ? 'drag-active' : ''}`}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); void ingestFiles(Array.from(e.dataTransfer.files)); }}
-          role="button"
-          tabIndex={0}
-          aria-label="Upload PDFs"
-          onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
-        >
-          <div className="pdfconv-drop-inner">
-            <span className="pdfconv-drop-icon"><Icon name="merge" size={24} /></span>
-            <div className="pdfconv-drop-text">
-              <b>Drop PDFs or <span className="pdfconv-browse-link">browse</span></b>
-              <span className="muted">Unlimited files · folder · ZIP · URL · clipboard · camera</span>
-            </div>
-            <div className="pdfconv-drop-actions" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="pdfconv-chip" title="Clipboard" onClick={() => void pasteClipboard()}>
-                <Icon name="clipboard" size={14} />
-              </button>
-              <button type="button" className="pdfconv-chip" title="URL import" onClick={() => setUrlOpen((o) => !o)}>
-                <Icon name="link" size={14} />
-              </button>
-              <button type="button" className="pdfconv-chip" title="Folder" onClick={() => folderRef.current?.click()}>
-                <Icon name="folder" size={14} />
-              </button>
-              <button type="button" className="pdfconv-chip" title="ZIP" onClick={() => zipRef.current?.click()}>
-                <Icon name="folder" size={14} />
-              </button>
-              <button type="button" className="pdfconv-chip" title="Camera scan" onClick={() => cameraRef.current?.click()}>
-                <Icon name="image" size={14} />
-              </button>
-            </div>
-          </div>
+        <UniversalDragDropUploader
+          accept="application/pdf,image/*,.zip"
+          multiple
+          onFiles={(fs) => void ingestFiles(fs)}
+          title="Drag & Drop PDFs Here"
+          buttonLabel="Choose PDF Files"
+          note="PDF · Images · ZIP · folders · unlimited files · 100% private"
+          accent="var(--accent-pdf, #ef4444)"
+        />
+        <div className="bgrem-upload-actions">
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => void pasteClipboard()}>
+            <Icon name="clipboard" size={14} /> Paste
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => setUrlOpen((o) => !o)}>
+            <Icon name="link" size={14} /> URL
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => folderRef.current?.click()}>
+            <Icon name="folder" size={14} /> Folder
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => zipRef.current?.click()}>
+            <Icon name="folder" size={14} /> ZIP
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => cameraRef.current?.click()}>
+            <Icon name="image" size={14} /> Camera
+          </button>
         </div>
 
         <div className="mergepdf-fab-inline">{fab}</div>

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
 import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { formatBytes, downloadBlob } from '@/lib/download';
 import { recordJob } from '@/lib/jobs';
@@ -266,11 +267,8 @@ export default function PdfToWordRunner({ tool }: { tool: Tool }) {
   const [outputBlob, setOutputBlob] = useState<Blob | null>(null);
   const [outputName, setOutputName] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
   const [excludedPages, setExcludedPages] = useState<Set<number>>(new Set());
   const [logOpen, setLogOpen] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const prev = loadPdfToWordSession();
@@ -399,20 +397,15 @@ export default function PdfToWordRunner({ tool }: { tool: Tool }) {
     return (
       <div className="pdfconv-layout mergepdf-upload-layout">
         <Steps current={0} />
-        <div
-          className={`pdfconv-drop ${dragOver ? 'drag-active' : ''}`}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); void addFiles(e.dataTransfer.files); }}
-          role="button"
-          tabIndex={0}
-        >
-          <Icon name="upload" size={32} />
-          <b>Drop PDF files here or click to browse</b>
-          <span>DOCX with layout, tables, OCR &amp; Indic AI repair · 100% private</span>
-        </div>
-        <input ref={inputRef} type="file" hidden accept={tool.accept} multiple={tool.multiple} onChange={(e) => { void addFiles(e.target.files ?? []); e.target.value = ''; }} />
+        <UniversalDragDropUploader
+          accept={tool.accept}
+          multiple={tool.multiple}
+          onFiles={(fs) => void addFiles(fs)}
+          title="Drag & Drop PDF Here"
+          buttonLabel={`Choose PDF File${tool.multiple ? 's' : ''}`}
+          note="DOCX with layout, tables, OCR & Indic AI repair · 100% private"
+          accent="var(--accent-pdf, #ef4444)"
+        />
 
         <div className="mergepdf-fab-inline">{fab}</div>
 

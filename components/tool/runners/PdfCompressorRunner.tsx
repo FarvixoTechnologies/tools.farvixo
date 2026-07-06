@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
 import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { downloadBlob, formatBytes } from '@/lib/download';
 import { recordJob } from '@/lib/jobs';
@@ -217,7 +218,6 @@ export default function PdfCompressorRunner({ tool }: { tool: Tool }) {
   const [passwordNeeded, setPasswordNeeded] = useState(false);
   const [status, setStatus] = useState('');
   const [progress, setProgress] = useState(0);
-  const [dragOver, setDragOver] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
   const [urlValue, setUrlValue] = useState('');
   const [results, setResults] = useState<CompressResult[]>([]);
@@ -497,18 +497,15 @@ export default function PdfCompressorRunner({ tool }: { tool: Tool }) {
   return (
     <div className="pdfcomp-shell pdfconv-layout mergepdf-upload-layout">
       <Steps current={0} />
-      <div
-        className={`pdfconv-drop ${dragOver ? 'drag-active' : ''}`}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); void addPdfs(e.dataTransfer.files); }}
-        role="button" tabIndex={0}
-      >
-        <Icon name="upload" size={32} />
-        <b>Drop PDF files here or click to browse</b>
-        <span>Batch · ZIP · Password protected · 100% private browser compression</span>
-      </div>
+      <UniversalDragDropUploader
+        accept="application/pdf,.zip"
+        multiple
+        onFiles={(fs) => void addPdfs(fs)}
+        title="Drag & Drop PDF Here"
+        buttonLabel="Choose PDF Files"
+        note="Batch · ZIP · Password protected · 100% private browser compression"
+        accent="var(--accent-pdf, #ef4444)"
+      />
       <input ref={inputRef} type="file" hidden accept="application/pdf,.zip" multiple onChange={(e) => { void addPdfs(e.target.files ?? []); e.target.value = ''; }} />
       <input ref={zipRef} type="file" hidden accept=".zip" onChange={(e) => { void addPdfs(e.target.files ?? []); e.target.value = ''; }} />
 
