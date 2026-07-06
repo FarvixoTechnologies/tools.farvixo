@@ -323,9 +323,13 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
           aria-label="Upload a file to convert"
           onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
         >
-          <Icon name="upload" size={32} />
-          <b>Drop files here or click to browse</b>
-          <span>PDF · Word · Excel · Images · Text · 11 output formats · 100% private</span>
+          <div className="pdfconv-drop-inner">
+            <span className="pdfconv-drop-icon"><Icon name="upload" size={22} /></span>
+            <div className="pdfconv-drop-text">
+              <b>Drop files or <span className="pdfconv-browse-link">browse</span></b>
+              <span className="muted">PDF · Word · Excel · Images · Text · 11 output formats · 100% private</span>
+            </div>
+          </div>
         </div>
         <input
           ref={inputRef}
