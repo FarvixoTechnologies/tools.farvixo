@@ -8,6 +8,8 @@ export type RunnerKind =
   | 'pdf-convert'
   | 'pdf-converter'
   | 'ffmpeg'
+  | 'video-converter'
+  | 'audio-converter'
   | 'speech'
   | 'ai-text'
   | 'ai-chat'
@@ -28,7 +30,9 @@ export type RunnerKind =
   | 'merge-pdf'
   | 'pdf-to-word'
   | 'pdf-compressor'
-  | 'gradient';
+  | 'image-to-pdf'
+  | 'gradient'
+  | 'weather';
 
 export type ToolConfig = Record<string, unknown>;
 
@@ -75,7 +79,7 @@ export const tools: Tool[] = [
   { id: 18, slug: 'excel-to-pdf', name: 'Excel to PDF', description: 'Convert Excel spreadsheets (XLSX/CSV) to PDF', category: 'pdf', icon: 'table', runner: 'pdf-convert', mode: 'excel2pdf', accept: '.xlsx,.xls,.csv' },
   { id: 19, slug: 'protect-pdf', name: 'Protect PDF', description: 'Add password protection to PDF files', category: 'pdf', icon: 'lock', runner: 'pdf', mode: 'protect', accept: PDF },
   { id: 20, slug: 'sign-pdf', name: 'Sign PDF', description: 'Draw and place your signature on a PDF', category: 'pdf', icon: 'pen', runner: 'pdf', mode: 'sign', accept: PDF },
-  { id: 129, slug: 'image-to-pdf', name: 'Image to PDF', description: 'Convert images to PDF documents', category: 'pdf', icon: 'image', badge: 'popular', runner: 'pdf', mode: 'img2pdf', accept: IMG, multiple: true },
+  { id: 129, slug: 'image-to-pdf', name: 'Image to PDF', description: 'AI-powered image to PDF — batch upload, organize, optimize & professional PDF output', category: 'pdf', icon: 'image', badge: 'popular', runner: 'image-to-pdf', mode: 'img2pdf', accept: 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,.avif,.bmp,.gif,.tiff,.tif,.svg', multiple: true, keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'photo to pdf', 'convert images pdf', 'batch image pdf', 'heic to pdf'] },
   { id: 131, slug: 'flatten-pdf', name: 'Flatten PDF', description: 'Flatten forms, annotations and layers into plain uneditable pages', category: 'pdf', icon: 'stamp', badge: 'new', runner: 'pdf', mode: 'flatten', accept: PDF, keywords: ['flatten', 'forms', 'annotations', 'lock content'] },
   { id: 132, slug: 'pdf-page-numbers', name: 'PDF Page Numbers', description: 'Stamp page numbers on every page — position, format and start number', category: 'pdf', icon: 'hash', badge: 'new', runner: 'pdf', mode: 'pagenum', accept: PDF, keywords: ['page numbers', 'numbering', 'stamp', 'bates'] },
   { id: 133, slug: 'pdf-overlay', name: 'PDF Overlay', description: 'Stamp a letterhead, watermark PDF or digital paper onto every page', category: 'pdf', icon: 'copy', badge: 'new', runner: 'pdf', mode: 'overlay', accept: PDF, multiple: true, keywords: ['overlay', 'letterhead', 'stationery', 'digital paper', 'stamp pdf'] },
@@ -100,7 +104,7 @@ export const tools: Tool[] = [
   { id: 130, slug: 'watermark-remover', name: 'Watermark Remover', description: 'Remove watermarks from images', category: 'image', icon: 'eraser', badge: 'popular', runner: 'bg-remove', mode: 'object', accept: IMG },
 
   // ─── 🎥 Video Tools (8) ────────────────────────────────────────────────
-  { id: 33, slug: 'video-converter', name: 'Video Converter', description: 'Convert videos to any format you need', category: 'video', icon: 'video', badge: 'popular', runner: 'ffmpeg', mode: 'video-convert', accept: 'video/*' },
+  { id: 33, slug: 'video-converter', name: 'Video Converter', description: 'Convert videos to MP4, WebM, MKV, MOV, GIF or extract MP3/AAC — AI analysis, batch queue, social presets, 100% private FFmpeg in your browser', category: 'video', icon: 'video', badge: 'popular', runner: 'video-converter', mode: 'convert', accept: 'video/*', multiple: true, keywords: ['video converter', 'mp4 to webm', 'mkv to mp4', 'video to mp3', 'convert video', 'ffmpeg online', 'batch video convert', '4k video', 'gif converter'] },
   { id: 34, slug: 'video-compressor', name: 'Video Compressor', description: 'Compress video files without quality loss', category: 'video', icon: 'video', badge: 'popular', runner: 'ffmpeg', mode: 'video-compress', accept: 'video/*' },
   { id: 35, slug: 'video-trimmer', name: 'Video Trimmer', description: 'Cut and trim video clips precisely', category: 'video', icon: 'scissors', runner: 'ffmpeg', mode: 'video-trim', accept: 'video/*' },
   { id: 36, slug: 'video-merger', name: 'Video Merger', description: 'Join multiple videos into one file', category: 'video', icon: 'merge', runner: 'ffmpeg', mode: 'video-merge', accept: 'video/*', multiple: true },
@@ -110,7 +114,7 @@ export const tools: Tool[] = [
   { id: 40, slug: 'ai-subtitle-generator', name: 'AI Subtitle Generator', description: 'Generate SRT subtitles from video audio with AI', category: 'video', icon: 'captions', badge: 'ai', runner: 'speech', mode: 'subtitle', accept: 'video/*,audio/*' },
 
   // ─── 🎵 Audio Tools (8) ────────────────────────────────────────────────
-  { id: 41, slug: 'audio-converter', name: 'Audio Converter', description: 'Convert audio files to any format', category: 'audio', icon: 'music', badge: 'popular', runner: 'ffmpeg', mode: 'audio-convert', accept: 'audio/*' },
+  { id: 41, slug: 'audio-converter', name: 'Audio Converter', description: 'AI-powered audio converter — batch upload, smart analysis, studio presets, noise removal & 15+ formats', category: 'audio', icon: 'music', badge: 'popular', runner: 'audio-converter', mode: 'audio-convert', accept: 'audio/*,.mp3,.wav,.aac,.m4a,.flac,.ogg,.opus,.wma,.aiff,.amr,.ac3', multiple: true, keywords: ['audio converter', 'mp3 to wav', 'flac to mp3', 'convert audio', 'aac converter', 'batch audio', 'ffmpeg audio', 'podcast converter'] },
   { id: 42, slug: 'audio-compressor', name: 'Audio Compressor', description: 'Reduce audio file size with bitrate control', category: 'audio', icon: 'music', runner: 'ffmpeg', mode: 'audio-compress', accept: 'audio/*' },
   { id: 43, slug: 'audio-cutter', name: 'Audio Cutter', description: 'Cut and trim audio clips', category: 'audio', icon: 'scissors', runner: 'ffmpeg', mode: 'audio-cut', accept: 'audio/*' },
   { id: 44, slug: 'audio-merger', name: 'Audio Merger', description: 'Join multiple audio files into one', category: 'audio', icon: 'merge', runner: 'ffmpeg', mode: 'audio-merge', accept: 'audio/*', multiple: true },
@@ -135,6 +139,7 @@ export const tools: Tool[] = [
 
   // ─── 💻 Developer Tools (8) ────────────────────────────────────────────
   { id: 138, slug: 'gradient-generator', name: 'AI Gradient Generator', description: 'Design studio for gradients — AI prompt, image palette extraction, mesh/aurora/noise types, animation & 6 export formats', category: 'developer', icon: 'wand', badge: 'ai', runner: 'gradient', mode: 'studio', keywords: ['gradient', 'css gradient', 'mesh gradient', 'aurora', 'background', 'tailwind gradient', 'color palette', 'design'] },
+  { id: 139, slug: 'world-weather-pro', name: 'World Weather Pro', description: 'Live weather, 7-day forecast, hourly timeline, air quality, astronomy & AI insights — powered by Open-Meteo, no API key', category: 'utility', icon: 'cloud', badge: 'new', runner: 'weather', mode: 'pro', keywords: ['weather', 'forecast', 'temperature', 'air quality', 'aqi', 'humidity', 'wind', 'sunrise', 'sunset', 'hourly forecast', '7 day forecast'] },
   { id: 61, slug: 'json-formatter', name: 'JSON Formatter', description: 'Pretty-print and minify JSON', category: 'developer', icon: 'braces', badge: 'popular', runner: 'dev', mode: 'json-format' },
   { id: 62, slug: 'json-validator', name: 'JSON Validator', description: 'Validate JSON and locate syntax errors', category: 'developer', icon: 'braces', runner: 'dev', mode: 'json-validate' },
   { id: 63, slug: 'base64-encoder-decoder', name: 'Base64 Encoder & Decoder', description: 'Encode and decode Base64 text and files', category: 'developer', icon: 'binary', runner: 'dev', mode: 'base64' },

@@ -43,6 +43,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  if (slug === 'video-converter') {
+    return {
+      title: 'Video Converter — MP4, WebM, MKV, GIF & MP3 | AI Analysis & Batch | ToolNest',
+      description: 'Convert videos to MP4, WebM, MKV, MOV, GIF or extract MP3/AAC. AI smart analysis, social presets (YouTube, Instagram, TikTok), batch queue, trim & rotate. 100% private FFmpeg in your browser.',
+    };
+  }
+
+  if (slug === 'audio-converter') {
+    return {
+      title: 'Audio Converter — MP3, WAV, FLAC, AAC & AI Enhancement | ToolNest',
+      description: 'Convert audio to MP3, WAV, FLAC, AAC, OGG, OPUS with AI analysis, noise removal, podcast presets, waveform preview & batch queue. 100% private FFmpeg in your browser.',
+    };
+  }
+
   if (slug === 'pdf-to-word') {
     return {
       title: 'PDF to Word Converter — Free OCR, AI Layout & Indic Support | ToolNest',
@@ -68,6 +82,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: 'Merge PDF — AI Organize, 10 Merge Modes & Premium Workflow | ToolNest',
       description: 'Merge multiple PDFs with AI page analysis, drag reorder, optimize modes for PAN/passport/book, batch merge. Free & 100% private browser processing.',
+    };
+  }
+
+  if (slug === 'image-to-pdf') {
+    return {
+      title: 'Image to PDF — AI Batch Convert, Organize & Optimize | ToolNest',
+      description: 'Convert JPG, PNG, WEBP, HEIC to PDF with AI analysis, drag timeline, page size control, compression, watermark & password. Free, 100% private browser processing.',
     };
   }
 
@@ -128,6 +149,33 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'How is this different from TinyPNG or Squoosh?', a: 'ToolNest combines the best of both: Squoosh-level quality control (AVIF, WebP, manual settings, comparison slider) + TinyPNG-level batch processing (unlimited images) + features neither has: AI-powered auto-settings, target file size mode, social media presets, responsive image generation, government document presets, and compression reports — all in one tool, all 100% free and private.' },
     ];
   }
+  if (slug === 'video-converter') {
+    return [
+      { q: 'What video formats can I convert?', a: 'Input: MP4, MKV, MOV, AVI, WMV, FLV, WebM, MPEG, 3GP, M4V, TS, MTS, GIF and more. Output: MP4 (H.264), WebM (VP9), MKV, MOV, AVI, GIF, or audio-only MP3, AAC, WAV, FLAC, OGG, M4A.' },
+      { q: 'Is my video uploaded to a server?', a: 'No. All conversion runs 100% in your browser using FFmpeg WebAssembly. Your videos never leave your device — fully private, no account required.' },
+      { q: 'What is the maximum file size?', a: 'Browser FFmpeg works best for files under ~200MB per video. Larger files may work depending on your device RAM. Batch mode processes videos one at a time to manage memory.' },
+      { q: 'Can I convert videos for YouTube, Instagram or TikTok?', a: 'Yes! Use Social/Platform Presets for YouTube 1080p, YouTube Shorts, Instagram Reels, TikTok, LinkedIn, X/Twitter, and WhatsApp Status — dimensions, bitrate and format applied automatically.' },
+      { q: 'Can I extract audio from a video?', a: 'Yes — set Output type to "Audio only" and choose MP3, AAC, WAV, FLAC, OGG or M4A. Optional loudness normalization included.' },
+      { q: 'Does AI analysis really help?', a: 'AI Smart Analysis detects resolution, bitrate, duration, orientation and quality score, then suggests optimal format, resolution and compression mode before you convert.' },
+      { q: 'Can I trim, rotate or change speed?', a: 'Yes — use Trim & Edit settings for start/end timestamps, 90° rotation, and speed from 0.5× to 2×. AI denoise, stabilization and upscale filters are also available.' },
+      { q: 'Can I convert multiple videos at once?', a: 'Yes — unlimited batch upload with queue manager. Download individually or all results as a ZIP with performance report.' },
+      { q: 'How is this better than CloudConvert or HandBrake?', a: 'ToolNest combines HandBrake-level codec control + CloudConvert-level format breadth + unique features: AI analysis, social presets, batch queue, performance report, and 100% private browser processing — no upload wait, no daily limits.' },
+    ];
+  }
+  if (slug === 'audio-converter') {
+    return [
+      { q: 'What audio formats are supported?', a: 'Input: MP3, WAV, FLAC, AAC, M4A, OGG, OPUS, WMA, AIFF, AMR, AC3 and more. Output: MP3, WAV, FLAC, AAC, M4A, OGG, OPUS, AIFF, ALAC, AMR, AC3, PCM.' },
+      { q: 'Is my audio uploaded to a server?', a: 'No — 100% browser processing with FFmpeg WebAssembly. Your files never leave your device.' },
+      { q: 'What are the quality presets?', a: 'Balanced, Lossless, High Quality, Mobile, Streaming, Podcast Ready, and Studio Quality — each tuned for different use cases.' },
+      { q: 'Does AI analysis help?', a: 'Yes — detects bitrate, loudness, clipping, noise, voice vs music, BPM, and suggests optimal format and enhancement settings.' },
+      { q: 'Can I remove background noise?', a: 'Yes — enable AI Noise Removal, Voice Enhancement, Silence Removal, and Loudness Optimization in the AI Enhancement panel.' },
+      { q: 'Can I record audio directly?', a: 'Yes — use Record Mic to capture from your microphone, then convert to any format.' },
+      { q: 'Can I convert multiple files?', a: 'Yes — unlimited batch upload with queue manager. Download individually or as ZIP with full audio report.' },
+      { q: 'Can I merge multiple tracks?', a: 'Yes — enable "Merge all files into one audio track" when you have 2+ files in the queue. FFmpeg concatenates then converts in one pass.' },
+      { q: 'Does it have a waveform editor?', a: 'Yes — after analysis, drag trim handles on the interactive timeline to set start/end points. Spectrum analyzer shows frequency distribution.' },
+      { q: 'Can I edit ID3 metadata and album art?', a: 'Yes — use Metadata & Album Art panel to set title, artist, album, genre, and embed cover images into MP3/M4A output.' },
+    ];
+  }
   if (slug === 'pdf-to-word') {
     return [
       { q: 'Is PDF to Word conversion free?', a: 'Yes — unlimited conversions, no signup, no watermarks. OCR and Indic AI repair are included free.' },
@@ -167,6 +215,15 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'Are files uploaded to a server?', a: 'No — 100% browser processing. Your PDFs never leave your device.' },
     ];
   }
+  if (slug === 'image-to-pdf') {
+    return [
+      { q: 'Is Image to PDF free?', a: 'Yes — unlimited images, batch convert, AI analysis, and all PDF settings included free.' },
+      { q: 'What image formats are supported?', a: 'JPG, PNG, WEBP, HEIC, AVIF, BMP, GIF, TIFF, SVG and more. Paste from clipboard, import URL, ZIP, or camera capture.' },
+      { q: 'Can I reorder images before converting?', a: 'Yes — drag-and-drop timeline, multi-select, rotate, duplicate, sort by name/date/size, and shuffle.' },
+      { q: 'Does AI optimize my images?', a: 'AI analyzes blur, orientation, duplicates, documents, and quality score. Smart compression and auto-rotate are applied during conversion.' },
+      { q: 'Are my files uploaded?', a: 'No — 100% browser processing with pdf-lib. Your images never leave your device.' },
+    ];
+  }
   if (slug === 'ai-chat') {
     return [
       { q: 'Is AI Chat free?', a: 'Yes — 10 free server messages/day. For unlimited free chat, add your own Gemini API key from aistudio.google.com (free, no credit card). Server uses Gemini 2.0 Flash or Llama 3.3 70B as fallback.' },
@@ -198,11 +255,14 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
 function getTrustExtra(slug: string): string {
   if (slug === 'pdf-converter') return 'Files auto-deleted after 24h';
   if (slug === 'image-compressor') return '100% Private · No Upload';
+  if (slug === 'video-converter') return 'FFmpeg WASM · AI Analysis · Batch';
+  if (slug === 'audio-converter') return 'AI Analysis · Waveform · Spectrum · Merge';
   if (slug === 'pan-card-photo-resizer') return 'AI Face Crop · 12-Point Compliance';
   if (slug === 'pdf-to-word') return 'AI Indic Repair · Confidence Score';
   if (slug === 'compress-pdf') return 'AI Smart Modes · Batch Queue';
   if (slug === 'background-remover') return 'AI Hair Refine · 100% Private';
   if (slug === 'merge-pdf') return 'AI Organize · 10 Merge Modes';
+  if (slug === 'image-to-pdf') return 'AI Analysis · Drag Timeline · Batch';
   if (slug === 'ai-chat') return '6 Personas · Chat History · Streaming';
   if (slug === 'ai-pdf-assistant') return 'PDF Q&A · Summarize · Extract';
   return 'Runs in your browser';

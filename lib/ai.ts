@@ -265,12 +265,10 @@ export async function aiComplete(
   return runFreeChain(messages, system, onChunk, opts);
 }
 
-/** Generate an image; returns an object URL of the image blob. */
+/** Generate an image; returns an object URL of the image blob. 100% free. */
 export async function aiImage(prompt: string, width = 1024, height = 1024): Promise<string> {
+  const { generateFreePollinationsImage } = await import('@/lib/engines/pollinations-image-engine');
   const seed = Math.floor(Math.random() * 1e9);
-  const url = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Image generation failed (${res.status}). Please try again.`);
-  const blob = await res.blob();
+  const blob = await generateFreePollinationsImage({ prompt, width, height, seed, model: 'flux', enhance: true });
   return URL.createObjectURL(blob);
 }

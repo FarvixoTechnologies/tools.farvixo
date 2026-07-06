@@ -17,6 +17,8 @@ const PdfRunner = dynamic(() => import('./runners/PdfRunner'), { ssr: false, loa
 const PdfConvertRunner = dynamic(() => import('./runners/PdfConvertRunner'), { ssr: false, loading });
 const PdfConverterAdvanced = dynamic(() => import('./runners/PdfConverterAdvanced'), { ssr: false, loading });
 const FfmpegRunner = dynamic(() => import('./runners/FfmpegRunner'), { ssr: false, loading });
+const VideoConverterRunner = dynamic(() => import('./runners/VideoConverterRunner'), { ssr: false, loading });
+const AudioConverterRunner = dynamic(() => import('./runners/AudioConverterRunner'), { ssr: false, loading });
 const SpeechRunner = dynamic(() => import('./runners/SpeechRunner'), { ssr: false, loading });
 const AiTextRunner = dynamic(() => import('./runners/AiTextRunner'), { ssr: false, loading });
 const AiChatRunner = dynamic(() => import('./runners/AiChatRunner'), { ssr: false, loading });
@@ -37,7 +39,9 @@ const PdfEditorRunner = dynamic(() => import('./runners/PdfEditorRunner'), { ssr
 const MergePdfRunner = dynamic(() => import('./runners/MergePdfRunner'), { ssr: false, loading });
 const PdfToWordRunner = dynamic(() => import('./runners/PdfToWordRunner'), { ssr: false, loading });
 const PdfCompressorRunner = dynamic(() => import('./runners/PdfCompressorRunner'), { ssr: false, loading });
+const ImageToPdfRunner = dynamic(() => import('./runners/ImageToPdfRunner'), { ssr: false, loading });
 const GradientRunner = dynamic(() => import('./runners/GradientRunner'), { ssr: false, loading });
+const WeatherRunner = dynamic(() => import('./runners/WeatherRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -54,6 +58,8 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'pdf-convert': return <PdfConvertRunner tool={tool} />;
     case 'pdf-converter': return <PdfConverterAdvanced tool={tool} />;
     case 'ffmpeg': return <FfmpegRunner tool={tool} />;
+    case 'video-converter': return <VideoConverterRunner />;
+    case 'audio-converter': return <AudioConverterRunner tool={tool} />;
     case 'speech': return <SpeechRunner tool={tool} />;
     case 'ai-text': return <AiTextRunner tool={tool} />;
     case 'ai-chat': return <AiChatRunner tool={tool} />;
@@ -74,7 +80,9 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'merge-pdf': return <MergePdfRunner tool={tool} />;
     case 'pdf-to-word': return <PdfToWordRunner tool={tool} />;
     case 'pdf-compressor': return <PdfCompressorRunner tool={tool} />;
+    case 'image-to-pdf': return <ImageToPdfRunner tool={tool} />;
     case 'gradient': return <GradientRunner />;
+    case 'weather': return <WeatherRunner />;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }
