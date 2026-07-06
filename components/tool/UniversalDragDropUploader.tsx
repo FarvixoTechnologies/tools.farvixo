@@ -164,7 +164,7 @@ export default function UniversalDragDropUploader({
         <span className="dz-particles" aria-hidden>
           {Array.from({ length: 8 }).map((_, i) => <i key={i} style={{ ['--i' as string]: i }} />)}
         </span>
-        <span className="dz-icon"><Icon name={kind.icon} size={34} /></span>
+        <span className="dz-icon"><Icon name={kind.icon} size={26} /></span>
         <b className="dz-title">
           {drag ? 'Release to Upload' : (title ?? `Drag & Drop ${kind.label} Here`)}
         </b>
