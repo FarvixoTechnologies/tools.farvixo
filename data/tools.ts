@@ -32,7 +32,8 @@ export type RunnerKind =
   | 'pdf-compressor'
   | 'image-to-pdf'
   | 'gradient'
-  | 'weather';
+  | 'weather'
+  | 'age-calc';
 
 export type ToolConfig = Record<string, unknown>;
 
@@ -210,7 +211,7 @@ export const tools: Tool[] = [
   { id: 116, slug: 'bio-generator', name: 'Bio Generator', description: 'AI bios for Instagram, X and LinkedIn', category: 'social', icon: 'user-square', badge: 'ai', runner: 'ai-text', mode: 'bio', config: { fields: [ { key: 'keywords', label: 'About you (keywords)', type: 'text', placeholder: 'e.g. developer, coffee lover, Kolkata' }, { key: 'platform', label: 'Platform', type: 'select', options: ['Instagram', 'X (Twitter)', 'LinkedIn', 'TikTok'] } ], system: 'Generate 5 bio options for the platform using the keywords. Respect platform character limits.' } },
 
   // ─── 🧮 Calculator Tools (6) ───────────────────────────────────────────
-  { id: 117, slug: 'age-calculator', name: 'Age Calculator', description: 'Exact age in years, months, days', category: 'calculator', icon: 'clock', badge: 'popular', runner: 'calculator', mode: 'age' },
+  { id: 117, slug: 'age-calculator', name: 'Age Calculator Pro', description: 'Exact age in years, months, days, hours & seconds — birthday countdown, zodiac, milestones, life stats & AI insights', category: 'calculator', icon: 'clock', badge: 'popular', runner: 'age-calc', mode: 'pro', keywords: ['age calculator', 'date of birth', 'how old am i', 'birthday countdown', 'zodiac sign', 'life expectancy', 'milestones'] },
   { id: 118, slug: 'bmi-calculator', name: 'BMI Calculator', description: 'Body mass index with category', category: 'calculator', icon: 'calculator', runner: 'calculator', mode: 'bmi' },
   { id: 119, slug: 'percentage-calculator', name: 'Percentage Calculator', description: 'All percentage calculations in one place', category: 'calculator', icon: 'calculator', runner: 'calculator', mode: 'percentage' },
   { id: 120, slug: 'loan-emi-calculator', name: 'Loan EMI Calculator', description: 'EMI, total interest and payment schedule', category: 'calculator', icon: 'calculator', runner: 'calculator', mode: 'emi' },

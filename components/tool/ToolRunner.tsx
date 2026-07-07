@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import type { Tool } from '@/data/tools';
 import { recordJob } from '@/lib/jobs';
 import { Processing } from './shared';
@@ -42,6 +42,7 @@ const PdfCompressorRunner = dynamic(() => import('./runners/PdfCompressorRunner'
 const ImageToPdfRunner = dynamic(() => import('./runners/ImageToPdfRunner'), { ssr: false, loading });
 const GradientRunner = dynamic(() => import('./runners/GradientRunner'), { ssr: false, loading });
 const WeatherRunner = dynamic(() => import('./runners/WeatherRunner'), { ssr: false, loading });
+const AgeCalculatorRunner = dynamic(() => import('./runners/AgeCalculatorRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -83,6 +84,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'image-to-pdf': return <ImageToPdfRunner tool={tool} />;
     case 'gradient': return <GradientRunner />;
     case 'weather': return <WeatherRunner />;
+    case 'age-calc': return <Suspense fallback={<Processing label="Loading tool..." />}><AgeCalculatorRunner /></Suspense>;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }

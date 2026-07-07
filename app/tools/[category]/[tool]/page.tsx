@@ -106,6 +106,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  if (slug === 'age-calculator') {
+    return {
+      title: 'Age Calculator Pro — Exact Age in Years, Months, Days & Seconds | ToolNest',
+      description: 'Calculate your exact age with leap-year accuracy. Birthday countdown, zodiac sign, milestones, life statistics, AI insights. 100% free, private, runs in your browser.',
+    };
+  }
+
+  if (slug === 'world-weather-pro') {
+    return {
+      title: 'World Weather Pro — Live Forecast, Air Quality & AI Insights | ToolNest',
+      description: 'Free weather app with 7-day forecast, hourly timeline, air quality, astronomy, and AI summary. Powered by Open-Meteo — no API key, 100% private.',
+    };
+  }
+
   return {
     title: `${tool.name} - Free Online ${cat?.shortName || ''} Tool | ToolNest`,
     description: `${tool.description}. Free, fast and 100% private - runs in your browser. No sign-up required.`,
@@ -243,6 +257,15 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'Is it free?', a: 'Yes — 100% free, no API key required. Same free AI as the header AI Assistant.' },
     ];
   }
+  if (slug === 'age-calculator') {
+    return [
+      { q: 'How accurate is the age calculation?', a: 'ToolNest uses calendar-accurate year/month/day breakdown with leap-year support. When live mode is on, hours, minutes and seconds tick in real time.' },
+      { q: 'Is my date of birth stored?', a: 'No. All calculations run 100% in your browser. Nothing is sent to any server or saved to a database.' },
+      { q: 'Can I calculate age on a future or past date?', a: 'Yes — turn off Live mode and pick any To date. Use Swap to reverse dates quickly.' },
+      { q: 'What are the life statistics based on?', a: 'Heartbeats (~72 bpm), breaths (~16/min), sleep (~33% of life), and walking distance (~5 km/day) are estimates for fun — not medical advice.' },
+      { q: 'Can I share my result?', a: 'Yes — copy text, download PDF/PNG, print, share a link with dates in the URL, or generate a QR code.' },
+    ];
+  }
   return [
     { q: `Is ${toolName} free to use?`, a: `Yes - ${toolName} on ToolNest is completely free with no hidden limits, watermarks or sign-up requirements.` },
     { q: 'Are my files safe?', a: 'Absolutely. Processing happens directly in your browser wherever technically possible, so your files never leave your device.' },
@@ -265,6 +288,7 @@ function getTrustExtra(slug: string): string {
   if (slug === 'image-to-pdf') return 'AI Analysis · Drag Timeline · Batch';
   if (slug === 'ai-chat') return '6 Personas · Chat History · Streaming';
   if (slug === 'ai-pdf-assistant') return 'PDF Q&A · Summarize · Extract';
+  if (slug === 'age-calculator') return 'Live Ticking · Zodiac · Milestones · AI';
   return 'Runs in your browser';
 }
 

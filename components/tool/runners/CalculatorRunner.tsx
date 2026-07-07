@@ -77,7 +77,6 @@ export default function CalculatorRunner({ tool }: { tool: Tool }) {
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
 
-  const [dob, setDob] = useState('');
   const [heightCm, setHeightCm] = useState('170');
   const [weightKg, setWeightKg] = useState('65');
   const [pctA, setPctA] = useState('25');
@@ -93,21 +92,7 @@ export default function CalculatorRunner({ tool }: { tool: Tool }) {
   const run = () => {
     setError('');
     try {
-      if (mode === 'age') {
-        if (!dob) throw new Error('Pick your date of birth.');
-        const b = new Date(dob);
-        const now = new Date();
-        let yearsN = now.getFullYear() - b.getFullYear();
-        let months = now.getMonth() - b.getMonth();
-        let days = now.getDate() - b.getDate();
-        if (days < 0) { months--; days += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
-        if (months < 0) { yearsN--; months += 12; }
-        const totalDays = Math.floor((now.getTime() - b.getTime()) / 86400000);
-        const nextBday = new Date(now.getFullYear(), b.getMonth(), b.getDate());
-        if (nextBday < now) nextBday.setFullYear(now.getFullYear() + 1);
-        const toBday = Math.ceil((nextBday.getTime() - now.getTime()) / 86400000);
-        setOutput(`You are ${yearsN} years, ${months} months, ${days} days old.\n\nTotal: ${totalDays.toLocaleString()} days (${Math.floor(totalDays / 7).toLocaleString()} weeks)\n≈ ${(totalDays * 24).toLocaleString()} hours\n\n🎂 Next birthday in ${toBday} days.`);
-      } else if (mode === 'bmi') {
+      if (mode === 'bmi') {
         const h = parseFloat(heightCm) / 100;
         const w = parseFloat(weightKg);
         if (!h || !w) throw new Error('Enter valid height and weight.');
@@ -161,7 +146,6 @@ export default function CalculatorRunner({ tool }: { tool: Tool }) {
   return (
     <div className="workspace-grid">
       <div className="options-panel">
-        {mode === 'age' && <div className="field"><label>Date of birth</label><input type="date" value={dob} onChange={(e) => setDob(e.target.value)} /></div>}
         {mode === 'bmi' && (
           <div className="field-row">
             <div className="field"><label>Height (cm)</label><input type="number" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} /></div>
