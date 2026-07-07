@@ -706,9 +706,6 @@ export default function WeatherRunner() {
           {error && <div className="error-box">{error}</div>}
           {loading && <div className="wxp-loading">Loading weather data…</div>}
           {!loading && bundle && renderView()}
-          <p className="wxp-credit">
-            Powered by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · map by Windy · free, no signup
-          </p>
         </div>
       </div>
     </div>

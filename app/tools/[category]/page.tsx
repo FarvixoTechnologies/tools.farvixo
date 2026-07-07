@@ -5,6 +5,7 @@ import Icon from '@/components/Icon';
 import ToolCard from '@/components/ToolCard';
 import { categories, getCategory } from '@/data/categories';
 import { getToolsByCategory } from '@/data/tools';
+import { categoryMetadata, categoryJsonLd } from '@/lib/seo';
 
 interface Props { params: Promise<{ category: string }> }
 
@@ -16,10 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
   const cat = getCategory(category);
   if (!cat) return {};
-  return {
-    title: `${cat.name} — Free Online Tools | ToolNest`,
-    description: `${cat.description} Free, fast, and private — all in your browser.`,
-  };
+  return categoryMetadata(cat, getToolsByCategory(cat.slug).length);
 }
 
 export default async function CategoryPage({ params }: Props) {
@@ -28,9 +26,11 @@ export default async function CategoryPage({ params }: Props) {
   if (!cat) notFound();
   const catTools = getToolsByCategory(cat.slug);
   const related = categories.filter((c) => c.slug !== cat.slug).slice(0, 5);
+  const jsonLd = categoryJsonLd(cat, catTools);
 
   return (
     <div className="container" style={{ paddingBottom: 64 }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link> / <Link href="/tools">All Tools</Link> / <span>{cat.name}</span>
       </nav>

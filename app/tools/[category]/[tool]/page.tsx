@@ -7,8 +7,9 @@ import ToolRunner from '@/components/tool/ToolRunner';
 import ToolUsageStat from '@/components/tool/ToolUsageStat';
 import FeatureStrip from '@/components/homepage/FeatureStrip';
 import { ToolMidAd, ToolPreFooterAd, ToolSidebarAd, ToolSmartlink } from '@/components/ads/ToolPageAds';
-import { getCategory } from '@/data/categories';
-import { getTool, getToolsByCategory, tools } from '@/data/tools';
+import { getCategory, type Category } from '@/data/categories';
+import { getTool, getToolsByCategory, tools, type Tool } from '@/data/tools';
+import { toolMetadata, defaultToolFaq, toolJsonLd, type Faq } from '@/lib/seo';
 
 interface Props { params: Promise<{ category: string; tool: string }> }
 
@@ -114,19 +115,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   if (slug === 'world-weather-pro') {
+    const title = 'World Weather Pro — Live Weather, 14-Day Forecast, AQI & Radar Map | ToolNest';
+    const description = 'Free live weather app: real-time conditions, hourly timeline, 7 & 14-day forecast, air quality index, interactive radar map, sunrise/sunset, moon phase and AI insights for any city worldwide. No API key, no signup, 100% private.';
+    const url = 'https://toolnestfm.com/tools/utility/world-weather-pro';
+    const og = 'https://toolnestfm.com/api/og?title=World+Weather+Pro&subtitle=Live+forecast%2C+AQI+%26+radar&badge=NEW';
     return {
-      title: 'World Weather Pro — Live Forecast, Air Quality & AI Insights | ToolNest',
-      description: 'Free weather app with 7-day forecast, hourly timeline, air quality, astronomy, and AI summary. Powered by Open-Meteo — no API key, 100% private.',
+      title,
+      description,
+      keywords: [
+        'weather', 'live weather', 'weather today', 'weather forecast', 'world weather',
+        'hourly forecast', '7 day forecast', '14 day forecast', 'air quality index', 'aqi',
+        'weather radar map', 'temperature', 'humidity', 'wind speed', 'sunrise sunset time',
+        'moon phase', 'rain forecast', 'weather near me', 'free weather app', 'weather by city',
+      ],
+      alternates: { canonical: url },
+      openGraph: {
+        type: 'website',
+        url,
+        siteName: 'ToolNest',
+        title,
+        description,
+        images: [{ url: og, width: 1200, height: 630, alt: 'World Weather Pro by ToolNest' }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [og],
+      },
     };
   }
 
-  return {
-    title: `${tool.name} - Free Online ${cat?.shortName || ''} Tool | ToolNest`,
-    description: `${tool.description}. Free, fast and 100% private - runs in your browser. No sign-up required.`,
-  };
+  return toolMetadata(tool, cat);
 }
 
-function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
+function buildFaq(tool: Tool, cat?: Category): Faq[] {
+  const slug = tool.slug;
   if (slug === 'pdf-converter') {
     return [
       { q: 'Is PDF Converter free?', a: 'Yes - unlimited conversions completely free. No signup required, no watermarks. All processing happens directly in your browser.' },
@@ -257,6 +281,20 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'Is it free?', a: 'Yes — 100% free, no API key required. Same free AI as the header AI Assistant.' },
     ];
   }
+  if (slug === 'world-weather-pro') {
+    return [
+      { q: 'Is World Weather Pro free to use?', a: 'Yes — 100% free with no signup, no API key and no limits. Search unlimited cities, view live conditions, hourly, 7-day and 14-day forecasts, air quality, radar maps and astronomy for free.' },
+      { q: 'How accurate is the weather data?', a: 'Forecasts use high-resolution global weather models updated continuously, with current conditions, temperature, feels-like, humidity, wind, pressure, cloud cover and precipitation probability for any location worldwide.' },
+      { q: 'Does it show my local weather automatically?', a: 'Yes. Allow location access and it detects your city via GPS for pinpoint accuracy. If GPS is off, it falls back to your approximate city by IP, so you still get local weather instantly.' },
+      { q: 'What is the Air Quality Index (AQI) and which pollutants are shown?', a: 'The AQI rates how clean or polluted the air is. World Weather Pro shows the US AQI value and category (Good to Hazardous) plus PM2.5, PM10, ozone (O₃) and nitrogen dioxide (NO₂) levels, with a health recommendation.' },
+      { q: 'Can I see an hourly and 14-day forecast?', a: 'Yes — a 48-hour hourly timeline with temperature and rain chance, plus 7-day and full 14-day forecasts showing highs, lows, conditions, rain probability and wind.' },
+      { q: 'Does it have a live weather radar map?', a: 'Yes. The interactive map shows rain, wind, temperature, cloud and pressure layers you can switch between, so you can track incoming storms and precipitation in real time.' },
+      { q: 'Can I switch between Celsius and Fahrenheit?', a: 'Yes — one tap in the header toggles the entire dashboard between °C and °F, including the hero, hourly, daily forecasts and favorite cities.' },
+      { q: 'Does World Weather Pro show sunrise, sunset and moon phase?', a: 'Yes — the Astronomy view shows sunrise, sunset, solar noon, day length, golden hour, blue hour, plus the current moon phase and illumination percentage.' },
+      { q: 'Can I save and compare multiple cities?', a: 'Yes. Add cities to your Favorite Cities rail for live temperatures at a glance, and use Compare Cities to view several locations side by side. Favorites stay in your browser only.' },
+      { q: 'Is my location and data private?', a: 'Yes — your location and saved cities never leave your device. The app only requests the weather data it needs to display and stores nothing on any server.' },
+    ];
+  }
   if (slug === 'age-calculator') {
     return [
       { q: 'How accurate is the age calculation?', a: 'ToolNest uses calendar-accurate year/month/day breakdown with leap-year support. When live mode is on, hours, minutes and seconds tick in real time.' },
@@ -266,13 +304,7 @@ function buildFaq(toolName: string, slug: string): { q: string; a: string }[] {
       { q: 'Can I share my result?', a: 'Yes — copy text, download PDF/PNG, print, share a link with dates in the URL, or generate a QR code.' },
     ];
   }
-  return [
-    { q: `Is ${toolName} free to use?`, a: `Yes - ${toolName} on ToolNest is completely free with no hidden limits, watermarks or sign-up requirements.` },
-    { q: 'Are my files safe?', a: 'Absolutely. Processing happens directly in your browser wherever technically possible, so your files never leave your device.' },
-    { q: 'Do I need to install anything?', a: 'No. Everything runs in your web browser - desktop, tablet or mobile. No downloads, no extensions.' },
-    { q: 'Is there a file size limit?', a: 'Since processing is local, the limit is your device memory. Files up to a few hundred MB typically work smoothly.' },
-    { q: 'Can I use this tool multiple times?', a: 'Yes, use it as many times as you like - just click "Process Another File" after each run.' },
-  ];
+  return defaultToolFaq(tool, cat);
 }
 
 function getTrustExtra(slug: string): string {
@@ -289,6 +321,7 @@ function getTrustExtra(slug: string): string {
   if (slug === 'ai-chat') return '6 Personas · Chat History · Streaming';
   if (slug === 'ai-pdf-assistant') return 'PDF Q&A · Summarize · Extract';
   if (slug === 'age-calculator') return 'Live Ticking · Zodiac · Milestones · AI';
+  if (slug === 'world-weather-pro') return 'Live · 14-Day · AQI · Radar · No Signup';
   return 'Runs in your browser';
 }
 
@@ -298,34 +331,10 @@ export default async function ToolPage({ params }: Props) {
   if (!tool) notFound();
   const cat = getCategory(tool.category);
   const related = getToolsByCategory(tool.category).filter((t) => t.slug !== tool.slug).slice(0, 5);
-  const faq = buildFaq(tool.name, slug);
+  const faq = buildFaq(tool, cat);
   const trustExtra = getTrustExtra(slug);
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'SoftwareApplication',
-        name: tool.name,
-        applicationCategory: 'UtilitiesApplication',
-        operatingSystem: 'Web',
-        description: tool.description,
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      },
-      {
-        '@type': 'FAQPage',
-        mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://toolnestfm.com' },
-          { '@type': 'ListItem', position: 2, name: cat?.name, item: `https://toolnestfm.com/tools/${tool.category}` },
-          { '@type': 'ListItem', position: 3, name: tool.name },
-        ],
-      },
-    ],
-  };
+  const jsonLd = toolJsonLd(tool, cat, faq);
 
   return (
     <div className="container" style={{ paddingBottom: 64 }}>
