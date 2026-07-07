@@ -190,7 +190,9 @@ export default function WeatherRunner() {
             <input
               type="search"
               role="combobox"
-              aria-expanded={searchOpen}
+              aria-expanded={searchOpen && suggestions.length > 0}
+              aria-controls="weather-suggestions-list"
+              aria-autocomplete="list"
               aria-label="Search city or location"
               placeholder="Search any city… (London, Dhaka, Tokyo)"
               value={query}
@@ -207,10 +209,10 @@ export default function WeatherRunner() {
             </button>
           </div>
           {searchOpen && suggestions.length > 0 && (
-            <ul className="weather-suggestions" role="listbox">
+            <ul className="weather-suggestions" role="listbox" id="weather-suggestions-list">
               {suggestions.map((s) => (
                 <li key={s.slug}>
-                  <button type="button" role="option" onClick={() => void loadLocation(s)}>
+                  <button type="button" role="option" aria-selected={false} onClick={() => void loadLocation(s)}>
                     <span className="weather-sug-name">{s.name}</span>
                     <span className="weather-sug-meta">{[s.region, s.country].filter(Boolean).join(', ')}</span>
                   </button>
