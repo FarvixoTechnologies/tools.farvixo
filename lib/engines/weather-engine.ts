@@ -426,45 +426,73 @@ export async function fetchWeatherBundle(loc: WeatherLocation): Promise<WeatherB
   return { location: loc, current, hourly, daily, airQuality, astronomy, alerts, fetchedAt: Date.now() };
 }
 
+/** Reverse-geocode lat/lon → city name via BigDataCloud (free, no key, CORS). */
+async function reverseGeocode(lat: number, lon: number): Promise<WeatherLocation> {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`,
+    );
+    if (res.ok) {
+      const d = await res.json() as {
+        city?: string; locality?: string; principalSubdivision?: string;
+        countryName?: string; countryCode?: string;
+      };
+      const name = d.city || d.locality || d.principalSubdivision || 'My Location';
+      const region = d.principalSubdivision || '';
+      const cc = d.countryCode || '';
+      return {
+        id: 0, name, region, country: d.countryName || '', countryCode: cc,
+        lat, lon, timezone: tz, slug: slugify(name, region, cc) || 'my-location',
+      };
+    }
+  } catch { /* fall through */ }
+  return {
+    id: 0, name: 'My Location', region: '', country: '', countryCode: '',
+    lat, lon, timezone: tz, slug: 'my-location',
+  };
+}
+
 export async function detectGpsLocation(): Promise<WeatherLocation> {
   const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-    if (!navigator.geolocation) reject(new Error('Geolocation not supported'));
-    else navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000 });
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      reject(new Error('Geolocation not supported'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      timeout: 10000,
+      maximumAge: 600000,
+      enableHighAccuracy: false,
+    });
   });
-  const { latitude, longitude } = pos.coords;
-  const params = new URLSearchParams({
-    latitude: String(latitude),
-    longitude: String(longitude),
-    language: 'en',
-    format: 'json',
-  });
-  const res = await fetch(`${GEO_URL}?${params}`);
-  if (!res.ok) throw new Error('Could not resolve your location');
-  const data = await res.json() as { results?: Array<{ id: number; name: string; latitude: number; longitude: number; country: string; country_code: string; admin1?: string; timezone: string }> };
-  const r = data.results?.[0];
-  if (!r) {
-    return {
-      id: 0,
-      name: 'My Location',
-      region: '',
-      country: '',
-      countryCode: '',
-      lat: latitude,
-      lon: longitude,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      slug: 'my-location',
-    };
+  return reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+}
+
+/** IP-based location fallback when GPS is denied/unavailable (free, no key). */
+export async function detectIpLocation(): Promise<WeatherLocation> {
+  const res = await fetch('https://ipwho.is/');
+  if (!res.ok) throw new Error('IP location failed');
+  const d = await res.json() as {
+    success?: boolean; latitude?: number; longitude?: number;
+    city?: string; region?: string; country?: string; country_code?: string;
+    timezone?: { id?: string };
+  };
+  if (!d.success || typeof d.latitude !== 'number' || typeof d.longitude !== 'number') {
+    throw new Error('IP location failed');
   }
+  const name = d.city || 'My Location';
+  const region = d.region || '';
+  const cc = d.country_code || '';
   return {
-    id: r.id,
-    name: r.name,
-    region: r.admin1 || '',
-    country: r.country,
-    countryCode: r.country_code,
-    lat: r.latitude,
-    lon: r.longitude,
-    timezone: r.timezone,
-    slug: slugify(r.name, r.admin1 || '', r.country_code),
+    id: 0,
+    name,
+    region,
+    country: d.country || '',
+    countryCode: cc,
+    lat: d.latitude,
+    lon: d.longitude,
+    timezone: d.timezone?.id || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    slug: slugify(name, region, cc) || 'my-location',
   };
 }
 

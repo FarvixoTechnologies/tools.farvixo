@@ -11,6 +11,7 @@ import {
   fetchWeatherBundle,
   fetchCurrentTemp,
   detectGpsLocation,
+  detectIpLocation,
   generateWeatherSummary,
   generateClothingAdvice,
   getFavorites,
@@ -176,12 +177,31 @@ export default function WeatherRunner() {
     });
   }, []);
 
+  // GPS first, then IP-based fallback, then a sensible default city.
+  const detectLocation = useCallback(async () => {
+    setError('');
+    try {
+      await loadLocation(await detectGpsLocation());
+      return true;
+    } catch { /* try IP next */ }
+    try {
+      await loadLocation(await detectIpLocation());
+      return true;
+    } catch {
+      setError('Could not detect your location automatically — search your city above.');
+      return false;
+    }
+  }, [loadLocation]);
+
   useEffect(() => {
     refreshFavRail();
-    void detectGpsLocation()
-      .then(loadLocation)
-      .catch(() => { void loadLocation(DEFAULT_CITIES[0]); });
-  }, [loadLocation, refreshFavRail]);
+    void (async () => {
+      try { await loadLocation(await detectGpsLocation()); return; } catch { /* GPS denied/timeout */ }
+      try { await loadLocation(await detectIpLocation()); return; } catch { /* IP failed */ }
+      void loadLocation(DEFAULT_CITIES[0]);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!bundle?.location.timezone) return;
@@ -604,8 +624,7 @@ export default function WeatherRunner() {
         <div className="wxp-loc-card">
           <div className="wxp-loc-head"><Icon name="globe" size={16} /> My Location</div>
           <b className="wxp-loc-name">{bundle ? `${bundle.location.name}${bundle.location.region ? ', ' + bundle.location.region : ''}` : '—'}</b>
-          <button type="button" className="wxp-detect"
-            onClick={() => void detectGpsLocation().then(loadLocation).catch(() => setError('Could not detect location'))}>
+          <button type="button" className="wxp-detect" onClick={() => void detectLocation()}>
             <Icon name="refresh" size={14} /> Detect Location
           </button>
         </div>
