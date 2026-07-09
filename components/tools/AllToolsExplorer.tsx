@@ -102,6 +102,12 @@ export default function AllToolsExplorer() {
   const searchRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // Seed the search from a ?q= param (e.g. coming from the homepage hero search).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setQuery(q);
+  }, []);
+
   /* hydrate client state */
   useEffect(() => {
     setPins(getPinnedTools());

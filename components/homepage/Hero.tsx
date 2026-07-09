@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import Icon from '../Icon';
 import { useUI } from '../GlobalUI';
-import { searchTools } from '@/data/tools';
+import { searchTools, type Tool } from '@/data/tools';
+import { getCategory } from '@/data/categories';
 import { formatCount } from '@/lib/format-count';
 
 const chipMap: Record<string, string> = {
@@ -30,7 +31,13 @@ export default function Hero() {
   const { openAI, toast } = useUI();
   const router = useRouter();
   const [q, setQ] = useState('');
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState<{ users: number; jobs: number } | null>(null);
+
+  const matches = useMemo(() => (q.trim() ? searchTools(q.trim()) : []), [q]);
+  const results = matches.slice(0, 6);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,11 +53,36 @@ export default function Hero() {
     return () => { cancelled = true; };
   }, []);
 
-  const search = () => {
-    const r = searchTools(q);
-    if (r.length > 0) router.push(`/tools/${r[0].category}/${r[0].slug}`);
-    else toast(`No tools found for "${q}"`, 'error');
+  const goTo = (t: Tool) => { setOpen(false); router.push(`/tools/${t.category}/${t.slug}`); };
+
+  const viewAll = () => {
+    const query = q.trim();
+    if (!query) return;
+    setOpen(false);
+    router.push(`/tools?q=${encodeURIComponent(query)}`);
   };
+
+  const search = () => {
+    if (open && results[active]) return goTo(results[active]);
+    if (matches.length > 0) return viewAll();
+    if (q.trim()) toast(`No tools found for "${q.trim()}"`, 'error');
+  };
+
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive((a) => Math.min(a + 1, results.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+    else if (e.key === 'Enter') { e.preventDefault(); search(); }
+    else if (e.key === 'Escape') { setOpen(false); }
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
 
   return (
     <section className="hero">
@@ -65,15 +97,75 @@ export default function Hero() {
           </h1>
           <p className="hero-sub">Everything you need. Fast. Private. Powered by Farvixo.</p>
 
-          <div className="hero-search" role="search">
-            <input
-              value={q}
-              placeholder="Search 139+ AI & Productivity Tools..."
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && search()}
-              aria-label="Search any tool"
-            />
-            <button className="hero-search-btn" onClick={search} aria-label="Search"><Icon name="search" size={18} /></button>
+          <div className="hero-search-wrap" ref={wrapRef}>
+            <div className={`hero-search${open && q.trim() ? ' is-open' : ''}`} role="search">
+              <Icon name="search" size={18} className="hero-search-lead" />
+              <input
+                value={q}
+                placeholder="Search 139+ AI & Productivity Tools..."
+                onChange={(e) => { setQ(e.target.value); setActive(0); setOpen(true); }}
+                onFocus={() => { if (q.trim()) setOpen(true); }}
+                onKeyDown={onKeyDown}
+                aria-label="Search any tool"
+                aria-expanded={open}
+                aria-autocomplete="list"
+                autoComplete="off"
+              />
+              {q && (
+                <button className="hero-search-clear" onClick={() => { setQ(''); setOpen(false); }} aria-label="Clear search">
+                  <Icon name="x" size={16} />
+                </button>
+              )}
+              <button className="hero-search-btn" onClick={search} aria-label="Search"><Icon name="search" size={18} /></button>
+            </div>
+
+            {open && q.trim() && (
+              <div className="hero-suggest" role="listbox">
+                {results.length > 0 ? (
+                  <>
+                    {results.map((t, i) => {
+                      const cat = getCategory(t.category);
+                      const accent = `var(--${cat?.accent ?? 'brand-primary'})`;
+                      return (
+                        <button
+                          key={t.slug}
+                          type="button"
+                          role="option"
+                          aria-selected={i === active}
+                          className={`hero-suggest-item${i === active ? ' active' : ''}`}
+                          onMouseEnter={() => setActive(i)}
+                          onClick={() => goTo(t)}
+                        >
+                          <span className="hero-suggest-icon" style={{ color: accent, background: `color-mix(in srgb, ${accent} 15%, transparent)` }}>
+                            <Icon name={t.icon} size={17} />
+                          </span>
+                          <span className="hero-suggest-text">
+                            <span className="hero-suggest-name">
+                              {t.name}
+                              {t.badge === 'new' && <span className="hs-badge hs-new">NEW</span>}
+                              {t.badge === 'ai' && <span className="hs-badge hs-ai">AI</span>}
+                              {t.badge === 'popular' && <span className="hs-badge hs-pop">Popular</span>}
+                            </span>
+                            <span className="hero-suggest-desc">{cat?.shortName ?? 'Tool'} · {t.description}</span>
+                          </span>
+                          <Icon name="arrow-right" size={15} className="hero-suggest-arrow" />
+                        </button>
+                      );
+                    })}
+                    <button type="button" className="hero-suggest-foot" onClick={viewAll}>
+                      <Icon name="search" size={14} />
+                      View all {matches.length} result{matches.length > 1 ? 's' : ''} for “{q.trim()}”
+                    </button>
+                  </>
+                ) : (
+                  <div className="hero-suggest-empty">
+                    <Icon name="search" size={22} />
+                    <p>No tools found for “{q.trim()}”</p>
+                    <Link href="/tools" className="link-btn" onClick={() => setOpen(false)}>Browse all 139+ tools →</Link>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="chips">
