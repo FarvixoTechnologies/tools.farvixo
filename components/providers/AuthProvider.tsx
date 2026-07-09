@@ -27,6 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refresh();
     const supabase = createClient();
+    if (!supabase) {
+      // Supabase not configured — render as a logged-out guest, no crash.
+      setLoading(false);
+      return;
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       void refresh();
     });

@@ -5,7 +5,9 @@ import { getSupabaseEnv } from './env';
 export async function createClient() {
   const env = getSupabaseEnv();
   if (!env) {
-    throw new Error('Missing Supabase environment variables.');
+    throw new Error(
+      'Supabase environment variables are missing. Check your deployment platform environment configuration.',
+    );
   }
   const cookieStore = await cookies();
 

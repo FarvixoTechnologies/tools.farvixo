@@ -19,6 +19,10 @@ export default function SettingsPage() {
   const save = async () => {
     if (!user || !name.trim()) return;
     const supabase = createClient();
+    if (!supabase) {
+      toast('Account service is temporarily unavailable — please try again later.', 'error');
+      return;
+    }
     const { error } = await supabase
       .from('profiles')
       .update({ full_name: name.trim(), updated_at: new Date().toISOString() })

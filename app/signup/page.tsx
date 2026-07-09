@@ -35,6 +35,11 @@ export default function SignupPage() {
     }
     setBusy(true);
     const supabase = createClient();
+    if (!supabase) {
+      setBusy(false);
+      toast('Sign-up is temporarily unavailable — please try again later.', 'error');
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

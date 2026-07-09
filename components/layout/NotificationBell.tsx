@@ -64,9 +64,14 @@ export default function NotificationBell() {
     if (!user) return;
     void load();
 
-    let channel: ReturnType<ReturnType<typeof createClient>['channel']> | null = null;
+    const supabase = createClient();
+    if (!supabase) {
+      const t = setInterval(load, 30_000);
+      return () => clearInterval(t);
+    }
+
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     try {
-      const supabase = createClient();
       channel = supabase
         .channel(`notif:${user.id}`)
         .on(
@@ -95,7 +100,7 @@ export default function NotificationBell() {
 
     return () => {
       if (channel) {
-        void createClient().removeChannel(channel);
+        void supabase.removeChannel(channel);
       }
     };
   }, [user, load]);

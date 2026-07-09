@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export async function fetchCurrentUser(): Promise<User | null> {
   const supabase = createClient();
+  if (!supabase) return null;
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser?.email) return null;
 
@@ -55,5 +56,6 @@ export async function fetchCurrentUser(): Promise<User | null> {
 
 export async function signOut(): Promise<void> {
   const supabase = createClient();
+  if (!supabase) return;
   await supabase.auth.signOut();
 }

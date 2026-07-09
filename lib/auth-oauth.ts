@@ -7,6 +7,7 @@ type OAuthProvider = 'google' | 'github';
 export async function startOAuth(provider: OAuthProvider, next = '/dashboard'): Promise<void> {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
   const supabase = createClient();
+  if (!supabase) throw new Error('Sign-in is temporarily unavailable — please try again later.');
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,

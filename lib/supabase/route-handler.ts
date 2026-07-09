@@ -7,7 +7,7 @@ type PendingCookie = { name: string; value: string; options: CookieOptions };
 /** Supabase client for Route Handlers — uses next/headers cookies (required for PKCE on Next.js 15). */
 export async function createRouteHandlerClient() {
   const env = getSupabaseEnv();
-  if (!env) throw new Error('Missing Supabase environment variables.');
+  if (!env) throw new Error('Supabase environment variables are missing. Check your deployment platform environment configuration.');
 
   const cookieStore = await cookies();
 

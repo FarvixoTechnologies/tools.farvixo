@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useId } from 'react';
 
 type Variant = 'logo' | 'wordmark' | 'lockup';
 
@@ -138,24 +138,9 @@ function InlineLogo({ variant, alt, className, width, height }: Omit<BrandLogoPr
 }
 
 /**
- * Farvixo brand asset. Renders an inline SVG by default (so it can never
- * 404 or show a broken-image icon), and transparently upgrades to the real
- * raster art at `/farvixo-<variant>.png` if that file exists in /public.
+ * Farvixo brand asset. Rendered as an inline SVG so it never triggers a
+ * network request (no 404s) and always displays crisply at any size.
  */
 export default function BrandLogo({ variant, alt, className, width, height }: BrandLogoProps) {
-  const [pngSrc, setPngSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    const probe = new window.Image();
-    probe.onload = () => { if (alive) setPngSrc(`/farvixo-${variant}.png`); };
-    probe.src = `/farvixo-${variant}.png`;
-    return () => { alive = false; };
-  }, [variant]);
-
-  if (pngSrc) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={pngSrc} alt={alt} className={className} width={width} height={height} />;
-  }
   return <InlineLogo variant={variant} alt={alt} className={className} width={width} height={height} />;
 }

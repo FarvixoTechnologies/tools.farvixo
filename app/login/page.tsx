@@ -34,6 +34,11 @@ function LoginForm() {
     }
     setBusy(true);
     const supabase = createClient();
+    if (!supabase) {
+      setBusy(false);
+      toast('Sign-in is temporarily unavailable — please try again later.', 'error');
+      return;
+    }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
       setBusy(false);

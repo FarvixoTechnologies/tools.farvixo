@@ -50,6 +50,7 @@ export default function AdminProfilePage() {
     if (password.next !== password.confirm) { toast('Passwords do not match', 'error'); return; }
     setBusy(true);
     const supabase = createClient();
+    if (!supabase) { setBusy(false); toast('Account service is temporarily unavailable.', 'error'); return; }
     const { error } = await supabase.auth.updateUser({ password: password.next });
     setBusy(false);
     if (error) { toast(error.message, 'error'); return; }
@@ -60,6 +61,7 @@ export default function AdminProfilePage() {
   const sendReset = async () => {
     if (!data?.email) return;
     const supabase = createClient();
+    if (!supabase) { toast('Account service is temporarily unavailable.', 'error'); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
       redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/admin/profile')}`,
     });
