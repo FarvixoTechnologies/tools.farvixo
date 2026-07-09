@@ -1382,7 +1382,7 @@ Live at tools.farvixo.com
 ## 24. Project Folder Structure
 
 ```
-farvixo-tools/
+tools-farvixo/
 ├── app/
 │   ├── page.tsx                    # Homepage
 │   ├── layout.tsx                  # Root layout
