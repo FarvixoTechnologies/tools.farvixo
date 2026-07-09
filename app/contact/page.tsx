@@ -40,7 +40,7 @@ export default function ContactPage() {
 
   return (
     <PageShell title="Contact Us" subtitle="We'd love to hear from you">
-      <p>Email us directly at <a href="mailto:hello@toolnestfm.com">hello@toolnestfm.com</a> or use the form below.</p>
+      <p>Email us directly at <a href="mailto:hello@farvixo.com">hello@farvixo.com</a> or use the form below.</p>
       <form onSubmit={submit} className="contact-form mt-6">
         <div className="field mb-4">
           <label htmlFor="name">Name</label>

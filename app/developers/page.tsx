@@ -3,9 +3,9 @@ import Link from 'next/link';
 import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
-  title: 'Developer API — ToolNest',
+  title: 'Developer API — Farvixo Tools',
   description:
-    'Build with the ToolNest API: AI chat, summarize, translate, content writing, QR codes, hashing and more. Simple Bearer-key auth, credit-based pricing.',
+    'Build with the Farvixo Tools API: AI chat, summarize, translate, content writing, QR codes, hashing and more. Simple Bearer-key auth, credit-based pricing.',
 };
 
 const codeStyle: React.CSSProperties = { overflowX: 'auto', padding: 14, fontSize: 13, borderRadius: 8 };
@@ -34,20 +34,20 @@ function Endpoint({
 
 export default function DevelopersPage() {
   return (
-    <PageShell title="Developer API" subtitle="Build ToolNest's AI and utilities into your own apps">
+    <PageShell title="Developer API" subtitle="Build Farvixo's AI and utilities into your own apps">
       <h2>Getting started</h2>
       <ol>
-        <li><Link href="/signup">Create a ToolNest account</Link> — new accounts get <b>25 free credits</b></li>
+        <li><Link href="/signup">Create a Farvixo Tools account</Link> — new accounts get <b>25 free credits</b></li>
         <li>Generate an API key at <Link href="/dashboard/api-keys">Dashboard → API Keys</Link></li>
-        <li>Pass it on every request: <code>Authorization: Bearer tn_live_...</code></li>
+        <li>Pass it on every request: <code>Authorization: Bearer fx_live_...</code></li>
       </ol>
 
       <h2>Quickstart</h2>
       <p><b>JavaScript / Node.js:</b></p>
-      <pre style={codeStyle}><code>{`const res = await fetch('https://toolnestfm.com/api/v1/chat', {
+      <pre style={codeStyle}><code>{`const res = await fetch('https://tools.farvixo.com/api/v1/chat', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer tn_live_YOUR_KEY',
+    'Authorization': 'Bearer fx_live_YOUR_KEY',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
@@ -62,8 +62,8 @@ console.log(data.reply, data.credits.remaining);`}</code></pre>
       <pre style={codeStyle}><code>{`import requests
 
 res = requests.post(
-    "https://toolnestfm.com/api/v1/summarize",
-    headers={"Authorization": "Bearer tn_live_YOUR_KEY"},
+    "https://tools.farvixo.com/api/v1/summarize",
+    headers={"Authorization": "Bearer fx_live_YOUR_KEY"},
     json={"text": "<long text>", "length": "short"},
 )
 body = res.json()
@@ -102,8 +102,8 @@ print(body["data"]["summary"])`}</code></pre>
 
       <Endpoint method="POST" path="/api/v1/chat" cost="1 credit">
         <p>Multi-turn AI chat completion.</p>
-        <pre style={codeStyle}><code>{`curl -X POST https://toolnestfm.com/api/v1/chat \\
-  -H "Authorization: Bearer tn_live_YOUR_KEY" \\
+        <pre style={codeStyle}><code>{`curl -X POST https://tools.farvixo.com/api/v1/chat \\
+  -H "Authorization: Bearer fx_live_YOUR_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "messages": [{"role": "user", "content": "Explain JWT in one line"}],
@@ -135,7 +135,7 @@ print(body["data"]["summary"])`}</code></pre>
 
       <Endpoint method="POST" path="/api/v1/qr" cost="free">
         <p>QR code generator. Options: <code>size</code> (64–2048), <code>format</code> (png | svg).</p>
-        <pre style={codeStyle}><code>{`{ "text": "https://toolnestfm.com", "size": 512 }
+        <pre style={codeStyle}><code>{`{ "text": "https://tools.farvixo.com", "size": 512 }
 // → { "data": { "dataUrl": "data:image/png;base64,..." } }`}</code></pre>
       </Endpoint>
 
@@ -150,7 +150,7 @@ print(body["data"]["summary"])`}</code></pre>
       </Endpoint>
 
       <Endpoint method="GET" path="/api/v1/tools" cost="free · no key">
-        <p>The full 130-tool catalog as JSON. Filter with <code>?category=pdf</code>.</p>
+        <p>The full 139-tool catalog as JSON. Filter with <code>?category=pdf</code>.</p>
       </Endpoint>
 
       <h2>Account endpoints — free</h2>

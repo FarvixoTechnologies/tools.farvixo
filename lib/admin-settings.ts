@@ -81,16 +81,16 @@ export const defaultAdminSettings: AdminSettings = {
     ad_blog: false,
   },
   site: {
-    siteName: 'ToolNest',
-    supportEmail: 'support@toolnestfm.com',
+    siteName: 'Farvixo Tools',
+    supportEmail: 'support@farvixo.com',
     maxUploadMb: 25,
     allowSignups: true,
   },
   disabled_tools: [],
   email_templates: [
-    { id: 'welcome', name: 'Welcome Email', subject: 'Welcome to ToolNest!', body: 'Hi {{name}}, welcome to ToolNest — 130+ tools in one place.' },
-    { id: 'reset', name: 'Password Reset', subject: 'Reset your ToolNest password', body: 'Click the link to reset your password: {{link}}' },
-    { id: 'pro_receipt', name: 'Pro Receipt', subject: 'Your ToolNest Pro receipt', body: 'Thanks for upgrading to Pro, {{name}}!' },
+    { id: 'welcome', name: 'Welcome Email', subject: 'Welcome to Farvixo!', body: 'Hi {{name}}, welcome to Farvixo Tools — 139+ tools in one place.' },
+    { id: 'reset', name: 'Password Reset', subject: 'Reset your Farvixo password', body: 'Click the link to reset your password: {{link}}' },
+    { id: 'pro_receipt', name: 'Pro Receipt', subject: 'Your Farvixo Pro receipt', body: 'Thanks for upgrading to Pro, {{name}}!' },
   ],
   api_keys_meta: [],
 };

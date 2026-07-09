@@ -76,7 +76,7 @@ function CreditsContent() {
   return (
     <div>
       <h1 className="dash-title">Credits</h1>
-      <p className="muted mb-6">Credits power AI chat beyond the free daily limit and the ToolNest developer API (1 credit per call).</p>
+      <p className="muted mb-6">Credits power AI chat beyond the free daily limit and the Farvixo developer API (1 credit per call).</p>
 
       <div className="dash-stats">
         <div className="dash-stat glass">

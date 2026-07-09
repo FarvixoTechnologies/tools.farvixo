@@ -242,7 +242,7 @@ export default function AiAssistantCore({
     );
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `toolnest-chat-${session.id.slice(0, 8)}.${format === 'md' ? 'md' : 'json'}`;
+    a.download = `farvixo-chat-${session.id.slice(0, 8)}.${format === 'md' ? 'md' : 'json'}`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -288,7 +288,7 @@ export default function AiAssistantCore({
       <label className="pdfconv-toggle">
         <input type="checkbox" checked={session.settings.includeToolContext}
           onChange={(e) => updateSettings({ includeToolContext: e.target.checked })} />
-        ToolNest tool recommendations
+        Farvixo tool recommendations
       </label>
       <div className="aichat-settings-actions">
         <button type="button" className="btn btn-outline btn-sm" onClick={() => exportChat('json')}>Export JSON</button>

@@ -4,9 +4,9 @@ import AllToolsExplorer from '@/components/tools/AllToolsExplorer';
 import { tools } from '@/data/tools';
 
 export const metadata: Metadata = {
-  title: `All Tools (${tools.length}) — ToolNest`,
+  title: `All Tools (${tools.length}) — Farvixo Tools`,
   description:
-    'Browse all 130 free online tools: PDF, Image, Video, Audio, AI, Developer, Text, SEO, Business, Government and more. Search, drop a file to find matching tools, pin favorites.',
+    'Browse all 139+ free online tools: PDF, Image, Video, Audio, AI, Developer, Text, SEO, Business, Government and more. Search, drop a file to find matching tools, pin favorites.',
 };
 
 export default function AllToolsPage() {

@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * ToolNest Credits — server-side helpers.
+ * Farvixo Credits — server-side helpers.
  * All balance changes go through the atomic `adjust_credits` Postgres function
  * (service role only) so double-spends and negative balances are impossible.
  */
@@ -60,7 +60,7 @@ export function hashApiKey(key: string): string {
 
 /** Generate a new API key. The full key is returned once and never stored. */
 export function generateApiKey(): { key: string; hash: string; prefix: string } {
-  const key = `tn_live_${randomBytes(KEY_BYTES).toString('hex')}`;
+  const key = `fx_live_${randomBytes(KEY_BYTES).toString('hex')}`;
   return { key, hash: hashApiKey(key), prefix: `${key.slice(0, 15)}…` };
 }
 
@@ -75,7 +75,7 @@ export async function authenticateApiKey(
   req: Request,
 ): Promise<ApiKeyAuth | null> {
   const header = req.headers.get('authorization') || '';
-  const match = header.match(/^Bearer\s+(tn_live_[a-f0-9]{48})$/i);
+  const match = header.match(/^Bearer\s+(fx_live_[a-f0-9]{48})$/i);
   if (!match) return null;
 
   const { data } = await admin

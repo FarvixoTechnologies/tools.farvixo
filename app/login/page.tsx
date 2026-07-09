@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import Icon from '@/components/Icon';
+import BrandLogo from '@/components/BrandLogo';
 import { useUI } from '@/components/GlobalUI';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { resolvePostLoginPath } from '@/lib/auth';
@@ -71,9 +71,9 @@ function LoginForm() {
     <div className="container auth-page">
       <div className="auth-card glass">
         <div className="auth-head">
-          <span className="logo-mark"><Icon name="hexagon" size={22} /></span>
+          <BrandLogo variant="lockup" alt="Farvixo — Build Beyond." className="auth-logo" width={200} height={133} priority />
           <h1>Welcome back</h1>
-          <p className="muted">Sign in to your ToolNest account</p>
+          <p className="muted">Sign in to your Farvixo account</p>
         </div>
         <form onSubmit={(e) => void login(e)}>
           <div className="field mb-4">

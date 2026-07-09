@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { categories } from '@/data/categories';
 import { tools } from '@/data/tools';
 
-const BASE = 'https://toolnestfm.com';
+const BASE = 'https://tools.farvixo.com';
 const NOW = new Date();
 
 const staticPages: Array<{ path: string; priority: number; freq: MetadataRoute.Sitemap[number]['changeFrequency'] }> = [

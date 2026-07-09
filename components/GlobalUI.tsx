@@ -43,7 +43,7 @@ export default function GlobalUI({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('toolnest_theme') || 'dark';
+    const saved = localStorage.getItem('farvixo_theme') || 'dark';
     setTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
   }, []);
@@ -52,7 +52,7 @@ export default function GlobalUI({ children }: { children: React.ReactNode }) {
     setTheme((t) => {
       const next = t === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('toolnest_theme', next);
+      localStorage.setItem('farvixo_theme', next);
       return next;
     });
   }, []);
@@ -191,7 +191,7 @@ function SettingsModal({ onClose, onSaved }: { onClose: () => void; onSaved: () 
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>✨ AI Engine Settings</h3>
         <p className="modal-sub">
-          <strong>100% Free — no API key needed.</strong> ToolNest AI works free in your browser (Gemini Flash).
+          <strong>100% Free — no API key needed.</strong> Farvixo AI works free in your browser (Gemini Flash).
           <br /><br />
           <strong>Optional (faster & unlimited):</strong> Paste a free Gemini key from{' '}
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>

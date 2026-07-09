@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Icon from '@/components/Icon';
+import BrandLogo from '@/components/BrandLogo';
 import { useUI } from '@/components/GlobalUI';
 import { startOAuth } from '@/lib/auth-oauth';
 import { createClient } from '@/lib/supabase/client';
@@ -52,7 +52,7 @@ export default function SignupPage() {
       toast('Check your email to confirm your account', 'success');
       return;
     }
-    toast('Account created! Welcome to ToolNest 🎉', 'success');
+    toast('Account created! Welcome to Farvixo 🎉', 'success');
     router.push('/dashboard');
     router.refresh();
   };
@@ -61,9 +61,9 @@ export default function SignupPage() {
     <div className="container auth-page">
       <div className="auth-card glass">
         <div className="auth-head">
-          <span className="logo-mark"><Icon name="hexagon" size={22} /></span>
-          <h1>Create your account</h1>
-          <p className="muted">Free forever · 130+ tools · No credit card</p>
+          <BrandLogo variant="lockup" alt="Farvixo — Build Beyond." className="auth-logo" width={200} height={133} priority />
+          <h1>Create your Farvixo Account</h1>
+          <p className="muted">Free forever · 139+ tools · No credit card</p>
         </div>
         <form onSubmit={(e) => void signup(e)}>
           <div className="field mb-4">

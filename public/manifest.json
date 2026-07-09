@@ -1,21 +1,17 @@
 {
-  "name": "ToolNest Image Compressor",
-  "short_name": "ToolNest",
+  "name": "Farvixo Tools — Image Compressor",
+  "short_name": "Farvixo",
   "description": "Compress images up to 90% smaller with AI-powered optimization. 100% private, works offline.",
   "start_url": "/tools/image/image-compressor",
   "display": "standalone",
-  "background_color": "#0a0a12",
-  "theme_color": "#7c3aed",
+  "background_color": "#0d0d12",
+  "theme_color": "#6c4dff",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/farvixo-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "categories": ["utilities", "productivity"],

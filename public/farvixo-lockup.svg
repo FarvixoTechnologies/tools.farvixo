@@ -1,0 +1,45 @@
+<svg width="360" height="240" viewBox="0 0 360 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Farvixo — Build Beyond.">
+  <defs>
+    <linearGradient id="lkWing" x1="140" y1="20" x2="230" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C24BF0"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="lkStem" x1="160" y1="20" x2="176" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="0.55" stop-color="#6C4DFF"/>
+      <stop offset="1" stop-color="#2E8BF6"/>
+    </linearGradient>
+    <linearGradient id="lkRainbow" x1="70" y1="0" x2="290" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="0.18" stop-color="#EC4899"/>
+      <stop offset="0.36" stop-color="#F97316"/>
+      <stop offset="0.52" stop-color="#F59E0B"/>
+      <stop offset="0.68" stop-color="#22C55E"/>
+      <stop offset="0.84" stop-color="#06B6D4"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- F mark -->
+  <g transform="translate(118 6) scale(0.62)">
+    <g transform="skewX(-8) translate(18 0)">
+      <rect x="82" y="52" width="46" height="156" rx="18" fill="url(#lkStem)"/>
+      <rect x="82" y="52" width="122" height="46" rx="18" fill="url(#lkWing)"/>
+      <rect x="82" y="112" width="88" height="42" rx="18" fill="url(#lkWing)"/>
+      <rect x="96" y="60" width="94" height="12" rx="6" fill="#FFFFFF" opacity="0.22"/>
+      <path d="M92 150 L120 150 L104 176 Z" fill="#FFFFFF" opacity="0.9"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="180" y="192" text-anchor="middle"
+        font-family="'Sora','Segoe UI',Arial,sans-serif" font-weight="800"
+        font-size="46" letter-spacing="4" fill="url(#lkRainbow)">FARVIXO</text>
+
+  <!-- Tagline -->
+  <line x1="96" y1="214" x2="126" y2="214" stroke="url(#lkRainbow)" stroke-width="2"/>
+  <text x="180" y="219" text-anchor="middle"
+        font-family="'Sora','Segoe UI',Arial,sans-serif" font-weight="600"
+        font-size="13" letter-spacing="4" fill="#A0A0B8">BUILD BEYOND.</text>
+  <line x1="234" y1="214" x2="264" y2="214" stroke="url(#lkRainbow)" stroke-width="2"/>
+</svg>

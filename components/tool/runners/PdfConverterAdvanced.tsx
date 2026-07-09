@@ -62,7 +62,7 @@ const FORMAT_META: Record<TargetFormat, { label: string; icon: string; color: st
   rtf: { label: 'RTF', icon: 'file-text', color: '#5b21b6', desc: 'Rich text' },
   jpg: { label: 'JPG', icon: 'image', color: '#059669', desc: 'Image' },
   png: { label: 'PNG', icon: 'image', color: '#0891b2', desc: 'Lossless' },
-  webp: { label: 'WebP', icon: 'image', color: '#7c3aed', desc: 'Modern image' },
+  webp: { label: 'WebP', icon: 'image', color: '#6c4dff', desc: 'Modern image' },
   csv: { label: 'CSV', icon: 'table', color: '#ca8a04', desc: 'Data' },
   md: { label: 'Markdown', icon: 'type', color: '#1e40af', desc: 'Markdown' },
 };

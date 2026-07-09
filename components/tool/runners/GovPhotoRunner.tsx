@@ -806,7 +806,7 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
       )}
 
       <p className="muted mt-4" style={{ fontSize: 12 }}>
-        {tool.name} · 100% browser-based · Files never uploaded to ToolNest servers
+        {tool.name} · 100% browser-based · Files never uploaded to Farvixo servers
       </p>
 
       {resultBlob && step === 'result' && (

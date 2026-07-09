@@ -131,8 +131,8 @@ export async function ensureWelcomeNotification(
 
   await createNotification(client, userId, {
     type: 'system',
-    title: 'Welcome to ToolNest 🎉',
-    body: 'Explore 120+ tools — PDF, Image, AI and more. Your files and history live in your dashboard.',
+    title: 'Welcome to Farvixo 🎉',
+    body: 'Explore 139+ tools — PDF, Image, AI and more. Your files and history live in your dashboard.',
     href: '/tools',
   });
 }

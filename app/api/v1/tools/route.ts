@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       description: t.description,
       category: t.category,
       badge: t.badge ?? null,
-      url: `https://toolnestfm.com/tools/${t.category}/${t.slug}`,
+      url: `https://tools.farvixo.com/tools/${t.category}/${t.slug}`,
     })),
   });
 }

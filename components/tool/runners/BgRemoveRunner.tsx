@@ -67,7 +67,7 @@ export default function BgRemoveRunner({ tool }: { tool: Tool }) {
   const [status, setStatus] = useState('Processing...');
 
   const [bgKind, setBgKind] = useState<'color' | 'image'>('color');
-  const [bgColor, setBgColor] = useState('#7c3aed');
+  const [bgColor, setBgColor] = useState('#6c4dff');
   const [bgFile, setBgFile] = useState<File[]>([]);
   const [brushSize, setBrushSize] = useState(28);
 

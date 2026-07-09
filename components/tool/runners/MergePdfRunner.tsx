@@ -515,16 +515,16 @@ export default function MergePdfRunner({ tool }: { tool: Tool }) {
   };
 
   const shareWhatsApp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent('Check out my merged PDF from ToolNest!')}`, '_blank', 'noopener');
+    window.open(`https://wa.me/?text=${encodeURIComponent('Check out my merged PDF from Farvixo Tools!')}`, '_blank', 'noopener');
   };
 
   const shareTelegram = () => {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Merged PDF via ToolNest')}`, '_blank', 'noopener');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Merged PDF via Farvixo Tools')}`, '_blank', 'noopener');
   };
 
   const shareEmail = () => {
-    const subject = encodeURIComponent('Merged PDF from ToolNest');
-    const body = encodeURIComponent('I merged PDFs using ToolNest. Try it at toolnestfm.com/tools/pdf/merge-pdf');
+    const subject = encodeURIComponent('Merged PDF from Farvixo Tools');
+    const body = encodeURIComponent('I merged PDFs using Farvixo Tools. Try it at tools.farvixo.com/tools/pdf/merge-pdf');
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
@@ -696,7 +696,7 @@ export default function MergePdfRunner({ tool }: { tool: Tool }) {
         )}
 
         <div className="pdfconv-result-card done">
-          <div className="pdfconv-result-icon" style={{ background: 'rgba(124,58,237,0.15)', color: 'var(--brand-primary)' }}>
+          <div className="pdfconv-result-icon" style={{ background: 'rgba(108,77,255,0.15)', color: 'var(--brand-primary)' }}>
             <Icon name="merge" size={22} />
           </div>
           <div className="pdfconv-result-info">

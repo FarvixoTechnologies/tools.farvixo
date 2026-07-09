@@ -8,7 +8,7 @@ export interface ProviderInfo {
   label: string;
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://toolnestfm.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tools.farvixo.com';
 
 /** Parse OpenAI-compatible SSE stream; yields cumulative text. */
 async function* parseOpenAiSseStream(res: Response): AsyncGenerator<string> {
@@ -102,7 +102,7 @@ export async function* openRouterStreamServer(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`,
       'HTTP-Referer': APP_URL,
-      'X-Title': 'ToolNest',
+      'X-Title': 'Farvixo Tools',
     },
     body: JSON.stringify({
       model,

@@ -1,5 +1,5 @@
 -- ============================================================
--- ToolNest — Supabase Schema (idempotent, safe to re-run)
+-- Farvixo Tools — Supabase Schema (idempotent, safe to re-run)
 -- Run this in the Supabase SQL Editor (Dashboard → SQL Editor).
 -- ============================================================
 
@@ -163,7 +163,7 @@ alter table public.admin_settings enable row level security;
 -- Service-role only.
 
 -- ============================================================
--- CREDITS SYSTEM — ToolNest API credits
+-- CREDITS SYSTEM — Farvixo API credits
 -- ============================================================
 
 -- Balance lives on the profile for fast reads; every change is ledgered.
@@ -222,13 +222,13 @@ $$;
 -- Only the service role (server) may adjust credits — never the browser.
 revoke execute on function public.adjust_credits(uuid, integer, text, uuid, jsonb) from public, anon, authenticated;
 
--- ---------- API KEYS (ToolNest public API) ----------
+-- ---------- API KEYS (Farvixo public API) ----------
 create table if not exists public.api_keys (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   key_hash text unique not null,                  -- sha256 of the full key; the key itself is never stored
-  prefix text not null,                           -- display prefix e.g. tn_live_ab12…
+  prefix text not null,                           -- display prefix e.g. fx_live_ab12…
   last_used_at timestamptz,
   revoked_at timestamptz,
   created_at timestamptz not null default now()

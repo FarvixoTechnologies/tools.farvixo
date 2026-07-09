@@ -23,7 +23,7 @@ export default function UtilityRunner({ tool }: { tool: Tool }) {
   const [imgUrl, setImgUrl] = useState('');
 
   // qr
-  const [qrText, setQrText] = useState('https://toolnestfm.com');
+  const [qrText, setQrText] = useState('https://tools.farvixo.com');
   // barcode
   const [bcText, setBcText] = useState('123456789012');
   const [bcFormat, setBcFormat] = useState('CODE128');

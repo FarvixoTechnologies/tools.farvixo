@@ -3,8 +3,8 @@ import Link from 'next/link';
 import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
-  title: 'Blog | ToolNest',
-  description: 'Tips, guides and productivity articles from the ToolNest team.',
+  title: 'Blog | Farvixo Tools',
+  description: 'Tips, guides and productivity articles from the Farvixo team.',
 };
 
 const posts = [

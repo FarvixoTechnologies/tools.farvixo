@@ -6,7 +6,7 @@ import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { adjustCredits, InsufficientCreditsError } from '@/lib/credits';
 
-import { buildToolNestDefaultSystem } from '@/lib/engines/toolnest-ai-context';
+import { buildFarvixoDefaultSystem } from '@/lib/engines/farvixo-ai-context';
 
 const BURST_LIMIT = 12;              // per minute per IP
 const FREE_DAILY_LIMIT = 50;        // server messages/day — then auto-falls back to free client AI
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     const model = body.model && /^[a-z0-9./:_-]{1,80}$/i.test(body.model) ? body.model : undefined;
 
     const lastUser = [...(body.messages ?? [])].reverse().find((m) => m.role === 'user')?.content;
-    const system = (body.system || buildToolNestDefaultSystem(lastUser)).slice(0, 16_000);
+    const system = (body.system || buildFarvixoDefaultSystem(lastUser)).slice(0, 16_000);
     const encoder = new TextEncoder();
     const { streamWithFallback } = await import('@/lib/gemini/free-providers');
 

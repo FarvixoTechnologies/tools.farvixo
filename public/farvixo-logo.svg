@@ -1,0 +1,36 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Farvixo">
+  <defs>
+    <linearGradient id="fvWing" x1="70" y1="52" x2="210" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F43F5E"/><stop offset="1" stop-color="#EF4444"/>
+    </linearGradient>
+    <linearGradient id="fvWing2" x1="82" y1="112" x2="180" y2="154" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FACC15"/><stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="fvStem" x1="100" y1="52" x2="120" y2="208" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-width="6" stroke-linecap="round">
+    <path d="M128 12 A116 116 0 0 1 186 27.5" stroke="#E24BAF"/>
+    <path d="M186 27.5 A116 116 0 0 1 228.5 70" stroke="#EF4444"/>
+    <path d="M228.5 70 A116 116 0 0 1 244 128" stroke="#F97316"/>
+    <path d="M244 128 A116 116 0 0 1 228.5 186" stroke="#F59E0B"/>
+    <path d="M228.5 186 A116 116 0 0 1 186 228.5" stroke="#84CC16"/>
+    <path d="M186 228.5 A116 116 0 0 1 128 244" stroke="#22C55E"/>
+    <path d="M128 244 A116 116 0 0 1 70 228.5" stroke="#10B981"/>
+    <path d="M70 228.5 A116 116 0 0 1 27.5 186" stroke="#06B6D4"/>
+    <path d="M27.5 186 A116 116 0 0 1 12 128" stroke="#22A7F0"/>
+    <path d="M12 128 A116 116 0 0 1 27.5 70" stroke="#3B82F6"/>
+    <path d="M27.5 70 A116 116 0 0 1 70 27.5" stroke="#6C4DFF"/>
+    <path d="M70 27.5 A116 116 0 0 1 128 12" stroke="#A855F7"/>
+  </g>
+  <g transform="translate(40 46) scale(0.62)">
+    <g transform="skewX(-8) translate(18 0)">
+      <rect x="82" y="52" width="46" height="156" rx="18" fill="url(#fvStem)"/>
+      <rect x="82" y="52" width="122" height="46" rx="18" fill="url(#fvWing)"/>
+      <rect x="82" y="112" width="88" height="42" rx="18" fill="url(#fvWing2)"/>
+      <rect x="96" y="60" width="94" height="12" rx="6" fill="#FFFFFF" opacity="0.22"/>
+      <path d="M92 150 L120 150 L104 176 Z" fill="#FFFFFF" opacity="0.9"/>
+    </g>
+  </g>
+</svg>

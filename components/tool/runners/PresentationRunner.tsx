@@ -39,13 +39,13 @@ export default function PresentationRunner() {
       const title = pptx.addSlide();
       title.background = { color: '0A0A12' };
       title.addText(deck.title || topic, { x: 0.8, y: 2.6, w: 11.7, h: 1.4, fontSize: 40, bold: true, color: 'F5F5FA', fontFace: 'Arial' });
-      title.addText('Generated with ToolNest AI ✦', { x: 0.8, y: 4.2, w: 10, h: 0.5, fontSize: 16, color: '8B5CF6' });
-      title.addShape('rect', { x: 0.8, y: 4.0, w: 2.4, h: 0.06, fill: { color: '7C3AED' } });
+      title.addText('Generated with Farvixo AI ✦', { x: 0.8, y: 4.2, w: 10, h: 0.5, fontSize: 16, color: '8570FF' });
+      title.addShape('rect', { x: 0.8, y: 4.0, w: 2.4, h: 0.06, fill: { color: '6C4DFF' } });
 
       for (const s of deck.slides || []) {
         const slide = pptx.addSlide();
         slide.background = { color: '12121C' };
-        slide.addShape('rect', { x: 0, y: 0, w: 0.25, h: 7.5, fill: { color: '7C3AED' } });
+        slide.addShape('rect', { x: 0, y: 0, w: 0.25, h: 7.5, fill: { color: '6C4DFF' } });
         slide.addText(s.title, { x: 0.8, y: 0.5, w: 11.7, h: 1, fontSize: 30, bold: true, color: 'F5F5FA' });
         slide.addText(
           (s.bullets || []).map((b) => ({ text: b, options: { bullet: { code: '2022' }, color: 'A0A0B8', fontSize: 17, breakLine: true, paraSpaceAfter: 10 } })),
@@ -82,7 +82,7 @@ export default function PresentationRunner() {
         {phase === 'done' && <p className="muted" style={{ fontSize: 13 }}>✓ Your deck was downloaded! Generate another anytime.</p>}
       </div>
       <div className="output-area" style={{ minHeight: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center' }}>
-        AI writes your outline → ToolNest builds a dark-themed, branded PowerPoint file → it downloads automatically.
+        AI writes your outline → Farvixo builds a dark-themed, branded PowerPoint file → it downloads automatically.
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/v1/chat — AI chat completion. 1 credit.
- * Auth:   Authorization: Bearer tn_live_...
+ * Auth:   Authorization: Bearer fx_live_...
  * Body:   { "messages": [{ "role": "user", "content": "..." }], "system"?: "...", "model"?: "gemini-..." }
  */
 export async function POST(req: Request) {

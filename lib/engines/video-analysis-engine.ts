@@ -156,7 +156,7 @@ export function getAutoRecommendation(analysis: VideoAnalysis): AIVideoRecommend
   };
 }
 
-const SESSION_KEY = 'toolnest-video-converter-session';
+const SESSION_KEY = 'farvixo-video-converter-session';
 
 export async function extractVideosFromZip(zipFile: File): Promise<File[]> {
   const JSZip = (await import('jszip')).default;

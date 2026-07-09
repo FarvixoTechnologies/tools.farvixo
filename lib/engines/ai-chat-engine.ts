@@ -1,7 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '@/lib/ai';
-import { buildToolNestAiContext } from '@/lib/engines/toolnest-ai-context';
+import { buildFarvixoAiContext } from '@/lib/engines/farvixo-ai-context';
 
 export type ChatPersona = 'general' | 'code' | 'creative' | 'analyst' | 'teacher' | 'pdf';
 
@@ -47,8 +47,8 @@ export interface PersonaMeta {
   prompts: string[];
 }
 
-const TOOLNEST_CONTEXT =
-  'ToolNest (toolnestfm.com) — 128+ tools in one platform. Always link users directly to the exact tool URL; never generic navigation steps.';
+const FARVIXO_CONTEXT =
+  'Farvixo Tools (tools.farvixo.com) — 139+ tools in one platform. Always link users directly to the exact tool URL; never generic navigation steps.';
 
 export const CHAT_PERSONAS: PersonaMeta[] = [
   {
@@ -56,7 +56,7 @@ export const CHAT_PERSONAS: PersonaMeta[] = [
     label: 'General',
     icon: 'bot',
     desc: 'Everyday Q&A & productivity',
-    system: `You are ToolNest AI — the in-app assistant on ToolNest. ${TOOLNEST_CONTEXT} Be helpful, accurate, and concise. When recommending a tool, always include a direct markdown link.`,
+    system: `You are Farvixo AI — the in-app assistant on Farvixo Tools. ${FARVIXO_CONTEXT} Be helpful, accurate, and concise. When recommending a tool, always include a direct markdown link.`,
     prompts: ['Open PDF Converter for me', 'Which tool compresses PDF?', 'Summarize this topic in bullet points', 'Help me plan my week'],
   },
   {
@@ -64,7 +64,7 @@ export const CHAT_PERSONAS: PersonaMeta[] = [
     label: 'Code',
     icon: 'code',
     desc: 'Programming & debugging',
-    system: `You are ToolNest Code AI — an expert software engineer. ${TOOLNEST_CONTEXT} Write clean, production-ready code with brief explanations. Use fenced code blocks with language tags.`,
+    system: `You are Farvixo Code AI — an expert software engineer. ${FARVIXO_CONTEXT} Write clean, production-ready code with brief explanations. Use fenced code blocks with language tags.`,
     prompts: ['Review this code for bugs', 'Write a TypeScript utility function', 'Convert this to Python', 'Explain this error message'],
   },
   {
@@ -72,7 +72,7 @@ export const CHAT_PERSONAS: PersonaMeta[] = [
     label: 'Creative',
     icon: 'sparkles',
     desc: 'Writing & brainstorming',
-    system: `You are ToolNest Creative AI — a versatile writer and ideation partner. ${TOOLNEST_CONTEXT} Match tone to the user's request. Be vivid but not verbose.`,
+    system: `You are Farvixo Creative AI — a versatile writer and ideation partner. ${FARVIXO_CONTEXT} Match tone to the user's request. Be vivid but not verbose.`,
     prompts: ['Write a catchy product tagline', 'Brainstorm 10 blog titles', 'Rewrite this professionally', 'Create a social media post'],
   },
   {
@@ -80,15 +80,15 @@ export const CHAT_PERSONAS: PersonaMeta[] = [
     label: 'Analyst',
     icon: 'table',
     desc: 'Data, research & strategy',
-    system: `You are ToolNest Analyst AI — a research and strategy expert. ${TOOLNEST_CONTEXT} Structure answers with headers, pros/cons, and actionable recommendations.`,
-    prompts: ['SWOT analysis for a SaaS startup', 'Compare iLovePDF vs ToolNest', 'Key metrics for a PDF tool', 'Summarize pros and cons'],
+    system: `You are Farvixo Analyst AI — a research and strategy expert. ${FARVIXO_CONTEXT} Structure answers with headers, pros/cons, and actionable recommendations.`,
+    prompts: ['SWOT analysis for a SaaS startup', 'Compare iLovePDF vs Farvixo Tools', 'Key metrics for a PDF tool', 'Summarize pros and cons'],
   },
   {
     id: 'teacher',
     label: 'Teacher',
     icon: 'presentation',
     desc: 'Learn & explain concepts',
-    system: `You are ToolNest Teacher AI — patient, clear, and structured. ${TOOLNEST_CONTEXT} Use examples, analogies, and step-by-step explanations.`,
+    system: `You are Farvixo Teacher AI — patient, clear, and structured. ${FARVIXO_CONTEXT} Use examples, analogies, and step-by-step explanations.`,
     prompts: ['Teach me how OCR works', 'Quiz me on JavaScript basics', 'Explain blockchain simply', 'Create a study outline'],
   },
   {
@@ -96,13 +96,13 @@ export const CHAT_PERSONAS: PersonaMeta[] = [
     label: 'PDF Expert',
     icon: 'file-text',
     desc: 'Document Q&A & summaries',
-    system: `You are ToolNest PDF AI. Answer using ONLY the attached document content when provided. If the answer is not in the document, say so clearly. Cite page references when possible.`,
+    system: `You are Farvixo PDF AI. Answer using ONLY the attached document content when provided. If the answer is not in the document, say so clearly. Cite page references when possible.`,
     prompts: ['Summarize this document', 'List all key dates and amounts', 'What are the action items?', 'Extract tables as markdown'],
   },
 ];
 
-const SESSIONS_KEY = 'toolnest-ai-chat-sessions';
-const ACTIVE_KEY = 'toolnest-ai-chat-active';
+const SESSIONS_KEY = 'farvixo-ai-chat-sessions';
+const ACTIVE_KEY = 'farvixo-ai-chat-active';
 
 export function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -172,7 +172,7 @@ export function buildSystemPrompt(
   const parts = [persona.system];
 
   if (settings.includeToolContext && settings.persona !== 'pdf' && !pdfMode) {
-    parts.push(buildToolNestAiContext(userQuery));
+    parts.push(buildFarvixoAiContext(userQuery));
   }
 
   if (attachments.length > 0) {
@@ -196,7 +196,7 @@ export function estimateTokens(text: string): number {
 }
 
 export function exportSessionMarkdown(session: ChatSession): string {
-  const lines = [`# ${session.title}`, `*Exported from ToolNest AI Chat · ${new Date(session.updatedAt).toLocaleString()}*`, ''];
+  const lines = [`# ${session.title}`, `*Exported from Farvixo AI Chat · ${new Date(session.updatedAt).toLocaleString()}*`, ''];
   for (const m of session.messages) {
     lines.push(`## ${m.role === 'user' ? 'You' : 'AI'}`, '', m.content, '');
   }
@@ -216,7 +216,7 @@ export function renderChatMarkdown(text: string): string {
     const raw = String(url).trim();
     const href = raw.startsWith('http') || raw.startsWith('/')
       ? raw
-      : `https://toolnestfm.com/${raw.replace(/^\//, '')}`;
+      : `https://tools.farvixo.com/${raw.replace(/^\//, '')}`;
     const safeLabel = String(label)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')

@@ -1,5 +1,5 @@
 -- ============================================================
--- ToolNest — Promote super admin by email (safe to re-run)
+-- Farvixo Tools — Promote super admin by email (safe to re-run)
 -- Run AFTER schema.sql and after the user has signed up OR
 -- after scripts/bootstrap-admin.mjs created the account.
 -- ============================================================

@@ -173,7 +173,7 @@ export default function AgeCalculatorRunner() {
     if (!result) return;
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
-    doc.setFillColor(124, 58, 237);
+    doc.setFillColor(108, 77, 255);
     doc.rect(0, 0, 210, 28, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
@@ -191,7 +191,7 @@ export default function AgeCalculatorRunner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const grd = ctx.createLinearGradient(0, 0, 800, 900);
-    grd.addColorStop(0, '#1a0a2e'); grd.addColorStop(0.5, '#2d1b69'); grd.addColorStop(1, '#7c3aed');
+    grd.addColorStop(0, '#1a0a2e'); grd.addColorStop(0.5, '#2d1b69'); grd.addColorStop(1, '#6c4dff');
     ctx.fillStyle = grd; ctx.fillRect(0, 0, 800, 900);
     ctx.fillStyle = '#fff'; ctx.font = 'bold 32px sans-serif';
     ctx.fillText('🎂 Age Calculator Pro', 40, 60);
@@ -212,7 +212,7 @@ export default function AgeCalculatorRunner() {
   const showQr = async () => {
     if (!dobDate) return;
     const QRCode = (await import('qrcode')).default;
-    setQrUrl(await QRCode.toDataURL(buildShareUrl(dobDate, useLive ? toDateInput(new Date()) : toDate), { width: 220, margin: 2, color: { dark: '#7c3aed', light: '#ffffff' } }));
+    setQrUrl(await QRCode.toDataURL(buildShareUrl(dobDate, useLive ? toDateInput(new Date()) : toDate), { width: 220, margin: 2, color: { dark: '#6c4dff', light: '#ffffff' } }));
   };
 
   const loadAi = useCallback(async () => {
@@ -227,7 +227,7 @@ export default function AgeCalculatorRunner() {
   }, [tab, result, aiText, aiLoading, loadAi]);
 
   const tabs: Tab[] = ['results', 'birthday', 'astrology', 'milestones', 'stats', 'ai'];
-  const zodiacGrad = result?.astrology.zodiacGradient ?? 'linear-gradient(135deg,#7c3aed,#ec4899)';
+  const zodiacGrad = result?.astrology.zodiacGradient ?? 'linear-gradient(135deg,#6c4dff,#ec4899)';
 
   return (
     <div className="age-tool" ref={reportRef}>
@@ -340,7 +340,7 @@ export default function AgeCalculatorRunner() {
 
                   <p className="age-exact-label">Your exact age</p>
                   <div className="age-pills-row" aria-live="polite">
-                    <AgePill value={result.breakdown.years} unit="Years" color="#7c3aed" />
+                    <AgePill value={result.breakdown.years} unit="Years" color="#6c4dff" />
                     <AgePill value={result.breakdown.months} unit="Months" color="#ec4899" />
                     <AgePill value={result.breakdown.days} unit="Days" color="#06b6d4" />
                   </div>
@@ -356,7 +356,7 @@ export default function AgeCalculatorRunner() {
                   )}
 
                   <div className="age-rings-row">
-                    <RingProgress pct={result.stats.lifePct} color="#7c3aed" label="Life" />
+                    <RingProgress pct={result.stats.lifePct} color="#6c4dff" label="Life" />
                     <RingProgress pct={result.birthday.progressPct} color="#f5b93d" label="Birthday yr" />
                     {result.nextMilestone && (
                       <div className="age-next-ms">
@@ -371,7 +371,7 @@ export default function AgeCalculatorRunner() {
 
                 {/* Quick ribbon */}
                 <div className="age-ribbon">
-                  <div className="age-ribbon-item" style={{ '--c': '#7c3aed' } as React.CSSProperties}>
+                  <div className="age-ribbon-item" style={{ '--c': '#6c4dff' } as React.CSSProperties}>
                     <span>{formatNumber(result.totals.days)}</span><small>days lived</small>
                   </div>
                   <div className="age-ribbon-item" style={{ '--c': '#ec4899' } as React.CSSProperties}>
@@ -440,7 +440,7 @@ export default function AgeCalculatorRunner() {
                         </div>
                       )}
                       <div className="age-bday-cards">
-                        <div className="age-bday-card" style={{ '--c': '#7c3aed' } as React.CSSProperties}>
+                        <div className="age-bday-card" style={{ '--c': '#6c4dff' } as React.CSSProperties}>
                           <span>📅 Next</span><strong>{formatDate(result.birthday.nextDate)}</strong>
                         </div>
                         <div className="age-bday-card" style={{ '--c': '#ec4899' } as React.CSSProperties}>
@@ -482,7 +482,7 @@ export default function AgeCalculatorRunner() {
                     <div className="age-timeline">
                       {result.milestones.map((m, i) => (
                         <div key={m.label} className={`age-tl-item${m.reached ? ' done' : ''}`}>
-                          <div className="age-tl-dot" style={{ '--tl-c': m.reached ? '#22c55e' : '#7c3aed' } as React.CSSProperties}>
+                          <div className="age-tl-dot" style={{ '--tl-c': m.reached ? '#22c55e' : '#6c4dff' } as React.CSSProperties}>
                             {getMilestoneIcon(m.label)}
                           </div>
                           <div className="age-tl-body">

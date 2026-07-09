@@ -9,7 +9,7 @@ import {
 } from '@/lib/credits';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
-/** Shared plumbing for the ToolNest public API (/api/v1/*). */
+/** Shared plumbing for the Farvixo Tools public API (/api/v1/*). */
 
 export interface V1Context {
   admin: SupabaseClient;
@@ -30,7 +30,7 @@ export async function requireApiKey(req: Request, limitPerMin = 60): Promise<Req
   if (!auth) {
     return {
       ok: false,
-      response: apiErr('Invalid or revoked API key. Pass it as: Authorization: Bearer tn_live_...', 401),
+      response: apiErr('Invalid or revoked API key. Pass it as: Authorization: Bearer fx_live_...', 401),
     };
   }
 
@@ -53,7 +53,7 @@ export async function withCredits(
     });
   } catch (err) {
     if (err instanceof InsufficientCreditsError) {
-      return apiErr('Insufficient credits. Buy more at toolnestfm.com/dashboard/credits', 402);
+      return apiErr('Insufficient credits. Buy more at tools.farvixo.com/dashboard/credits', 402);
     }
     return apiErr('Credit check failed — try again', 500);
   }

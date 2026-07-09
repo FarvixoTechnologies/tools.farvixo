@@ -20,7 +20,7 @@ export default function SitemapPage() {
   ];
 
   return (
-    <PageShell title="Sitemap" subtitle="All pages on ToolNest">
+    <PageShell title="Sitemap" subtitle="All pages on Farvixo Tools">
       <div className="sitemap-grid">
         <div>
           <h3>Main pages</h3>

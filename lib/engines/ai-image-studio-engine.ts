@@ -127,7 +127,7 @@ export interface BatchJob {
   error?: string;
 }
 
-const SESSION_KEY = 'toolnest_ai_image_studio_v15';
+const SESSION_KEY = 'farvixo_ai_image_studio_v15';
 
 /* ─── Constants ─────────────────────────────────────────────────────────── */
 

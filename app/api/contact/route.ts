@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const { error } = await supabase.from('contact_messages').insert({ name, email, message });
     if (error) {
       console.error('[contact] insert failed:', error.message);
-      return apiErr('Could not send your message — please email hello@toolnestfm.com', 500);
+      return apiErr('Could not send your message — please email hello@farvixo.com', 500);
     }
   }
   // Without Supabase configured we still return success so the form works in dev.

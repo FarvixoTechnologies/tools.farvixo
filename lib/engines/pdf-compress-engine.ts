@@ -460,7 +460,7 @@ export function markDuplicatePdfs(items: PdfQueueItem[]): PdfQueueItem[] {
   });
 }
 
-const SESSION_KEY = 'toolnest-pdf-compress-session';
+const SESSION_KEY = 'farvixo-pdf-compress-session';
 
 export function saveCompressSession(data: { fileNames: string[]; step: number; mode: CompressMode }): void {
   try { localStorage.setItem(SESSION_KEY, JSON.stringify({ ...data, savedAt: Date.now() })); } catch { /* */ }

@@ -29,8 +29,8 @@ export default function SocialRunner({ tool }: { tool: Tool }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tTitle, setTTitle] = useState('MY AWESOME VIDEO');
   const [tSub, setTSub] = useState('Watch till the end!');
-  const [tBg, setTBg] = useState('#7C3AED');
-  const [tBg2, setTBg2] = useState('#C026D3');
+  const [tBg, setTBg] = useState('#6C4DFF');
+  const [tBg2, setTBg2] = useState('#A855F7');
   const [tTextColor, setTTextColor] = useState('#FFFFFF');
   const [tImg, setTImg] = useState<File[]>([]);
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);

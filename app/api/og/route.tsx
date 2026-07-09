@@ -1,12 +1,15 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
+// NOTE: Do NOT set `runtime = 'edge'` here. This app deploys to Cloudflare
+// Workers via OpenNext, which bundles all routes into the default (workerd)
+// function and rejects standalone Next.js edge-runtime routes at build time.
+export const dynamic = 'force-dynamic';
 
 /** Branded 1200×630 Open Graph image, generated per tool/category on demand. */
 export function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const title = (searchParams.get('title') || 'ToolNest').slice(0, 80);
-  const subtitle = (searchParams.get('subtitle') || 'One Platform. Infinite Tools.').slice(0, 70);
+  const title = (searchParams.get('title') || 'Farvixo Tools').slice(0, 80);
+  const subtitle = (searchParams.get('subtitle') || 'Build Beyond.').slice(0, 70);
   const badge = (searchParams.get('badge') || '').slice(0, 12);
 
   return new ImageResponse(
@@ -34,14 +37,16 @@ export function GET(req: Request) {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '34px',
-              background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
+              fontWeight: 800,
+              color: '#fff',
+              background: 'linear-gradient(135deg, #6C4DFF, #A855F7)',
             }}
           >
-            ⬡
+            F
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: '#F5F5FA', fontSize: '30px', fontWeight: 800 }}>ToolNest</span>
-            <span style={{ color: '#A0A0B8', fontSize: '16px' }}>One Platform. Infinite Tools.</span>
+            <span style={{ color: '#F5F5FA', fontSize: '30px', fontWeight: 800 }}>Farvixo Tools</span>
+            <span style={{ color: '#A0A0B8', fontSize: '16px' }}>Build Beyond.</span>
           </div>
           {badge ? (
             <span
@@ -53,7 +58,7 @@ export function GET(req: Request) {
                 letterSpacing: '1px',
                 padding: '8px 18px',
                 borderRadius: '999px',
-                background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
+                background: 'linear-gradient(135deg, #6C4DFF, #A855F7)',
               }}
             >
               {badge}
@@ -63,7 +68,7 @@ export function GET(req: Request) {
 
         {/* Title block */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ color: '#8B5CF6', fontSize: '26px', fontWeight: 600, marginBottom: '14px' }}>{subtitle}</span>
+          <span style={{ color: '#8570FF', fontSize: '26px', fontWeight: 600, marginBottom: '14px' }}>{subtitle}</span>
           <span style={{ color: '#F5F5FA', fontSize: '78px', fontWeight: 800, lineHeight: 1.05 }}>{title}</span>
         </div>
 

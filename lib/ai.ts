@@ -27,8 +27,8 @@ export interface ChatMessage {
   content: string;
 }
 
-const KEY_STORAGE = 'toolnest_gemini_key';
-const MODEL_STORAGE = 'toolnest_gemini_model';
+const KEY_STORAGE = 'farvixo_gemini_key';
+const MODEL_STORAGE = 'farvixo_gemini_model';
 
 export function getApiKey(): string {
   if (typeof window === 'undefined') return '';
@@ -245,7 +245,7 @@ async function runFreeChain(
 /** Run an AI completion. Streams via onChunk (receives the FULL text so far). */
 export async function aiComplete(
   messages: ChatMessage[],
-  system = 'You are ToolNest AI, a helpful assistant inside the ToolNest platform (toolnestfm.com) which offers 120+ online tools. Be concise and helpful.',
+  system = 'You are Farvixo AI, a helpful assistant inside the Farvixo Tools platform (tools.farvixo.com) which offers 139+ online tools. Be concise and helpful.',
   onChunk?: (text: string) => void,
   opts?: AiStreamOptions,
 ): Promise<string> {

@@ -44,7 +44,7 @@ export default function FfmpegRunner({ tool }: { tool: Tool }) {
   const [start, setStart] = useState('00:00:00');
   const [end, setEnd] = useState('00:00:10');
   const [parts, setParts] = useState(2);
-  const [wmText, setWmText] = useState('ToolNest');
+  const [wmText, setWmText] = useState('Farvixo');
   const [gifFps, setGifFps] = useState(12);
   const [gifWidth, setGifWidth] = useState(480);
   const [pitch, setPitch] = useState(1.25);

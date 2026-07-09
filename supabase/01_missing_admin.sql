@@ -1,5 +1,5 @@
 -- ============================================================
--- ToolNest — Missing admin tables (run on project xtmcsndjbgalovoqipmb)
+-- Farvixo Tools — Missing admin tables (run on project xtmcsndjbgalovoqipmb)
 -- Safe to re-run. Paste into Supabase → SQL Editor → Run.
 -- ============================================================
 

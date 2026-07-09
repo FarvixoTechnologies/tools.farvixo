@@ -494,7 +494,7 @@ export async function convertPdfBatchToWord(
   return { blob: zipBlob, filename: 'pdf-to-word-batch.zip', results };
 }
 
-const SESSION_KEY = 'toolnest-pdf-to-word-session';
+const SESSION_KEY = 'farvixo-pdf-to-word-session';
 
 export interface PdfToWordSession {
   fileNames: string[];

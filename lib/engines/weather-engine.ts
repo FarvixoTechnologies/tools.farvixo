@@ -8,8 +8,8 @@ const GEO_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const AQI_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality';
 
-const FAV_KEY = 'toolnest_weather_favorites';
-const RECENT_KEY = 'toolnest_weather_recent';
+const FAV_KEY = 'farvixo_weather_favorites';
+const RECENT_KEY = 'farvixo_weather_recent';
 
 export interface WeatherLocation {
   id: number;
@@ -496,7 +496,7 @@ export async function detectIpLocation(): Promise<WeatherLocation> {
   };
 }
 
-/* ─── AI summary (free chain via ToolNest AI) ───────────────────────────── */
+/* ─── AI summary (free chain via Farvixo AI) ───────────────────────────── */
 
 export async function generateWeatherSummary(bundle: WeatherBundle): Promise<string> {
   const { location, current, daily, airQuality } = bundle;

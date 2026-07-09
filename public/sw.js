@@ -1,10 +1,10 @@
 /**
- * ToolNest Service Worker
+ * Farvixo Tools Service Worker
  * Caches WASM codecs and static assets for offline image compression.
  */
 
-const CACHE_NAME = 'toolnest-image-compressor-v1';
-const STATIC_CACHE = 'toolnest-static-v1';
+const CACHE_NAME = 'farvixo-image-compressor-v1';
+const STATIC_CACHE = 'farvixo-static-v1';
 
 const WASM_PATTERNS = [
   /\.wasm$/,

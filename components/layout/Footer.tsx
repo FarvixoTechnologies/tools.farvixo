@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Icon from '../Icon';
+import BrandLogo from '../BrandLogo';
 
 const explore = [
   { label: 'All Tools', href: '/tools' },
@@ -55,17 +56,10 @@ export default function Footer() {
         <div className="footer-grid">
           <div>
             <div className="logo">
-              <img src="/logo-icon.png" alt="ToolNest" className="logo-img" width={36} height={36} />
-              <span>
-                <span className="logo-brand">
-                  <span className="logo-tool">Tool</span>
-                  <span className="logo-nest">Nest</span>
-                  <span className="logo-fm">FM</span>
-                </span>
-                <div className="logo-tagline">One Platform. Infinite Tools.</div>
-              </span>
+              <BrandLogo variant="logo" alt="" className="logo-img" width={38} height={38} />
+              <BrandLogo variant="wordmark" alt="Farvixo" className="logo-wordmark" width={132} height={34} />
             </div>
-            <p className="footer-desc">All the tools you need to work faster, smarter and better — all in one beautifully simple platform.</p>
+            <p className="footer-desc">Farvixo Tools is a modern AI-powered productivity platform offering 139+ online tools for developers, creators, businesses, students, and professionals worldwide.</p>
             <div className="social-row">
               {['facebook', 'twitter', 'linkedin', 'youtube', 'instagram', 'github'].map((s) => (
                 <a key={s} href="#" className="social-icon" aria-label={s}><Icon name={s} size={15} /></a>
@@ -106,7 +100,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4>Get ToolNest App</h4>
+            <h4>Get Farvixo App</h4>
             <div className="store-grid">
               <a href="#" className="store-btn"><Icon name="download" size={16} /><span>Download on the<b>App Store</b></span></a>
               <a href="#" className="store-btn"><Icon name="play" size={16} /><span>Get it on<b>Google Play</b></span></a>
@@ -126,8 +120,8 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2025 ToolNest. All rights reserved.</span>
-          <span>Made with ❤️ by ToolNest Team</span>
+          <span>© 2026 Farvixo Technologies. All Rights Reserved.</span>
+          <span>Made with ❤️ by Farvixo Team</span>
           <div className="footer-bottom-right">
             <Link href="/sitemap">Sitemap</Link>
             <Link href="/privacy-policy">Privacy</Link>

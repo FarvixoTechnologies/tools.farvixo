@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | ToolNest',
-  description: 'How ToolNest uses cookies and similar technologies.',
+  title: 'Cookie Policy | Farvixo Tools',
+  description: 'How Farvixo Tools uses cookies and similar technologies.',
 };
 
 export default function CookiePolicyPage() {

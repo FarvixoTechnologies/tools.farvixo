@@ -91,13 +91,13 @@ export function mergeModeLabel(mode: MergeMode): string {
 }
 
 export const MODE_META: Record<MergeMode, { label: string; icon: string; color: string; desc: string }> = {
-  normal: { label: 'Normal', icon: 'merge', color: '#7c3aed', desc: 'Balanced quality & size' },
+  normal: { label: 'Normal', icon: 'merge', color: '#6c4dff', desc: 'Balanced quality & size' },
   fast: { label: 'Fast', icon: 'zap', color: '#3b82f6', desc: 'Quick object-stream merge' },
   lossless: { label: 'Lossless', icon: 'shield', color: '#22c55e', desc: 'No recompression' },
   compressed: { label: 'Compressed', icon: 'scaling', color: '#f97316', desc: 'Smallest file size' },
   pdfa: { label: 'PDF/A', icon: 'file-text', color: '#6366f1', desc: 'Archival standard' },
   print: { label: 'Print Ready', icon: 'printer', color: '#64748b', desc: 'A4 print layout' },
-  book: { label: 'Book Mode', icon: 'file-text', color: '#8b5cf6', desc: 'Chapter bookmarks' },
+  book: { label: 'Book Mode', icon: 'file-text', color: '#8570ff', desc: 'Chapter bookmarks' },
   pancard: { label: 'PAN Card', icon: 'user-square', color: '#0ea5e9', desc: 'Gov ID preset' },
   passport: { label: 'Passport', icon: 'globe', color: '#14b8a6', desc: 'Passport size' },
   certificate: { label: 'Certificate', icon: 'stamp', color: '#eab308', desc: 'Landscape cert' },
@@ -337,8 +337,8 @@ export async function mergePdfPages(
       }
     } catch { /* ignore */ }
   }
-  out.setProducer('ToolNest Merge PDF');
-  out.setCreator('ToolNestFM');
+  out.setProducer('Farvixo Tools Merge PDF');
+  out.setCreator('Farvixo Tools');
 
   const preset = PRESET_SIZES[mode];
   const useCompression = mode === 'compressed' || opts.smartCompression;
@@ -446,7 +446,7 @@ export async function extractPagesToPdf(
   return new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
 }
 
-const SESSION_KEY = 'toolnest-merge-pdf-v1';
+const SESSION_KEY = 'farvixo-merge-pdf-v1';
 
 export interface MergeSessionMeta {
   fileNames: string[];

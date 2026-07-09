@@ -25,100 +25,100 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (slug === 'pdf-converter') {
     return {
-      title: 'PDF Converter - Convert PDF to Word, Excel, JPG & More Free | ToolNest',
+      title: 'PDF Converter - Convert PDF to Word, Excel, JPG & More Free | Farvixo Tools',
       description: 'Convert PDF to Word, Excel, PowerPoint, JPG, or convert any file to PDF - free, fast, and secure. No signup required. 100% browser-based processing.',
     };
   }
 
   if (slug === 'pan-card-photo-resizer') {
     return {
-      title: 'PAN Card Photo Resizer — NSDL & UTI AI Tool with Compliance Check | ToolNest',
+      title: 'PAN Card Photo Resizer — NSDL & UTI AI Tool with Compliance Check | Farvixo Tools',
       description: 'Free AI PAN card photo, signature & document resizer for NSDL (Protean) and UTIITSL. Auto face crop, white background, DPI fix, 12-point compliance validator. 100% private.',
     };
   }
 
   if (slug === 'image-compressor') {
     return {
-      title: 'Image Compressor - Compress Images Online Free | AVIF, WebP, JPEG, PNG | ToolNest',
+      title: 'Image Compressor - Compress Images Online Free | AVIF, WebP, JPEG, PNG | Farvixo Tools',
       description: 'Compress images up to 90% smaller with AI-powered optimization. Supports AVIF, WebP, JPEG, PNG. Batch processing, target file size, social media presets. 100% private — runs in your browser.',
     };
   }
 
   if (slug === 'video-converter') {
     return {
-      title: 'Video Converter — MP4, WebM, MKV, GIF & MP3 | AI Analysis & Batch | ToolNest',
+      title: 'Video Converter — MP4, WebM, MKV, GIF & MP3 | AI Analysis & Batch | Farvixo Tools',
       description: 'Convert videos to MP4, WebM, MKV, MOV, GIF or extract MP3/AAC. AI smart analysis, social presets (YouTube, Instagram, TikTok), batch queue, trim & rotate. 100% private FFmpeg in your browser.',
     };
   }
 
   if (slug === 'audio-converter') {
     return {
-      title: 'Audio Converter — MP3, WAV, FLAC, AAC & AI Enhancement | ToolNest',
+      title: 'Audio Converter — MP3, WAV, FLAC, AAC & AI Enhancement | Farvixo Tools',
       description: 'Convert audio to MP3, WAV, FLAC, AAC, OGG, OPUS with AI analysis, noise removal, podcast presets, waveform preview & batch queue. 100% private FFmpeg in your browser.',
     };
   }
 
   if (slug === 'pdf-to-word') {
     return {
-      title: 'PDF to Word Converter — Free OCR, AI Layout & Indic Support | ToolNest',
+      title: 'PDF to Word Converter — Free OCR, AI Layout & Indic Support | Farvixo Tools',
       description: 'Convert PDF to editable DOCX with AI layout repair, table detection, Bengali/Hindi OCR, batch mode & confidence score. 100% private browser processing — better than iLovePDF for Indian documents.',
     };
   }
 
   if (slug === 'compress-pdf') {
     return {
-      title: 'PDF Compressor — AI Smart Compression, Batch & Quality Report | ToolNest',
+      title: 'PDF Compressor — AI Smart Compression, Batch & Quality Report | Farvixo Tools',
       description: 'Compress PDF files up to 90% smaller with AI smart modes — email, web, print, lossless. Batch queue, compression report, password PDF support. Free & 100% private.',
     };
   }
 
   if (slug === 'background-remover') {
     return {
-      title: 'Background Remover — AI Ultra HD Cutout, Hair Refine & Batch | ToolNest',
+      title: 'Background Remover — AI Ultra HD Cutout, Hair Refine & Batch | Farvixo Tools',
       description: 'Remove image backgrounds with AI — hair refinement, erase/restore brush, 14 background presets, batch ZIP export. Free, unlimited, 100% browser-private.',
     };
   }
 
   if (slug === 'merge-pdf') {
     return {
-      title: 'Merge PDF — AI Organize, 10 Merge Modes & Premium Workflow | ToolNest',
+      title: 'Merge PDF — AI Organize, 10 Merge Modes & Premium Workflow | Farvixo Tools',
       description: 'Merge multiple PDFs with AI page analysis, drag reorder, optimize modes for PAN/passport/book, batch merge. Free & 100% private browser processing.',
     };
   }
 
   if (slug === 'image-to-pdf') {
     return {
-      title: 'Image to PDF — AI Batch Convert, Organize & Optimize | ToolNest',
+      title: 'Image to PDF — AI Batch Convert, Organize & Optimize | Farvixo Tools',
       description: 'Convert JPG, PNG, WEBP, HEIC to PDF with AI analysis, drag timeline, page size control, compression, watermark & password. Free, 100% private browser processing.',
     };
   }
 
   if (slug === 'ai-chat') {
     return {
-      title: 'AI Chat Assistant — 6 Personas, Streaming, History & Markdown | ToolNest',
+      title: 'AI Chat Assistant — 6 Personas, Streaming, History & Markdown | Farvixo Tools',
       description: 'Free advanced AI chat powered by Gemini — General, Code, Creative, Analyst, Teacher modes. Chat history, PDF attach, temperature control, export & regenerate.',
     };
   }
 
   if (slug === 'ai-pdf-assistant') {
     return {
-      title: 'AI PDF Assistant — Chat With Your PDF, Summarize & Extract | ToolNest',
+      title: 'AI PDF Assistant — Chat With Your PDF, Summarize & Extract | Farvixo Tools',
       description: 'Upload any PDF and ask questions — summaries, key facts, tables, action items. Powered by Gemini with streaming answers. Free & private.',
     };
   }
 
   if (slug === 'age-calculator') {
     return {
-      title: 'Age Calculator Pro — Exact Age in Years, Months, Days & Seconds | ToolNest',
+      title: 'Age Calculator Pro — Exact Age in Years, Months, Days & Seconds | Farvixo Tools',
       description: 'Calculate your exact age with leap-year accuracy. Birthday countdown, zodiac sign, milestones, life statistics, AI insights. 100% free, private, runs in your browser.',
     };
   }
 
   if (slug === 'world-weather-pro') {
-    const title = 'World Weather Pro — Live Weather, 14-Day Forecast, AQI & Radar Map | ToolNest';
+    const title = 'World Weather Pro — Live Weather, 14-Day Forecast, AQI & Radar Map | Farvixo Tools';
     const description = 'Free live weather app: real-time conditions, hourly timeline, 7 & 14-day forecast, air quality index, interactive radar map, sunrise/sunset, moon phase and AI insights for any city worldwide. No API key, no signup, 100% private.';
-    const url = 'https://toolnestfm.com/tools/utility/world-weather-pro';
-    const og = 'https://toolnestfm.com/api/og?title=World+Weather+Pro&subtitle=Live+forecast%2C+AQI+%26+radar&badge=NEW';
+    const url = 'https://tools.farvixo.com/tools/utility/world-weather-pro';
+    const og = 'https://tools.farvixo.com/api/og?title=World+Weather+Pro&subtitle=Live+forecast%2C+AQI+%26+radar&badge=NEW';
     return {
       title,
       description,
@@ -132,10 +132,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         type: 'website',
         url,
-        siteName: 'ToolNest',
+        siteName: 'Farvixo Tools',
         title,
         description,
-        images: [{ url: og, width: 1200, height: 630, alt: 'World Weather Pro by ToolNest' }],
+        images: [{ url: og, width: 1200, height: 630, alt: 'World Weather Pro by Farvixo Tools' }],
       },
       twitter: {
         card: 'summary_large_image',
@@ -164,10 +164,10 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
   if (slug === 'pan-card-photo-resizer') {
     return [
       { q: 'What is the difference between NSDL and UTI PAN photo requirements?', a: 'NSDL (Protean) requires 197×276 px photo at 200 DPI (20–50 KB JPEG). UTIITSL requires 213×213 px at 300 DPI (max 30 KB). Signatures also differ: NSDL 354×157 px, UTI 400×200 px. Our tool auto-applies the correct specs when you select your portal.' },
-      { q: 'Why does my PAN photo keep getting rejected?', a: 'The top reasons are wrong dimensions, file size over the KB limit, non-JPEG format (PNG/HEIC), dark or coloured background, and incorrect DPI metadata. ToolNest fixes all of these automatically with AI face crop, white background, force-weight compression, and embedded DPI.' },
+      { q: 'Why does my PAN photo keep getting rejected?', a: 'The top reasons are wrong dimensions, file size over the KB limit, non-JPEG format (PNG/HEIC), dark or coloured background, and incorrect DPI metadata. Farvixo Tools fixes all of these automatically with AI face crop, white background, force-weight compression, and embedded DPI.' },
       { q: 'What DPI is required for NSDL PAN card photo?', a: 'NSDL requires 200 DPI embedded in the JPEG file. UTI requires 300 DPI for photos and 600 DPI for signatures. Our tool embeds the correct DPI metadata on every download.' },
       { q: 'Can I use a selfie for PAN card application?', a: 'Yes, if it is front-facing with a neutral expression and plain white/light background. Use our camera capture with face guide, or upload a selfie and let AI remove the background and auto-crop to spec.' },
-      { q: 'Is this PAN card resizer safe and private?', a: 'Yes — 100% browser-based processing. Your photo never leaves your device. No uploads to ToolNest servers. No account required. Unlimited free use.' },
+      { q: 'Is this PAN card resizer safe and private?', a: 'Yes — 100% browser-based processing. Your photo never leaves your device. No uploads to Farvixo Tools servers. No account required. Unlimited free use.' },
       { q: 'Can CSC operators use batch mode?', a: 'Yes. Enable Batch Mode to process multiple photos or signatures with the same NSDL/UTI settings. Download each file individually or all at once as a ZIP.' },
       { q: 'Does it work on mobile phones?', a: 'Yes — fully responsive on Android and iPhone. Upload from gallery, capture from camera, pinch-to-zoom while editing, and download ready-to-upload JPEG files.' },
       { q: 'What signature size is required for PAN card?', a: 'NSDL: 354×157 px, 10–50 KB JPEG. UTI: 400×200 px, max 60 KB JPEG. Select Signature in step 2 and the tool applies exact dimensions automatically.' },
@@ -175,7 +175,7 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
   }
   if (slug === 'image-compressor') {
     return [
-      { q: 'How much can I compress my images?', a: 'ToolNest Image Compressor can reduce file size by up to 90% without visible quality loss. AVIF format achieves the best compression (50-70% smaller than JPEG), followed by WebP (25-35% smaller). Use our Compare Codecs tab to see exact results for your specific image.' },
+      { q: 'How much can I compress my images?', a: 'Farvixo Tools Image Compressor can reduce file size by up to 90% without visible quality loss. AVIF format achieves the best compression (50-70% smaller than JPEG), followed by WebP (25-35% smaller). Use our Compare Codecs tab to see exact results for your specific image.' },
       { q: 'What image formats are supported?', a: 'Input: JPEG, PNG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO, and HEIC/HEIF. Output: JPEG (MozJPEG), PNG (OxiPNG), WebP, AVIF (best compression), and JPEG XL (next-gen). Convert between any format while compressing in a single pass.' },
       { q: 'Is my data safe? Are images uploaded to a server?', a: 'Your images NEVER leave your device. All compression runs 100% in your browser using WebAssembly technology. No server uploads, no data collection, no accounts needed. Works offline after first load.' },
       { q: 'Can I compress images to a specific file size (e.g., 50KB for PAN card)?', a: 'Yes! Use Target Size mode to specify exact file size targets (10KB to 10MB). We also have pre-built Government/Exam presets for PAN Card (≤30KB), Aadhaar (≤100KB), Passport, SSC, UPSC, IBPS, and more — with exact dimensions and size limits auto-applied.' },
@@ -184,7 +184,7 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
       { q: 'Can I generate responsive images for my website?', a: 'Yes! Use the Responsive Set tab to generate multiple sizes (150px to 2560px) from a single image. Downloads include srcset-ready filenames and we generate ready-to-use HTML picture/srcset code for your website.' },
       { q: 'How does the Compare Codecs feature work?', a: 'Compare Codecs compresses your image using JPEG, WebP, AVIF, and PNG simultaneously at the same quality level, then shows you the results side-by-side with exact file sizes, compression ratios, and processing times. Download whichever version works best for your needs.' },
       { q: 'Does it work on mobile phones?', a: 'Yes — fully responsive and works on any modern browser (Chrome, Safari, Firefox, Edge) on iOS, Android, and desktop. The WebAssembly compression engine runs efficiently even on mobile devices.' },
-      { q: 'How is this different from TinyPNG or Squoosh?', a: 'ToolNest combines the best of both: Squoosh-level quality control (AVIF, WebP, manual settings, comparison slider) + TinyPNG-level batch processing (unlimited images) + features neither has: AI-powered auto-settings, target file size mode, social media presets, responsive image generation, government document presets, and compression reports — all in one tool, all 100% free and private.' },
+      { q: 'How is this different from TinyPNG or Squoosh?', a: 'Farvixo Tools combines the best of both: Squoosh-level quality control (AVIF, WebP, manual settings, comparison slider) + TinyPNG-level batch processing (unlimited images) + features neither has: AI-powered auto-settings, target file size mode, social media presets, responsive image generation, government document presets, and compression reports — all in one tool, all 100% free and private.' },
     ];
   }
   if (slug === 'video-converter') {
@@ -197,7 +197,7 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
       { q: 'Does AI analysis really help?', a: 'AI Smart Analysis detects resolution, bitrate, duration, orientation and quality score, then suggests optimal format, resolution and compression mode before you convert.' },
       { q: 'Can I trim, rotate or change speed?', a: 'Yes — use Trim & Edit settings for start/end timestamps, 90° rotation, and speed from 0.5× to 2×. AI denoise, stabilization and upscale filters are also available.' },
       { q: 'Can I convert multiple videos at once?', a: 'Yes — unlimited batch upload with queue manager. Download individually or all results as a ZIP with performance report.' },
-      { q: 'How is this better than CloudConvert or HandBrake?', a: 'ToolNest combines HandBrake-level codec control + CloudConvert-level format breadth + unique features: AI analysis, social presets, batch queue, performance report, and 100% private browser processing — no upload wait, no daily limits.' },
+      { q: 'How is this better than CloudConvert or HandBrake?', a: 'Farvixo Tools combines HandBrake-level codec control + CloudConvert-level format breadth + unique features: AI analysis, social presets, batch queue, performance report, and 100% private browser processing — no upload wait, no daily limits.' },
     ];
   }
   if (slug === 'audio-converter') {
@@ -265,8 +265,8 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
   if (slug === 'ai-chat') {
     return [
       { q: 'Is AI Chat free?', a: 'Yes — 10 free server messages/day. For unlimited free chat, add your own Gemini API key from aistudio.google.com (free, no credit card). Server uses Gemini 2.0 Flash or Llama 3.3 70B as fallback.' },
-      { q: 'Is AI really free?', a: 'Yes — 100% free in your browser with no API key. ToolNest uses free Gemini Flash via browser AI. Optional: paste your own free Gemini key in AI Settings for unlimited speed.' },
-      { q: 'Why did I see an error before?', a: 'Older versions used a blocked fallback. Now ToolNest auto-switches to free browser AI — no setup needed.' },
+      { q: 'Is AI really free?', a: 'Yes — 100% free in your browser with no API key. Farvixo Tools uses free Gemini Flash via browser AI. Optional: paste your own free Gemini key in AI Settings for unlimited speed.' },
+      { q: 'Why did I see an error before?', a: 'Older versions used a blocked fallback. Now Farvixo Tools auto-switches to free browser AI — no setup needed.' },
       { q: 'What AI model powers it?', a: 'Google Gemini (flash/pro). You can switch models in AI Settings. Streaming responses with markdown formatting.' },
       { q: 'What are the chat personas?', a: 'General, Code, Creative, Analyst, Teacher, and PDF Expert — each with tuned system prompts and suggested prompts.' },
       { q: 'Is chat history saved?', a: 'Yes — up to 50 chats saved locally in your browser. Export any chat as Markdown or JSON.' },
@@ -297,7 +297,7 @@ function buildFaq(tool: Tool, cat?: Category): Faq[] {
   }
   if (slug === 'age-calculator') {
     return [
-      { q: 'How accurate is the age calculation?', a: 'ToolNest uses calendar-accurate year/month/day breakdown with leap-year support. When live mode is on, hours, minutes and seconds tick in real time.' },
+      { q: 'How accurate is the age calculation?', a: 'Farvixo Tools uses calendar-accurate year/month/day breakdown with leap-year support. When live mode is on, hours, minutes and seconds tick in real time.' },
       { q: 'Is my date of birth stored?', a: 'No. All calculations run 100% in your browser. Nothing is sent to any server or saved to a database.' },
       { q: 'Can I calculate age on a future or past date?', a: 'Yes — turn off Live mode and pick any To date. Use Swap to reverse dates quickly.' },
       { q: 'What are the life statistics based on?', a: 'Heartbeats (~72 bpm), breaths (~16/min), sleep (~33% of life), and walking distance (~5 km/day) are estimates for fun — not medical advice.' },

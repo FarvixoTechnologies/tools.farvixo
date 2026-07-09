@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * UniversalDragDropUploader — THE one upload zone for every ToolNest tool.
+ * UniversalDragDropUploader — THE one upload zone for every Farvixo tool.
  * Identical layout/animations/accessibility everywhere; only icon, accent,
  * accepted formats and texts change via props (config-driven, no redesigns).
  *

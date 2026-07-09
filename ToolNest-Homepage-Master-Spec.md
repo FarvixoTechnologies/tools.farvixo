@@ -1,11 +1,11 @@
-# ToolNest — Homepage Master Build Specification
+# Farvixo Tools — Homepage Master Build Specification
 ### (Matches uploaded mockup 100% — Full Detail Edition)
 
-**Project:** ToolNestFM
-**Owner:** Faruk Mondal | Fam Cloud Pvt. Ltd.
-**Production URL:** https://toolnestfm.com
-**Dev URL:** https://toolnest.vercel.app
-**Tagline:** "One Platform. Infinite Tools."
+**Project:** Farvixo Tools
+**Company:** Farvixo Technologies · **Owner:** Faruk Mondal
+**Production URL:** https://tools.farvixo.com
+**Dev URL:** https://farvixo.vercel.app
+**Tagline:** "Build Beyond."
 **Theme:** Deep-space dark, Violet primary, Gold premium accents, category accent colors
 
 ---
@@ -59,7 +59,7 @@
 
 **Layout:** `Logo | Nav Links | Search | AI Assistant | Utilities`
 
-- **Logo block (left):** Purple hexagon glyph icon + "ToolNest" wordmark (bold, white) + micro-tagline "One Platform. Infinite Tools." beneath in muted gray, small caps.
+- **Logo block (left):** Purple hexagon glyph icon + "Farvixo Tools" wordmark (bold, white) + micro-tagline "Build Beyond." beneath in muted gray, small caps.
 - **Primary Nav (row 2, full width, sticky under header):**
   Home · All Tools · AI Tools `[NEW badge, violet pill]` · PDF · Image · Video · Audio · Developer · Text · SEO · Business · Converter · Utilities · More `[chevron dropdown]`
 - **Top-right controls:**
@@ -102,8 +102,8 @@
   - 🎵 Music (orange square)
   - T Text (blue square)
 
-### 3.3 Right Column — "Why ToolNest?" Card
-Glass card, top-right gold crown icon, heading "Why ToolNest?"
+### 3.3 Right Column — "Why Farvixo Tools?" Card
+Glass card, top-right gold crown icon, heading "Why Farvixo Tools?"
 Checklist (green checkmarks):
 - 120+ Powerful Tools
 - AI-Powered Features
@@ -189,7 +189,7 @@ Icon + bold label + 1-line description, centered, divider-free, glass background
 
 Glass rounded banner, left text block + right form + decorative violet cube graphic (far right, matches hero style, smaller):
 - Envelope/bell icon
-- Heading: "Stay in the Loop with **ToolNest**" (brand name in violet)
+- Heading: "Stay in the Loop with **Farvixo Tools**" (brand name in violet)
 - Subtext: "Get the latest tools, new features, productivity tips and exclusive content straight to your inbox."
 - Email input (rounded, envelope icon prefix) + "Subscribe Now ➤" violet button
 - Micro-note: "✓ No spam. Unsubscribe anytime."
@@ -199,7 +199,7 @@ Glass rounded banner, left text block + right form + decorative violet cube grap
 ## 8. Footer (5-Column + Brand Column = 6 Total)
 
 ### Column 1 — Brand
-- Logo + "ToolNest" + "One Platform. Infinite Tools." tagline
+- Logo + "Farvixo Tools" + "Build Beyond." tagline
 - Short description: "All the tools you need to work faster, smarter and better — all in one beautifully simple platform."
 - Social icons row: Facebook, X (Twitter), LinkedIn, YouTube, Instagram, GitHub
 
@@ -215,7 +215,7 @@ Blog · Help Center · How It Works · Video Tutorials · API Documentation · D
 ### Column 5 — Company
 About Us · Careers `[We're Hiring — green badge]` · Contact Us · Press Kit · Partners · Affiliate Program
 
-### Column 6 — Get ToolNest App
+### Column 6 — Get Farvixo Tools App
 - Download badges: App Store · Google Play · Windows · macOS (2x2 grid, dark rounded buttons)
 - "🛡 Trusted & Secure" mini-panel:
   - ✓ 256-bit SSL Encrypted
@@ -224,7 +224,7 @@ About Us · Careers `[We're Hiring — green badge]` · Contact Us · Press Kit 
   - ✓ No Ads, Ever
 
 ### Footer Bottom Bar
-`© 2025 ToolNest. All rights reserved.` · `Made with ❤️ by ToolNest Team` · `Sitemap` · `Status 🟢` (live green dot indicator)
+`© 2026 Farvixo Technologies. All Rights Reserved.` · `Made with ❤️ by Farvixo Team` · `Sitemap` · `Status 🟢` (live green dot indicator)
 
 ---
 
@@ -264,7 +264,7 @@ About Us · Careers `[We're Hiring — green badge]` · Contact Us · Press Kit 
 ---
 
 # 12. Full Tool Catalog — 128 Tools / 15 Categories
-*(Official ToolNestFM Catalog v1.0 — Final Edition, verbatim)*
+*(Official Farvixo Tools Catalog v1.0 — Final Edition, verbatim)*
 
 ## 🏛 Government Tools (8)
 1. Passport Photo Maker
@@ -448,7 +448,7 @@ About Us · Careers `[We're Hiring — green badge]` · Contact Us · Press Kit 
 | **Total Categories** | **15** |
 | **Total Tools** | **128** |
 
-**Status:** Final Official ToolNestFM Tool Catalog v1.0
+**Status:** Final Official Farvixo Tools Tool Catalog v1.0
 
 ---
 
@@ -493,7 +493,7 @@ The 15 tool cards visible on the homepage grid should map to real catalog entrie
 ## 14. Folder / File Architecture (Next.js 15 App Router)
 
 ```
-toolnest/
+farvixo/
 ├── app/
 │   ├── (marketing)/
 │   │   ├── page.tsx                     # Homepage
@@ -537,7 +537,7 @@ toolnest/
 │   │   ├── HeroSection.tsx
 │   │   ├── HeroCubeGraphic.tsx
 │   │   ├── StatsBar.tsx
-│   │   ├── WhyToolNestCard.tsx
+│   │   ├── WhyFarvixoCard.tsx
 │   │   ├── CategorySidebar.tsx
 │   │   ├── ToolGrid.tsx
 │   │   ├── ToolCard.tsx
@@ -825,7 +825,7 @@ For **ToolCard**, **SidebarItem**, **Buttons**, **Search input**:
 | Feature | Free | Pro |
 |---|---|---|
 | Tool usage | 5 jobs/day per tool, watermarked output on some tools | Unlimited, no watermark |
-| Cloud Storage | 500MB | 100GB (as advertised in "Why ToolNest?" card) |
+| Cloud Storage | 500MB | 100GB (as advertised in "Why Farvixo Tools?" card) |
 | AI Assistant (chat) | 10 messages/day | Unlimited + priority model |
 | AI Image Generator | 3 images/day, standard quality | Unlimited, HD quality |
 | Ads | Shown between tool cards (non-Pro only) | None ("No Ads, Ever") |
@@ -858,4 +858,4 @@ The header PRO badge, hero "Upgrade to Pro" card, and footer "No Ads Ever" trust
 
 ## 23. Final Objective (Restated)
 
-Build ToolNest as a world-class, AI-powered, multi-tool SaaS platform where the homepage above is the single source of truth for visual design, and the 128-tool catalog above is the single source of truth for scope. Every tool inherits the same Universal Engines (Section 9), the same design tokens (Section 1), and the same interaction states (Section 19) — so the platform feels like **one product**, not 128 separate mini-apps stitched together.
+Build Farvixo Tools as a world-class, AI-powered, multi-tool SaaS platform where the homepage above is the single source of truth for visual design, and the 139+-tool catalog above is the single source of truth for scope. Every tool inherits the same Universal Engines (Section 9), the same design tokens (Section 1), and the same interaction states (Section 19) — so the platform feels like **one product**, not 139 separate mini-apps stitched together.

@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
-  title: 'Status | ToolNest',
-  description: 'ToolNest platform status and uptime monitoring.',
+  title: 'Status | Farvixo Tools',
+  description: 'Farvixo Tools platform status and uptime monitoring.',
 };
 
 const services = [

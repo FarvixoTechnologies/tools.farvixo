@@ -54,14 +54,14 @@ export default function ShareLandingPage({ params }: { params: Promise<{ token: 
         <Icon name="alert-circle" size={40} />
         <h1>Link unavailable</h1>
         <p className="muted">{error || 'This share link has expired or was removed.'}</p>
-        <Link href="/" className="btn btn-primary mt-4">Go to ToolNest</Link>
+        <Link href="/" className="btn btn-primary mt-4">Go to Farvixo Tools</Link>
       </main>
     );
   }
 
   return (
     <main className="share-landing glass">
-      <span className="pill pill-pro">ToolNest Share</span>
+      <span className="pill pill-pro">Farvixo Share</span>
       <h1>{meta.fileName}</h1>
       <p className="muted">
         Expires {new Date(meta.expiresAt).toLocaleString()}
@@ -88,7 +88,7 @@ export default function ShareLandingPage({ params }: { params: Promise<{ token: 
 
       <p className="muted share-landing-trust mt-4">
         Secure download · Encrypted transfer · Powered by{' '}
-        <Link href="/">ToolNest</Link>
+        <Link href="/">Farvixo Tools</Link>
       </p>
     </main>
   );

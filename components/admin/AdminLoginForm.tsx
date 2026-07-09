@@ -69,7 +69,7 @@ export default function AdminLoginForm() {
         <div className="admin-login-head">
           <span className="logo-mark admin-mark"><Icon name="crown" size={22} /></span>
           <h1>Admin Login</h1>
-          <p className="muted">ToolNest Control Center — authorized staff only</p>
+          <p className="muted">Farvixo Control Center — authorized staff only</p>
         </div>
         <form onSubmit={(e) => void login(e)} autoComplete="on">
           <div className="field mb-4">
@@ -80,7 +80,7 @@ export default function AdminLoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@toolnestfm.com"
+              placeholder="admin@farvixo.com"
               autoComplete="username"
               required
             />

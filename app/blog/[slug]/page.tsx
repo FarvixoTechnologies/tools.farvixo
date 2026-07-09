@@ -9,7 +9,7 @@ const posts: Record<string, { title: string; category: string; date: string; bod
     category: 'PDF',
     date: 'June 15, 2025',
     body: [
-      'Large PDF files slow down email, uploads and storage. ToolNest\'s PDF Compressor reduces file size while preserving readability.',
+      'Large PDF files slow down email, uploads and storage. Farvixo\'s PDF Compressor reduces file size while preserving readability.',
       'Upload your PDF, adjust the quality slider (higher = better quality, larger file), and click Compress. Processing runs entirely in your browser.',
       'For government uploads (Aadhaar, passport), use our Aadhaar PDF Compressor with preset size targets.',
     ],
@@ -19,8 +19,8 @@ const posts: Record<string, { title: string; category: string; date: string; bod
     category: 'AI',
     date: 'June 8, 2025',
     body: [
-      'AI writing tools have become essential for content creators, marketers and students. ToolNest bundles AI Writer, Email Writer, SEO Writer and more in one platform.',
-      'Unlike standalone apps, ToolNest gives you one AI brain across every tool — your context follows you from writing to PDF export.',
+      'AI writing tools have become essential for content creators, marketers and students. Farvixo Tools bundles AI Writer, Email Writer, SEO Writer and more in one platform.',
+      'Unlike standalone apps, Farvixo Tools gives you one AI brain across every tool — your context follows you from writing to PDF export.',
     ],
   },
   'passport-photo-requirements-india': {
@@ -29,7 +29,7 @@ const posts: Record<string, { title: string; category: string; date: string; bod
     date: 'May 28, 2025',
     body: [
       'Indian passport photos must be 35×45 mm (413×531 px at 300 DPI), white background, face centered, file size under 200KB.',
-      'Use ToolNest\'s Passport Photo Maker with the India preset — it crops, resizes and compresses automatically.',
+      'Use Farvixo\'s Passport Photo Maker with the India preset — it crops, resizes and compresses automatically.',
     ],
   },
   'remove-background-free': {
@@ -37,7 +37,7 @@ const posts: Record<string, { title: string; category: string; date: string; bod
     category: 'Image',
     date: 'May 20, 2025',
     body: [
-      'ToolNest\'s Background Remover uses an AI model running in your browser via WASM. No upload to external servers.',
+      'Farvixo\'s Background Remover uses an AI model running in your browser via WASM. No upload to external servers.',
       'For product photos, pair it with Background Changer to place items on custom colors or scenes.',
     ],
   },
@@ -47,7 +47,7 @@ const posts: Record<string, { title: string; category: string; date: string; bod
     date: 'May 12, 2025',
     body: [
       'Start with a unique title tag (≤60 chars), meta description (≤155 chars), and one H1 per page.',
-      'Use ToolNest\'s SEO Analyzer to audit any URL, Meta Tag Generator for snippets, and Schema Markup Generator for JSON-LD.',
+      'Use Farvixo\'s SEO Analyzer to audit any URL, Meta Tag Generator for snippets, and Schema Markup Generator for JSON-LD.',
     ],
   },
 };
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = posts[slug];
   if (!post) return {};
-  return { title: `${post.title} | ToolNest Blog`, description: post.body[0] };
+  return { title: `${post.title} | Farvixo Blog`, description: post.body[0] };
 }
 
 export default async function BlogPostPage({ params }: Props) {

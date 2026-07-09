@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (!type) return apiErr('type query required: users|jobs|subscribers|contact|analytics', 400);
 
   let rows: Record<string, string | number | null>[] = [];
-  const filename = `toolnest-${type}.csv`;
+  const filename = `farvixo-${type}.csv`;
 
   if (type === 'users') {
     const { data } = await admin.from('profiles').select('id, full_name, plan, role, created_at').order('created_at', { ascending: false }).limit(5000);

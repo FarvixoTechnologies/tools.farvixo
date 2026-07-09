@@ -50,12 +50,12 @@ export default async function CategoryPage({ params }: Props) {
       </div>
 
       <div className="glass" style={{ padding: 24, marginBottom: 40 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 10 }}>Why use ToolNest&apos;s {cat.name}?</h2>
+        <h2 style={{ fontSize: 18, marginBottom: 10 }}>Why use Farvixo&apos;s {cat.name}?</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>
-          ToolNest&apos;s {cat.name.toLowerCase()} run directly in your browser wherever possible, which means your files
+          Farvixo&apos;s {cat.name.toLowerCase()} run directly in your browser wherever possible, which means your files
           never leave your device — instant processing, zero uploads, complete privacy. Every tool shares the same
           clean interface, works on mobile and desktop, and is completely free with no watermarks and no sign-up
-          required. Whether you need a quick one-off conversion or process files every day, ToolNest gives you
+          required. Whether you need a quick one-off conversion or process files every day, Farvixo gives you
           professional-grade results in seconds.
         </p>
       </div>

@@ -42,7 +42,7 @@ function UnsubscribeContent() {
 
   return (
     <>
-      <p>Enter your email address to stop receiving the ToolNest newsletter.</p>
+      <p>Enter your email address to stop receiving the Farvixo newsletter.</p>
       <div className="field mb-4 mt-6">
         <label htmlFor="email">Email</label>
         <input

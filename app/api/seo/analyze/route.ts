@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const t0 = Date.now();
     const res = await fetch(target.toString(), {
       redirect: 'follow',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ToolNestBot/1.0; +https://toolnestfm.com)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FarvixoBot/1.0; +https://tools.farvixo.com)' },
       signal: AbortSignal.timeout(15000),
     });
     const ms = Date.now() - t0;

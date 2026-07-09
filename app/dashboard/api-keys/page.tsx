@@ -66,7 +66,7 @@ export default function ApiKeysPage() {
     }
   };
 
-  const curlExample = `curl -X POST https://toolnestfm.com/api/v1/chat \\
+  const curlExample = `curl -X POST https://tools.farvixo.com/api/v1/chat \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"messages":[{"role":"user","content":"Hello!"}]}'`;
@@ -74,7 +74,7 @@ export default function ApiKeysPage() {
   return (
     <div>
       <h1 className="dash-title">API Keys</h1>
-      <p className="muted mb-6">Use the ToolNest API in your own apps. Each call costs 1 credit — check your balance on the Credits page.</p>
+      <p className="muted mb-6">Use the Farvixo API in your own apps. Each call costs 1 credit — check your balance on the Credits page.</p>
 
       {newKey && (
         <div className="glass settings-block mb-4" style={{ borderColor: 'var(--success-green, #22C55E)' }}>

@@ -31,7 +31,7 @@ async function fetchImage(url: string): Promise<ArrayBuffer | null> {
     const res = await fetch(url, {
       headers: {
         Accept: 'image/*,*/*',
-        'User-Agent': 'ToolNestFM/1.0 (free image proxy)',
+        'User-Agent': 'FarvixoTools/1.0 (free image proxy)',
       },
       cache: 'no-store',
     });

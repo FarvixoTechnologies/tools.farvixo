@@ -295,7 +295,7 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
         doc.setAuthor(meta.author);
         doc.setSubject(meta.subject);
         doc.setKeywords(meta.keywords.split(',').map((k) => k.trim()).filter(Boolean));
-        doc.setProducer('ToolNest');
+        doc.setProducer('Farvixo Tools');
         doc.setModificationDate(new Date());
         out.push({ name: replaceExt(files[0].name, 'pdf').replace(/\.pdf$/, '-metadata.pdf'), blob: new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' }) });
       } else if (mode === 'pagedel' || mode === 'pageext') {
@@ -436,7 +436,7 @@ export default function PdfRunner({ tool }: { tool: Tool }) {
 
         {mode === 'edit' && (
           <>
-            <div className="field"><label>Header/footer text (optional)</label><input value={editText} placeholder="e.g. Confidential — ToolNest" onChange={(e) => setEditText(e.target.value)} /></div>
+            <div className="field"><label>Header/footer text (optional)</label><input value={editText} placeholder="e.g. Confidential — Farvixo" onChange={(e) => setEditText(e.target.value)} /></div>
             <div className="field"><label>Position</label>
               <select value={editPos} onChange={(e) => setEditPos(e.target.value as 'header' | 'footer')}>
                 <option value="footer">Footer</option>

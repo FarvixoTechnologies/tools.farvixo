@@ -4,10 +4,10 @@ import type { Category } from '@/data/categories';
 
 /** Single source of truth for site-wide SEO constants. */
 export const SITE = {
-  url: 'https://toolnestfm.com',
-  name: 'ToolNest',
-  tagline: 'One Platform. Infinite Tools.',
-  twitter: '@toolnestfm',
+  url: 'https://tools.farvixo.com',
+  name: 'Farvixo Tools',
+  tagline: 'Build Beyond.',
+  twitter: '@farvixo',
   locale: 'en_US',
 } as const;
 
@@ -59,12 +59,13 @@ export function toolKeywords(tool: Tool, cat?: Category): string[] {
     kw.add(`online ${cat.shortName.toLowerCase()} tools`);
   }
   kw.add('free online tools');
-  kw.add('toolnest');
+  kw.add('farvixo');
+  kw.add('farvixo tools');
   return [...kw].slice(0, 25);
 }
 
 export function toolTitle(tool: Tool, cat?: Category): string {
-  return `${tool.name} — Free Online ${cat?.shortName ?? 'Web'} Tool | ToolNest`;
+  return `${tool.name} — Free Online ${cat?.shortName ?? 'Web'} Tool | Farvixo Tools`;
 }
 
 export function toolDescription(tool: Tool): string {
@@ -72,7 +73,7 @@ export function toolDescription(tool: Tool): string {
   return truncate(`${core}. Free, fast & 100% private — runs in your browser. No sign-up, no watermark, unlimited use.`);
 }
 
-/** Full rich metadata for ANY tool — used as the default for all 128 tools. */
+/** Full rich metadata for ANY tool — used as the default for all 139+ tools. */
 export function toolMetadata(tool: Tool, cat?: Category): Metadata {
   const title = toolTitle(tool, cat);
   const description = toolDescription(tool);
@@ -90,7 +91,7 @@ export function toolMetadata(tool: Tool, cat?: Category): Metadata {
       title,
       description,
       locale: SITE.locale,
-      images: [{ url: img, width: 1200, height: 630, alt: `${tool.name} — ToolNest` }],
+      images: [{ url: img, width: 1200, height: 630, alt: `${tool.name} — Farvixo Tools` }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [img], creator: SITE.twitter },
     robots: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
@@ -103,7 +104,7 @@ export function defaultToolFaq(tool: Tool, cat?: Category): Faq[] {
   const hasFile = Boolean(tool.accept);
   const thing = hasFile ? 'files' : 'data';
   return [
-    { q: `Is ${n} free to use?`, a: `Yes — ${n} on ToolNest is completely free with no sign-up, no watermarks and no hidden limits. Use it as many times as you like.` },
+    { q: `Is ${n} free to use?`, a: `Yes — ${n} on Farvixo Tools is completely free with no sign-up, no watermarks and no hidden limits. Use it as many times as you like.` },
     { q: `How do I use ${n}?`, a: `${hasFile ? `Upload your file, choose your options, and download the result instantly` : `Enter your input, pick any options, and get your result instantly`} — everything runs right in your browser.` },
     { q: `Is ${n} safe and private?`, a: `Yes. Wherever technically possible, ${n} processes everything locally in your browser, so your ${thing} never leave your device. No uploads, no data collection.` },
     { q: `Do I need to install anything to use ${n}?`, a: `No. ${n} works in any modern web browser on desktop, tablet and mobile — no downloads, no extensions and no account required.` },
@@ -156,7 +157,7 @@ export function toolJsonLd(tool: Tool, cat: Category | undefined, faq: Faq[]): o
 
 /** Rich metadata for a category landing page. */
 export function categoryMetadata(cat: Category, count: number): Metadata {
-  const title = `${cat.name} — ${count}+ Free Online ${cat.shortName} Tools | ToolNest`;
+  const title = `${cat.name} — ${count}+ Free Online ${cat.shortName} Tools | Farvixo Tools`;
   const description = truncate(`${cat.description} ${count}+ free ${cat.shortName.toLowerCase()} tools — fast, private and browser-based. No sign-up, no watermark.`);
   const url = categoryUrl(cat);
   const img = ogImage({ title: cat.name, subtitle: `${count}+ free tools`, badge: cat.shortName });
@@ -165,12 +166,12 @@ export function categoryMetadata(cat: Category, count: number): Metadata {
     description,
     keywords: [
       cat.name.toLowerCase(), `${cat.shortName.toLowerCase()} tools`, `free ${cat.shortName.toLowerCase()} tools`,
-      `online ${cat.shortName.toLowerCase()} tools`, 'free online tools', 'toolnest',
+      `online ${cat.shortName.toLowerCase()} tools`, 'free online tools', 'farvixo', 'farvixo tools',
     ],
     alternates: { canonical: url },
     openGraph: {
       type: 'website', url, siteName: SITE.name, title, description, locale: SITE.locale,
-      images: [{ url: img, width: 1200, height: 630, alt: `${cat.name} — ToolNest` }],
+      images: [{ url: img, width: 1200, height: 630, alt: `${cat.name} — Farvixo Tools` }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [img], creator: SITE.twitter },
     robots: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
@@ -186,7 +187,7 @@ export function categoryJsonLd(cat: Category, catTools: Tool[]): object {
       {
         '@type': 'CollectionPage',
         '@id': `${url}#page`,
-        name: `${cat.name} — ToolNest`,
+        name: `${cat.name} — Farvixo Tools`,
         url,
         description: cat.description,
         isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.url },

@@ -210,7 +210,7 @@ function exportHTML(g: GState): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ToolNest Gradient</title>
+<title>Farvixo Tools Gradient</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { min-height: 100vh; display: grid; place-items: center; font-family: system-ui, sans-serif; }
@@ -227,7 +227,7 @@ ${anim ? `  ${ANIM_KEYFRAMES[g.anim as Exclude<AnimMode, 'none'>].split('\n').jo
 </head>
 <body>
   <div class="gradient-bg"></div>
-  <h1>Made with ToolNest</h1>
+  <h1>Made with Farvixo Tools</h1>
 </body>
 </html>`;
 }
@@ -572,7 +572,7 @@ export default function GradientRunner() {
     const blob = new Blob([exportHTML(g)], { type: 'text/html' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'toolnest-gradient.html';
+    a.download = 'farvixo-gradient.html';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
   };
@@ -623,7 +623,7 @@ export default function GradientRunner() {
       if (!blob) return;
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `toolnest-gradient-${W}x${H}.png`;
+      a.download = `farvixo-gradient-${W}x${H}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
     }, 'image/png');
@@ -633,7 +633,7 @@ export default function GradientRunner() {
     const blob = new Blob([exportSVG(g)], { type: 'image/svg+xml' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'toolnest-gradient.svg';
+    a.download = 'farvixo-gradient.svg';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
   };
@@ -681,7 +681,7 @@ export default function GradientRunner() {
             {preview === 'Canvas' && <div className="grad-fill" style={bgStyle} />}
             {preview === 'Hero' && (
               <div className="grad-fill grad-hero-mock" style={bgStyle}>
-                <b style={{ color: bestText }}>One Platform. Infinite Tools.</b>
+                <b style={{ color: bestText }}>Build Beyond.</b>
                 <span style={{ color: bestText, opacity: 0.8 }}>Beautiful gradients in seconds</span>
                 <button style={{ background: bestText, color: bestText === '#ffffff' ? '#111' : '#fff' }}>Get Started</button>
               </div>
@@ -707,7 +707,7 @@ export default function GradientRunner() {
             {preview === 'Navbar' && (
               <div className="grad-fill grad-navbar-page">
                 <div className="grad-navbar-mock" style={bgStyle}>
-                  <b style={{ color: bestText }}>ToolNest</b>
+                  <b style={{ color: bestText }}>Farvixo</b>
                   <span style={{ color: bestText, opacity: 0.85 }}>Home · Tools · Pricing</span>
                 </div>
                 <div className="grad-navbar-body" />

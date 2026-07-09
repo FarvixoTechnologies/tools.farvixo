@@ -94,7 +94,7 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   { id: 'transparent', label: 'Transparent', category: 'transparent', render: (w, h) => makeCanvas(w, h)[0] },
   { id: 'white', label: 'White', category: 'solid', render: (w, h) => { const [c, ctx] = makeCanvas(w, h); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); return c; } },
   { id: 'black', label: 'Black', category: 'solid', render: (w, h) => { const [c, ctx] = makeCanvas(w, h); ctx.fillStyle = '#0a0a12'; ctx.fillRect(0, 0, w, h); return c; } },
-  { id: 'violet', label: 'Studio Violet', category: 'solid', render: (w, h) => { const [c, ctx] = makeCanvas(w, h); ctx.fillStyle = '#7c3aed'; ctx.fillRect(0, 0, w, h); return c; } },
+  { id: 'violet', label: 'Studio Violet', category: 'solid', render: (w, h) => { const [c, ctx] = makeCanvas(w, h); ctx.fillStyle = '#6c4dff'; ctx.fillRect(0, 0, w, h); return c; } },
   { id: 'grad-sunset', label: 'Sunset', category: 'gradient', render: gradientBg('#f97316', '#c026d3') },
   { id: 'grad-ocean', label: 'Ocean', category: 'gradient', render: gradientBg('#0ea5e9', '#1e3a5f') },
   { id: 'grad-neon', label: 'Neon', category: 'gradient', render: gradientBg('#7c3aed', '#06b6d4') },
@@ -107,7 +107,7 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   { id: 'glass', label: 'Glass Blur', category: 'gradient', render: (w, h) => {
     const [c, ctx] = makeCanvas(w, h);
     const g = ctx.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, 'rgba(124,58,237,0.25)');
+    g.addColorStop(0, 'rgba(108,77,255,0.25)');
     g.addColorStop(0.5, 'rgba(255,255,255,0.15)');
     g.addColorStop(1, 'rgba(6,182,212,0.2)');
     ctx.fillStyle = g;
@@ -412,7 +412,7 @@ export async function exportBatchZip(
   return zip.generateAsync({ type: 'blob' });
 }
 
-const SESSION_KEY = 'toolnest-bg-remove-session';
+const SESSION_KEY = 'farvixo-bg-remove-session';
 
 export interface BgRemoveSession {
   fileNames: string[];

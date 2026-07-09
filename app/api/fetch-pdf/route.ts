@@ -33,7 +33,7 @@ export async function GET(req: Request) {
   try {
     upstream = await fetch(target.toString(), {
       redirect: 'follow',
-      headers: { 'User-Agent': 'ToolNestFM-PDF-Fetcher/1.0' },
+      headers: { 'User-Agent': 'FarvixoTools-PDF-Fetcher/1.0' },
       signal: AbortSignal.timeout(20_000),
     });
   } catch {

@@ -21,11 +21,11 @@ export default function Newsletter() {
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || 'Subscription failed');
-      const subs: string[] = JSON.parse(localStorage.getItem('toolnest_newsletter') || '[]');
+      const subs: string[] = JSON.parse(localStorage.getItem('farvixo_newsletter') || '[]');
       if (!subs.includes(email)) subs.push(email);
-      localStorage.setItem('toolnest_newsletter', JSON.stringify(subs));
+      localStorage.setItem('farvixo_newsletter', JSON.stringify(subs));
       setEmail('');
-      toast('🎉 Subscribed! Welcome to the ToolNest loop.', 'success');
+      toast('🎉 Subscribed! Welcome to the Farvixo loop.', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Subscription failed', 'error');
     }
@@ -36,7 +36,7 @@ export default function Newsletter() {
       <div className="newsletter glass">
         <span className="newsletter-icon"><Icon name="mail" size={24} /></span>
         <div className="newsletter-text">
-          <h2>Stay in the Loop with <span>ToolNest</span></h2>
+          <h2>Stay in the Loop with <span>Farvixo</span></h2>
           <p>Get the latest tools, new features, productivity tips and exclusive content straight to your inbox.</p>
         </div>
         <div className="newsletter-form">

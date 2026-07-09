@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="admin-brand">
           <span className="logo-mark admin-mark"><Icon name="crown" size={18} /></span>
           <div>
-            <b>ToolNest Admin</b>
+            <b>Farvixo Admin</b>
             <span className="muted">Control Center</span>
           </div>
         </div>

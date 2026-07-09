@@ -618,7 +618,7 @@ export default function WeatherRunner() {
       <aside className={`wxp-sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="wxp-brand">
           <span className="wxp-brand-ic">⛅</span>
-          <div><b>World Weather</b><span>by ToolNest</span></div>
+          <div><b>World Weather</b><span>by Farvixo</span></div>
         </div>
 
         <div className="wxp-loc-card">

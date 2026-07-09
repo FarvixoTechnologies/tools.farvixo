@@ -15,34 +15,35 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#7C3AED',
+  themeColor: '#6C4DFF',
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://toolnestfm.com';
-const DEFAULT_OG = `${SITE_URL}/api/og?title=128%2B+Free+Online+Tools&subtitle=One+Platform.+Infinite+Tools.&badge=AI`;
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tools.farvixo.com';
+const DEFAULT_OG = `${SITE_URL}/api/og?title=139%2B+Free+Online+AI+%26+Productivity+Tools&subtitle=Build+Beyond.&badge=AI`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  applicationName: 'ToolNest',
+  applicationName: 'Farvixo Tools',
   title: {
-    default: 'ToolNest — 128 Free Online Tools Powered by AI | PDF, Image, Video & More',
-    template: '%s | ToolNest',
+    default: 'Farvixo Tools — 139+ Free Online AI & Productivity Tools',
+    template: '%s | Farvixo Tools',
   },
   description:
-    'One Platform. Infinite Tools. Convert, compress, edit and create with 128 free AI-powered tools — PDF, Image, Video, Audio, Developer, SEO, Business, Weather and more. No sign-up, no watermark, 100% private.',
+    'Farvixo Tools is a fast, modern, AI-powered platform offering 139+ free online tools including PDF tools, image tools, text utilities, developer tools, calculators, converters, SEO tools, AI tools, productivity apps, and much more.',
   keywords: [
-    'online tools', 'free online tools', 'pdf tools', 'image compressor', 'background remover',
-    'ai tools', 'video converter', 'audio converter', 'seo tools', 'developer tools',
-    'free tools', 'toolnest', 'file converter', 'weather', 'no sign up tools',
+    'farvixo', 'farvixo tools', 'ai tools', 'online tools', 'developer tools',
+    'free pdf tools', 'image tools', 'seo tools', 'converters', 'calculators',
+    'utilities', 'productivity', 'online utilities', 'file tools', 'modern ai platform',
   ],
-  authors: [{ name: 'ToolNest', url: SITE_URL }],
-  creator: 'ToolNest',
-  publisher: 'Fam Cloud Pvt. Ltd.',
+  authors: [{ name: 'Farvixo Technologies', url: SITE_URL }],
+  creator: 'Farvixo Technologies',
+  publisher: 'Farvixo Technologies',
   category: 'technology',
   alternates: { canonical: SITE_URL },
   icons: {
-    icon: '/favicon.png',
-    apple: '/logo-icon.png',
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+    apple: '/farvixo-logo.svg',
   },
   robots: {
     index: true,
@@ -50,20 +51,20 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
   },
   openGraph: {
-    title: 'ToolNest — One Platform. Infinite Tools. Powered by AI.',
-    description: '128 free online tools: PDF, Image, Video, Audio, AI, Developer, SEO, Weather & more. No sign-up, 100% private.',
+    title: 'Farvixo Tools',
+    description: '139+ Free AI & Productivity Tools. Build Beyond.',
     url: SITE_URL,
-    siteName: 'ToolNest',
+    siteName: 'Farvixo Tools',
     type: 'website',
     locale: 'en_US',
-    images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: 'ToolNest — 128 free online tools' }],
+    images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: 'Farvixo Tools — 139+ free online AI & productivity tools' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ToolNest — One Platform. Infinite Tools. Powered by AI.',
-    description: '128 free online tools: PDF, Image, Video, Audio, AI, Developer, SEO, Weather & more.',
+    title: 'Farvixo Tools',
+    description: '139+ Free AI & Productivity Tools. Build Beyond.',
     images: [DEFAULT_OG],
-    creator: '@toolnestfm',
+    creator: '@farvixo',
   },
 };
 
@@ -74,21 +75,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {
         '@type': 'Organization',
         '@id': `${SITE_URL}#org`,
-        name: 'ToolNest',
-        legalName: 'Fam Cloud Pvt. Ltd.',
+        name: 'Farvixo Technologies',
+        legalName: 'Farvixo Technologies',
         url: SITE_URL,
-        logo: `${SITE_URL}/logo-icon.png`,
-        description: '128 free online tools powered by AI.',
+        logo: `${SITE_URL}/farvixo-logo.svg`,
+        description: '139+ free online AI & productivity tools.',
         sameAs: [
-          'https://twitter.com/toolnestfm',
-          'https://github.com/toolnestfm',
-          'https://www.linkedin.com/company/toolnestfm',
+          'https://twitter.com/farvixo',
+          'https://github.com/farvixo',
+          'https://www.linkedin.com/company/farvixo',
         ],
       },
       {
         '@type': 'WebSite',
         '@id': `${SITE_URL}#website`,
-        name: 'ToolNest',
+        name: 'Farvixo Tools',
         url: SITE_URL,
         publisher: { '@id': `${SITE_URL}#org` },
         potentialAction: {
@@ -99,11 +100,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       },
       {
         '@type': 'WebApplication',
-        name: 'ToolNest',
+        name: 'Farvixo Tools',
         url: SITE_URL,
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Web',
-        description: '128 free online tools powered by AI — PDF, Image, Video, Audio, AI, Developer, SEO and more.',
+        description: '139+ free online AI & productivity tools — PDF, Image, Video, Audio, AI, Developer, SEO and more.',
         isAccessibleForFree: true,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         publisher: { '@id': `${SITE_URL}#org` },

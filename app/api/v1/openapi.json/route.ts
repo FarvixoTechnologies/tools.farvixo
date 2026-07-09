@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-static';
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://toolnestfm.com';
+const BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://tools.farvixo.com';
 
 const bearerSecurity = [{ bearerAuth: [] as string[] }];
 
@@ -27,16 +27,16 @@ const credits = {
 const spec = {
   openapi: '3.0.3',
   info: {
-    title: 'ToolNest API',
+    title: 'Farvixo API',
     version: '1.0.0',
     description:
-      'AI and utility endpoints. Authenticate with `Authorization: Bearer tn_live_...` — create keys at ' +
+      'AI and utility endpoints. Authenticate with `Authorization: Bearer fx_live_...` — create keys at ' +
       `${BASE}/dashboard/api-keys. AI endpoints cost 1 credit per call (auto-refunded on failure); utility endpoints are free.`,
   },
   servers: [{ url: `${BASE}/api/v1` }],
   components: {
     securitySchemes: {
-      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'tn_live_...' },
+      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'fx_live_...' },
     },
   },
   paths: {

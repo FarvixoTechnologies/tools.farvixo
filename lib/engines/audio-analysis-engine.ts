@@ -284,7 +284,7 @@ export async function fetchAudioFromUrl(url: string): Promise<File> {
   return new File([blob], name, { type: blob.type || 'audio/mpeg' });
 }
 
-const SESSION_KEY = 'toolnest-audio-conv-history';
+const SESSION_KEY = 'farvixo-audio-conv-history';
 
 export function saveAudioSession(names: string[]): void {
   try {

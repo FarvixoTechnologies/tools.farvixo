@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../Icon';
+import BrandLogo from '../BrandLogo';
 import { useUI } from '../GlobalUI';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { categories } from '@/data/categories';
@@ -66,16 +67,9 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-top">
-        <Link href="/" className="logo" aria-label="ToolNest home">
-          <img src="/logo-icon.png" alt="ToolNest" className="logo-img" width={36} height={36} />
-          <span>
-            <span className="logo-brand">
-              <span className="logo-tool">Tool</span>
-              <span className="logo-nest">Nest</span>
-              <span className="logo-fm">FM</span>
-            </span>
-            <div className="logo-tagline">One Platform. Infinite Tools.</div>
-          </span>
+        <Link href="/" className="logo" aria-label="Farvixo Tools home">
+          <BrandLogo variant="logo" alt="" className="logo-img" width={38} height={38} priority />
+          <BrandLogo variant="wordmark" alt="Farvixo Tools" className="logo-wordmark" width={132} height={34} priority />
         </Link>
 
         <div className="header-search" role="search">
@@ -87,7 +81,7 @@ export default function Header() {
           </select>
           <input
             value={q}
-            placeholder="Search any tool... (PDF to Word, Image Compressor, etc.)"
+            placeholder="Search 139+ AI & Productivity Tools..."
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
             onFocus={openPalette}

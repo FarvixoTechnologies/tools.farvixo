@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     mode: 'payment',
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': String(pack.usdCents),
-    'line_items[0][price_data][product_data][name]': `ToolNest Credits — ${pack.label}`,
+    'line_items[0][price_data][product_data][name]': `Farvixo Credits — ${pack.label}`,
     'line_items[0][quantity]': '1',
     client_reference_id: user.id,
     customer_email: user.email,

@@ -24,7 +24,7 @@ async function buildDocPdf(kind: 'INVOICE' | 'RECEIPT' | 'QUOTATION', data: {
   let y = 780;
 
   page.drawRectangle({ x: 0, y: 810, width: 595.28, height: 32, color: violet });
-  page.drawText('ToolNest', { x: m, y: 820, size: 13, font: bold, color: rgb(1, 1, 1) });
+  page.drawText('Farvixo Tools', { x: m, y: 820, size: 13, font: bold, color: rgb(1, 1, 1) });
   page.drawText(kind, { x: m, y, size: 30, font: bold, color: dark });
   page.drawText(`# ${ascii(data.number)}`, { x: 420, y: y + 8, size: 12, font, color: gray });
   page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 420, y: y - 8, size: 10, font, color: gray });
@@ -78,7 +78,7 @@ async function buildDocPdf(kind: 'INVOICE' | 'RECEIPT' | 'QUOTATION', data: {
     y -= 13;
     page.drawText(ascii(data.notes).slice(0, 100), { x: m, y, size: 9, font, color: gray });
   }
-  page.drawText('Generated with ToolNest - toolnestfm.com', { x: m, y: 30, size: 8, font, color: gray });
+  page.drawText('Generated with Farvixo Tools - tools.farvixo.com', { x: m, y: 30, size: 8, font, color: gray });
   return new Blob([new Uint8Array(await doc.save())], { type: 'application/pdf' });
 }
 
@@ -107,7 +107,7 @@ export default function BusinessRunner({ tool }: { tool: Tool }) {
   const [basicPct, setBasicPct] = useState('40');
 
   // business card
-  const [card, setCard] = useState({ name: 'Faruk Mondal', title: 'Founder', company: 'Fam Cloud Pvt. Ltd.', phone: '', email: '', website: 'toolnestfm.com' });
+  const [card, setCard] = useState({ name: 'Faruk Mondal', title: 'Founder', company: 'Farvixo Technologies', phone: '', email: '', website: 'tools.farvixo.com' });
 
   const isDocMode = ['invoice', 'receipt', 'quotation'].includes(mode);
 
@@ -191,7 +191,7 @@ export default function BusinessRunner({ tool }: { tool: Tool }) {
                 {['₹', 'USD', 'EUR', 'GBP', 'AED'].map((c) => <option key={c}>{c}</option>)}
               </select></div>
           </div>
-          <div className="field"><label>From (your business)</label><textarea value={from} style={{ minHeight: 70 }} placeholder={'Fam Cloud Pvt. Ltd.\nKolkata, India'} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div className="field"><label>From (your business)</label><textarea value={from} style={{ minHeight: 70 }} placeholder={'Farvixo Technologies\nKolkata, India'} onChange={(e) => setFrom(e.target.value)} /></div>
           <div className="field"><label>Bill to (client)</label><textarea value={to} style={{ minHeight: 70 }} onChange={(e) => setTo(e.target.value)} /></div>
           <div className="field"><label>Tax % </label><input type="number" value={taxPct} onChange={(e) => setTaxPct(+e.target.value)} /></div>
           <div className="field"><label>Notes</label><input value={notes} placeholder="Payment due in 15 days" onChange={(e) => setNotes(e.target.value)} /></div>

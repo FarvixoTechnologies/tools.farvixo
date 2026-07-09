@@ -1,9 +1,9 @@
-# 🚀 ToolNest — ULTRA PRO MAX MASTER PROMPT
+# 🚀 Farvixo Tools — ULTRA PRO MAX MASTER PROMPT
 ### v3.0 — Complete End-to-End Build Specification for Cursor AI / Claude Code
 
-**Project:** ToolNestFM
-**Owner:** Faruk Mondal | Fam Cloud Pvt. Ltd.
-**Production:** https://toolnestfm.com | **Dev:** https://toolnest.vercel.app
+**Project:** Farvixo Tools
+**Company:** Farvixo Technologies · **Owner:** Faruk Mondal
+**Production:** https://tools.farvixo.com | **Dev:** https://farvixo.vercel.app
 **Mission:** *"One account, one history, one AI brain — across every tool."*
 **Positioning:** Compete with Canva, Adobe Express, iLovePDF, Smallpdf, TinyWow, ChatGPT — but unified.
 
@@ -13,9 +13,9 @@
 
 ## 1. Executive Summary
 
-ToolNest is a fullstack SaaS platform with **15 categories, 128 professional tools**, one login, one file history, one AI brain, and one design system shared across every tool page. The homepage is the flagship page and must match the approved mockup 100%. Every tool page inherits the same Universal Engines so the platform *feels like one product*, not 128 stitched-together micro-apps.
+Farvixo Tools is a fullstack SaaS platform with **15 categories, 139+ professional tools**, one login, one file history, one AI brain, and one design system shared across every tool page. The homepage is the flagship page and must match the approved mockup 100%. Every tool page inherits the same Universal Engines so the platform *feels like one product*, not 139 stitched-together micro-apps.
 
-**Core Differentiator:** Competitors (iLovePDF, TinyWow) are single-purpose or fragmented. ToolNest gives one account → one file history → one AI assistant that has context across every tool a user has ever touched.
+**Core Differentiator:** Competitors (iLovePDF, TinyWow) are single-purpose or fragmented. Farvixo Tools gives one account → one file history → one AI assistant that has context across every tool a user has ever touched.
 
 ---
 
@@ -49,8 +49,8 @@ ToolNest is a fullstack SaaS platform with **15 categories, 128 professional too
 
 ```env
 # App
-NEXT_PUBLIC_APP_URL=https://toolnestfm.com
-NEXT_PUBLIC_APP_NAME=ToolNest
+NEXT_PUBLIC_APP_URL=https://tools.farvixo.com
+NEXT_PUBLIC_APP_NAME=Farvixo Tools
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
@@ -68,7 +68,7 @@ GITHUB_CLIENT_SECRET=
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=toolnest-files
+R2_BUCKET_NAME=farvixo-files
 R2_PUBLIC_URL=
 
 # Queue
@@ -139,7 +139,7 @@ PYTHON_WORKER_SECRET=
 - Empty (no file yet) · Uploading · Validating (wrong format/too large → inline error) · Queued (busy server) · Processing · Completed · Failed (retry CTA) · Pro-gated (locked feature with upgrade prompt)
 
 ### 5.3 SEO per tool page
-- `<title>`: `{Tool Name} — Free Online {Category} Tool | ToolNest`
+- `<title>`: `{Tool Name} — Free Online {Category} Tool | Farvixo Tools`
 - Meta description: unique, action-oriented, ≤155 chars
 - Schema.org: `SoftwareApplication` + `FAQPage` + `BreadcrumbList`
 - Canonical URL, OG image auto-generated per tool (category color + icon)
@@ -151,7 +151,7 @@ PYTHON_WORKER_SECRET=
 1. Category hero: icon, name, short description, tool count, category accent-colored gradient background
 2. Filter/sort bar (reuses homepage Section 5.2 controls)
 3. Full grid of that category's tools (reuses `<ToolGrid />`)
-4. Category-specific content block (SEO-focused, 150–250 words, "Why use ToolNest's {Category} Tools")
+4. Category-specific content block (SEO-focused, 150–250 words, "Why use Farvixo's {Category} Tools")
 5. Related categories strip at bottom
 
 ---
@@ -176,7 +176,7 @@ PYTHON_WORKER_SECRET=
 3. **Magic Link:** passwordless option on login screen
 4. **Password Reset:** email link → 1-hour expiry token → new password form
 5. **Onboarding (first login only, 3-step modal):**
-   - Step 1: "What will you use ToolNest for most?" (chips: PDF, Image, Video, AI, Dev, Other) → personalizes homepage tool-recommendation order
+   - Step 1: "What will you use Farvixo Tools for most?" (chips: PDF, Image, Video, AI, Dev, Other) → personalizes homepage tool-recommendation order
    - Step 2: Quick tour tooltip overlay on Search, AI Assistant, Upgrade to Pro
    - Step 3: "You're all set!" + CTA to try a tool
 6. **Session:** JWT via Supabase, refreshed silently, `middleware.ts` protects `/dashboard/**` and Pro-gated API routes
@@ -229,7 +229,7 @@ checkout_completed                    { plan, amount }
 
 ## 11. SEO Strategy (Site-wide)
 
-- **Homepage title:** `ToolNest — 120+ Free Online Tools Powered by AI | PDF, Image, Video & More`
+- **Homepage title:** `Farvixo Tools — 139+ Free Online AI & Productivity Tools`
 - **Sitemap:** dynamic `sitemap.xml` generated from `data/tools.ts` + `data/categories.ts` + blog posts
 - **Robots.txt:** allow all except `/dashboard`, `/api`
 - **Structured data:** `Organization` on every page (footer), `WebApplication` on homepage, `SoftwareApplication` per tool, `FAQPage` per tool, `BreadcrumbList` on all nested pages
@@ -491,7 +491,7 @@ AI = Gemini-backed · STD = deterministic/library-based · Type badge shown on h
 ## 20. Homepage — Restated Full Layout Order
 
 1. Sticky Header (logo, nav, search, AI Assistant, locale, theme, bell, avatar+PRO)
-2. Hero (headline, search, CTAs, social proof, 3D cube, "Why ToolNest?" card)
+2. Hero (headline, search, CTAs, social proof, 3D cube, "Why Farvixo Tools?" card)
 3. Stats Bar (6 metrics)
 4. Tools Explorer (Category Sidebar + Tool Grid, 15 cards + Load More)
 5. Feature Strip (5 trust pillars)
@@ -566,4 +566,4 @@ AI = Gemini-backed · STD = deterministic/library-based · Type badge shown on h
 
 ---
 
-**End of Ultra Pro Max Master Prompt.** This document + the companion Homepage Master Build Specification together form the complete build contract for ToolNest.
+**End of Ultra Pro Max Master Prompt.** This document + the companion Homepage Master Build Specification together form the complete build contract for Farvixo Tools.

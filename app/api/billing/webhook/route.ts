@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       }
       void createNotification(supabase, obj.client_reference_id, {
         type: 'billing',
-        title: 'Welcome to ToolNest Pro 👑',
+        title: 'Welcome to Farvixo Pro 👑',
         body: 'Your Pro subscription is active. Enjoy unlimited tools and premium features.',
         href: '/dashboard/billing',
       });

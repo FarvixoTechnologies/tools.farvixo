@@ -95,27 +95,27 @@ export const ZODIAC_THEME: Record<string, { symbol: string; color: string; gradi
   Leo: { symbol: '♌', color: '#f97316', gradient: 'linear-gradient(135deg,#f97316,#fbbf24)' },
   Virgo: { symbol: '♍', color: '#84cc16', gradient: 'linear-gradient(135deg,#65a30d,#84cc16)' },
   Libra: { symbol: '♎', color: '#ec4899', gradient: 'linear-gradient(135deg,#ec4899,#f472b6)' },
-  Scorpio: { symbol: '♏', color: '#a855f7', gradient: 'linear-gradient(135deg,#7c3aed,#a855f7)' },
-  Sagittarius: { symbol: '♐', color: '#8b5cf6', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+  Scorpio: { symbol: '♏', color: '#a855f7', gradient: 'linear-gradient(135deg,#6c4dff,#a855f7)' },
+  Sagittarius: { symbol: '♐', color: '#8570ff', gradient: 'linear-gradient(135deg,#6366f1,#8570ff)' },
   Capricorn: { symbol: '♑', color: '#64748b', gradient: 'linear-gradient(135deg,#475569,#64748b)' },
   Aquarius: { symbol: '♒', color: '#06b6d4', gradient: 'linear-gradient(135deg,#0891b2,#06b6d4)' },
   Pisces: { symbol: '♓', color: '#14b8a6', gradient: 'linear-gradient(135deg,#0d9488,#14b8a6)' },
 };
 
 export const STAT_THEMES = [
-  { icon: '📅', accent: '#7c3aed', bg: 'rgba(124,58,237,0.15)' },
+  { icon: '📅', accent: '#6c4dff', bg: 'rgba(108,77,255,0.15)' },
   { icon: '🗓️', accent: '#ec4899', bg: 'rgba(236,72,153,0.15)' },
   { icon: '📆', accent: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },
   { icon: '☀️', accent: '#f97316', bg: 'rgba(249,115,22,0.15)' },
   { icon: '⏰', accent: '#eab308', bg: 'rgba(234,179,8,0.15)' },
   { icon: '⏱️', accent: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
   { icon: '⚡', accent: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-  { icon: '✨', accent: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+  { icon: '✨', accent: '#8570ff', bg: 'rgba(139,92,246,0.15)' },
   { icon: '🌙', accent: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
 ];
 
 export const TAB_META: Record<string, { icon: string; color: string }> = {
-  results: { icon: '📊', color: '#7c3aed' },
+  results: { icon: '📊', color: '#6c4dff' },
   birthday: { icon: '🎂', color: '#f97316' },
   astrology: { icon: '✨', color: '#ec4899' },
   milestones: { icon: '🏁', color: '#22c55e' },
@@ -378,7 +378,7 @@ export function formatDateTime(d: Date): string {
 
 export function buildReportText(r: AgeResult): string {
   const lines = [
-    '═══ Age Calculator Pro — ToolNest ═══',
+    '═══ Age Calculator Pro — Farvixo Tools ═══',
     '',
     `Date of Birth: ${formatDateTime(r.dob)}`,
     `Calculated To: ${formatDateTime(r.toDate)}`,
@@ -408,7 +408,7 @@ export function buildReportText(r: AgeResult): string {
       `Walking (est.): ${formatNumber(r.stats.walkingKm)} km`,
     );
   }
-  lines.push('', 'Generated at toolnestfm.com/tools/calculator/age-calculator');
+  lines.push('', 'Generated at tools.farvixo.com/tools/calculator/age-calculator');
   return lines.join('\n');
 }
 
@@ -446,7 +446,7 @@ export async function generateAiSummary(r: AgeResult, type: 'summary' | 'health'
 }
 
 export const POPULAR_DOB = [
-  { label: '2000', dob: '2000-01-01', color: '#7c3aed' },
+  { label: '2000', dob: '2000-01-01', color: '#6c4dff' },
   { label: '1995', dob: '1995-06-15', color: '#ec4899' },
   { label: '1990', dob: '1990-03-20', color: '#06b6d4' },
   { label: '2010', dob: '2010-07-04', color: '#22c55e' },

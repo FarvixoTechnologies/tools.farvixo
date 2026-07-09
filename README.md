@@ -1,8 +1,8 @@
-# 🚀 ToolNest — One Platform. Infinite Tools. Powered by AI.
+# 🚀 Farvixo Tools — Build Beyond.
 
-**ToolNestFM** · Faruk Mondal | Fam Cloud Pvt. Ltd. · https://toolnestfm.com
+**Farvixo Technologies** · Faruk Mondal · https://tools.farvixo.com
 
-A full Next.js 15 platform with **130 working tools across 15 categories** — PDF, Image, Video, Audio, AI, Developer, Text, SEO, Business, Social, Utility, Security, Calculator, File Converter and Government tools. The homepage matches the approved deep-space/violet mockup.
+A full Next.js 15 platform with **139+ working tools across 15 categories** — PDF, Image, Video, Audio, AI, Developer, Text, SEO, Business, Social, Utility, Security, Calculator, File Converter and Government tools. The homepage matches the approved deep-space/violet mockup.
 
 ## ▶ Run it
 
@@ -25,7 +25,7 @@ npm start
 | Area | Status |
 |---|---|
 | Homepage (Hero, Stats, Explorer, Features, Newsletter) | ✅ |
-| 130 tools × dedicated SEO pages | ✅ |
+| 139+ tools × dedicated SEO pages | ✅ |
 | 15 category landing pages | ✅ |
 | ⌘K command palette + AI Assistant panel | ✅ |
 | Auth (login/signup) + Dashboard | ✅ |
@@ -51,8 +51,8 @@ npm start
 ```
 app/                  pages, API routes, sitemap, robots, legal, auth, dashboard
 components/           layout, homepage, GlobalUI (⌘K, AI panel, toasts, theme)
-components/tool/      ToolRunner dispatcher + 21 runner engines powering all 130 tools
-data/                 categories.ts (15) · tools.ts (130 tools — single source of truth)
+components/tool/      ToolRunner dispatcher + 21 runner engines powering all 139+ tools
+data/                 categories.ts (15) · tools.ts (139+ tools — single source of truth)
 lib/                  ai.ts · pdf.ts · image.ts · auth.ts · api-response.ts
 ```
 

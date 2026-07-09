@@ -2,15 +2,15 @@ import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
-  title: 'GDPR | ToolNest',
-  description: 'ToolNest GDPR compliance and data subject rights.',
+  title: 'GDPR | Farvixo Tools',
+  description: 'Farvixo Tools GDPR compliance and data subject rights.',
 };
 
 export default function GdprPage() {
   return (
     <PageShell title="GDPR Compliance" subtitle="Your data rights under EU GDPR">
       <h2>Data controller</h2>
-      <p>Fam Cloud Pvt. Ltd., operating ToolNest (toolnestfm.com). Contact: <a href="mailto:privacy@toolnestfm.com">privacy@toolnestfm.com</a></p>
+      <p>Farvixo Technologies, operating Farvixo Tools (tools.farvixo.com). Contact: <a href="mailto:privacy@farvixo.com">privacy@farvixo.com</a></p>
       <h2>Legal basis</h2>
       <p>We process data based on consent (newsletter), contract (Pro subscriptions) and legitimate interest (security, analytics).</p>
       <h2>Your rights</h2>

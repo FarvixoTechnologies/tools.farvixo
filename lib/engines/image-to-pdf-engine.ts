@@ -92,9 +92,9 @@ export const DEFAULT_IMG2PDF_SETTINGS: Img2PdfSettings = {
     header: '',
     footer: '',
     title: '',
-    author: 'ToolNest',
+    author: 'Farvixo Tools',
     subject: '',
-    keywords: 'image to pdf, toolnest',
+    keywords: 'image to pdf, farvixo',
   },
 };
 
@@ -389,7 +389,7 @@ export async function buildPdfFromImages(
   if (settings.advanced.keywords) {
     doc.setKeywords(settings.advanced.keywords.split(',').map((k) => k.trim()).filter(Boolean));
   }
-  doc.setProducer('ToolNest Image to PDF');
+  doc.setProducer('Farvixo Tools Image to PDF');
   doc.setCreationDate(new Date());
 
   let pageNum = 0;
@@ -464,7 +464,7 @@ export async function buildPdfFromImages(
   return new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
 }
 
-const SESSION_KEY = 'toolnest-img2pdf-v1';
+const SESSION_KEY = 'farvixo-img2pdf-v1';
 
 export function saveImg2PdfSession(names: string[]): void {
   try {

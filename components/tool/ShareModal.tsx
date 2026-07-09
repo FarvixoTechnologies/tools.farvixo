@@ -134,7 +134,7 @@ export default function ShareModal({ open, onClose, file, toolSlug }: ShareModal
     if (!info) return;
     if (navigator.share) {
       try {
-        await navigator.share({ title: file.name, text: `Download ${file.name} from ToolNest`, url: info.url });
+        await navigator.share({ title: file.name, text: `Download ${file.name} from Farvixo Tools`, url: info.url });
         trackEvent('share_social', { channel: 'native' }, user?.id);
         return;
       } catch { /* cancelled */ }
@@ -145,7 +145,7 @@ export default function ShareModal({ open, onClose, file, toolSlug }: ShareModal
   const openSocial = (kind: 'whatsapp' | 'telegram' | 'email' | 'facebook' | 'x') => {
     if (!share) return;
     const url = encodeURIComponent(share.url);
-    const text = encodeURIComponent(`Download ${file.name} from ToolNest`);
+    const text = encodeURIComponent(`Download ${file.name} from Farvixo Tools`);
     const links: Record<typeof kind, string> = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
       telegram: `https://t.me/share/url?url=${url}&text=${text}`,

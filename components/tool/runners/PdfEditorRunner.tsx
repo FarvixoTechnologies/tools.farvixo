@@ -91,7 +91,7 @@ export default function PdfEditorRunner({ tool }: { tool: Tool }) {
           ctx.fillRect(ann.x, ann.y, ann.width ?? 100, ann.height ?? 18);
           break;
         case 'rect':
-          ctx.strokeStyle = ann.color ?? '#7C3AED';
+          ctx.strokeStyle = ann.color ?? '#6C4DFF';
           ctx.lineWidth = 2;
           ctx.strokeRect(ann.x, ann.y, ann.width ?? 80, ann.height ?? 40);
           break;

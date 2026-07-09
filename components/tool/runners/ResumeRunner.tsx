@@ -114,7 +114,7 @@ export default function ResumeRunner() {
         <div className="field"><label>Professional summary</label><textarea value={form.summary} onChange={(e) => set('summary', e.target.value)} /></div>
       </div>
       <div className="options-panel">
-        <div className="field"><label>Experience (one role per line)</label><textarea value={form.experience} placeholder={'Frontend Developer - Fam Cloud (2023-now)\nBuilt ToolNest platform...'} onChange={(e) => set('experience', e.target.value)} /></div>
+        <div className="field"><label>Experience (one role per line)</label><textarea value={form.experience} placeholder={'Frontend Developer - Farvixo (2023-now)\nBuilt Farvixo Tools platform...'} onChange={(e) => set('experience', e.target.value)} /></div>
         <div className="field"><label>Education</label><textarea value={form.education} style={{ minHeight: 70 }} onChange={(e) => set('education', e.target.value)} /></div>
         <div className="field"><label>Skills (comma separated)</label><input value={form.skills} placeholder="React, TypeScript, Node.js" onChange={(e) => set('skills', e.target.value)} /></div>
         <label className="checkbox-row"><input type="checkbox" checked={polish} onChange={(e) => setPolish(e.target.checked)} /> ✨ AI-polish my summary &amp; experience</label>

@@ -1,6 +1,6 @@
-# ToolNest — Competitive Analysis & "Beyond World-Class" Upgrade Spec v1.0
+# Farvixo Tools — Competitive Analysis & "Beyond World-Class" Upgrade Spec v1.0
 
-**Goal:** ToolNest ke paas wo sab hona chahiye jo in 20 sites ke paas hai — aur uske upar aisi cheezein jo **duniya me kisi ke paas nahi hain**. Ye document (1) har competitor ka analysis, (2) feature-gap matrix, (3) world-first differentiators, (4) All Tools (130) page ka advanced redesign, (5) prioritized roadmap deta hai.
+**Goal:** Farvixo Tools ke paas wo sab hona chahiye jo in 20 sites ke paas hai — aur uske upar aisi cheezein jo **duniya me kisi ke paas nahi hain**. Ye document (1) har competitor ka analysis, (2) feature-gap matrix, (3) world-first differentiators, (4) All Tools (130) page ka advanced redesign, (5) prioritized roadmap deta hai.
 
 *Research date: July 2026. Sources: live site fetches (iLovePDF, PDF24, Smallpdf, PDF Candy, PanCardResizer) + market research.*
 
@@ -10,13 +10,13 @@
 
 ### Tier 1 — Market leaders
 
-| Site | Tools | Signature strengths | Weaknesses ToolNest can exploit |
+| Site | Tools | Signature strengths | Weaknesses Farvixo Tools can exploit |
 |---|---|---|---|
 | **iLovePDF** | ~30 | Custom **Workflows** (chain tools, Premium), desktop/mobile apps, iLoveAPI, AI (Summarize/Translate/PDF→Markdown), batch | Workflows paywalled; server-side processing (files upload hote hain); PDF-only focus |
 | **Smallpdf** | ~30 | AI PDF Assistant / Chat-with-PDF / AI Question Generator, e-sign, 20+ format conversions (EPUB/ODT/RTF), teams | Aggressive paywall (2 free tasks/day); server-side; PDF-only |
 | **Adobe Acrobat Online** | ~25 | True in-browser PDF text editing, AI Assistant (Firefly), Liquid Mode, brand trust, qualified e-signatures | Heavy, slow, login-pushy, expensive; overkill UX for quick tasks |
 | **Sejda** | ~40 | **Word-level PDF text edit**, **Find & Replace in PDF** (rare!), form field creation, offline desktop (Linux bhi), transparent free limits (3 tasks/day, 50MB) | Dated UI; no AI; PDF-only |
-| **PDF24** | 24+ | **100% free, no limits** (ad-funded — ToolNest jaisa hi model), PDF Overlay, PDF Compare, Web-optimize (linearize), desktop Creator | No AI; PDF-only; plain UI; German-centric |
+| **PDF24** | 24+ | **100% free, no limits** (ad-funded — Farvixo Tools jaisa hi model), PDF Overlay, PDF Compare, Web-optimize (linearize), desktop Creator | No AI; PDF-only; plain UI; German-centric |
 
 ### Tier 2 — Strong specialists
 
@@ -39,15 +39,15 @@
 
 ### PanCardResizer.com (direct Government-tools competitor)
 - **Kya hai:** Photo/signature/document crop → resize cm me → JPEG/PDF export. Browser-side, unlimited, free.
-- **Kya NAHI hai (ToolNest ke paas already hai / hoga):** NSDL vs UTI portal presets, **12-point compliance validator**, AI face detection + auto-crop, AI background removal, eye/glare checks, DPI embedding, exact KB-range targeting (binary search), print sheet (A4 × 8 copies), batch mode, Hindi labels, dual photo+signature flow.
-- **Verdict:** ToolNest ka Gov Photo engine **already isse aage hai**. Marketing/SEO me isse highlight karna baaki hai.
+- **Kya NAHI hai (Farvixo Tools ke paas already hai / hoga):** NSDL vs UTI portal presets, **12-point compliance validator**, AI face detection + auto-crop, AI background removal, eye/glare checks, DPI embedding, exact KB-range targeting (binary search), print sheet (A4 × 8 copies), batch mode, Hindi labels, dual photo+signature flow.
+- **Verdict:** Farvixo Tools ka Gov Photo engine **already isse aage hai**. Marketing/SEO me isse highlight karna baaki hai.
 
 ---
 
-## 2. Feature-Gap Matrix (unko jo hai vs ToolNest)
+## 2. Feature-Gap Matrix (unko jo hai vs Farvixo Tools)
 
-### ✅ ToolNest me already hai (aur inse behtar)
-| Feature | ToolNest edge |
+### ✅ Farvixo Tools me already hai (aur inse behtar)
+| Feature | Farvixo Tools edge |
 |---|---|
 | PDF convert (Word/Excel/PPT/img/HTML/RTF/CSV/MD/TXT) | + AI doc intelligence, confidence scoring, **visual diff**, multi-format compare — **kisi ke paas nahi** |
 | Merge PDF | + AI organize, 10 merge modes (book/pancard/passport/certificate), dedupe detect |
@@ -59,7 +59,7 @@
 | Share links | Free (Smallpdf/iLovePDF me paid), QR + password + expiry |
 | Honest stats | Real DB counters — industry me fake numbers standard hain |
 
-### ❌ Gap — unke paas hai, ToolNest me nahi (parity list)
+### ❌ Gap — unke paas hai, Farvixo Tools me nahi (parity list)
 | # | Feature | Kis se | Effort |
 |---|---|---|---|
 | G1 | **PDF text Find & Replace** | Sejda (rare!) | M |
@@ -87,9 +87,9 @@
 
 ## 3. World-First Differentiators (kisi ke paas nahi)
 
-Ye ToolNest ko category-of-one banate hain:
+Ye Farvixo Tools ko category-of-one banate hain:
 
-1. **ToolNest Pipelines™ (FREE workflows)** — kisi bhi tool ka output → agla tool ka input, drag-drop chain builder, saved pipelines, one-click re-run. iLovePDF isko Premium me bechta hai aur sirf PDF me; hamara **130 tools cross-category** hoga (e.g., PDF→images→compress→ZIP→share) aur browser-side.
+1. **Farvixo Tools Pipelines™ (FREE workflows)** — kisi bhi tool ka output → agla tool ka input, drag-drop chain builder, saved pipelines, one-click re-run. iLovePDF isko Premium me bechta hai aur sirf PDF me; hamara **139+ tools cross-category** hoga (e.g., PDF→images→compress→ZIP→share) aur browser-side.
 2. **AI Task Router** — All Tools par ek "Describe your task" box: "PAN card ke liye photo 20KB me chahiye" → AI seedha sahi tool + prefilled settings khol de. Koi site natural-language tool routing nahi karti.
 3. **Indic Document Intelligence** — Bengali/Hindi/11 bhashaon ka Unicode repair + bilingual (label/English) reconstruction. Adobe tak ye nahi karta. India-first killer feature; SEO me "Bengali PDF converter" own karo.
 4. **Government Compliance Engine as platform** — 12-point validator ko har gov tool me (Aadhaar/Voter/DL/Exams), portal presets DB-driven (naya portal = data entry, no code). PanCardResizer types ke liye unbeatable.
@@ -148,7 +148,7 @@ Pipelines™ builder · G9 ebook formats · G13 deskew/blank-page AI · G14 PDF/
 ---
 
 ## 6. Notes
-- **Model advantage:** PDF24 proves ads-funded free-unlimited works at scale — ToolNest ka model wahi hai, par 130 tools + AI + India-first ke saath.
+- **Model advantage:** PDF24 proves ads-funded free-unlimited works at scale — Farvixo Tools ka model wahi hai, par 139+ tools + AI + India-first ke saath.
 - **Jo nahi karna:** fake counters (hata chuke), popunder/social-bar ads, login-walls on basic tools, server upload jahan browser kar sakta hai.
 
 *Sources: [iLovePDF](https://www.ilovepdf.com/), [PDF24](https://tools.pdf24.org/en/), [Smallpdf](https://smallpdf.com/pdf-tools), [PDF Candy](https://pdfcandy.com/), [PanCardResizer](https://pancardresizer.com/), [Sejda](https://www.sejda.com/) + market research.*

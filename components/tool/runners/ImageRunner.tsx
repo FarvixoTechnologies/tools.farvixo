@@ -25,7 +25,7 @@ export default function ImageRunner({ tool }: { tool: Tool }) {
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
   const [scaleFactor, setScaleFactor] = useState(2);
-  const [wmText, setWmText] = useState('© ToolNest');
+  const [wmText, setWmText] = useState('© Farvixo');
   const [wmSize, setWmSize] = useState(36);
   const [wmOpacity, setWmOpacity] = useState(50);
   const [wmColor, setWmColor] = useState('#ffffff');
@@ -72,10 +72,10 @@ export default function ImageRunner({ tool }: { tool: Tool }) {
     ctx.fillRect(0, by + bh, canvas.width, canvas.height - by - bh);
     ctx.fillRect(0, by, bx, bh);
     ctx.fillRect(bx + bw, by, canvas.width - bx - bw, bh);
-    ctx.strokeStyle = '#8b5cf6';
+    ctx.strokeStyle = '#8570ff';
     ctx.lineWidth = 2;
     ctx.strokeRect(bx, by, bw, bh);
-    ctx.fillStyle = '#8b5cf6';
+    ctx.fillStyle = '#8570ff';
     ctx.fillRect(bx + bw - 8, by + bh - 8, 8, 8);
   }, [cropImg, cropBox, mode]);
 

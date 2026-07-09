@@ -286,7 +286,7 @@ export default function AiImageRunner() {
       const blob = editPreview
         ? await exportImage(await fetch(editPreview).then((r) => r.blob()), exportFormat, exportQuality / 100, transparentExport)
         : await exportImage(activeImage.blob, exportFormat, exportQuality / 100, transparentExport);
-      downloadBlob(blob, `toolnest-ai-${Date.now()}.${exportFormat}`);
+      downloadBlob(blob, `farvixo-ai-${Date.now()}.${exportFormat}`);
       toast('Download started', 'success');
     } catch {
       toast('Export failed', 'error');
@@ -746,7 +746,7 @@ export default function AiImageRunner() {
                   <button type="button" className="btn btn-primary" disabled={!activeImage} onClick={() => void handleExport()}>
                     <Icon name="download" size={15} /> Download
                   </button>
-                  {activeImage && <ShareButton file={{ name: `toolnest-ai.${exportFormat}`, blob: activeImage.blob }} toolSlug="ai-image-generator" />}
+                  {activeImage && <ShareButton file={{ name: `farvixo-ai.${exportFormat}`, blob: activeImage.blob }} toolSlug="ai-image-generator" />}
                   <button type="button" className="btn btn-ghost" disabled={!displayUrl} onClick={async () => {
                     if (!displayUrl) return;
                     try {

@@ -20,13 +20,13 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
   if (!admin) {
-    return apiErr('Account deletion is not available — contact support@toolnestfm.com', 503);
+    return apiErr('Account deletion is not available — contact support@farvixo.com', 503);
   }
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) {
     console.error('[account] delete failed:', error.message);
-    return apiErr('Could not delete account — contact support@toolnestfm.com', 500);
+    return apiErr('Could not delete account — contact support@farvixo.com', 500);
   }
 
   return apiOk({ deleted: true });

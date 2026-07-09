@@ -69,7 +69,7 @@ export default function AdminCreditsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Credits" subtitle="Grant or deduct ToolNest credits and audit every transaction" />
+      <AdminPageHeader title="Credits" subtitle="Grant or deduct Farvixo credits and audit every transaction" />
 
       <div className="admin-panel glass mb-4">
         <h2>Adjust credits</h2>
