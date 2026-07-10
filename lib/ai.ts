@@ -245,10 +245,15 @@ async function runFreeChain(
 /** Run an AI completion. Streams via onChunk (receives the FULL text so far). */
 export async function aiComplete(
   messages: ChatMessage[],
-  system = 'You are Farvixo AI, a helpful assistant inside the Farvixo Tools platform (tools.farvixo.com) which offers 139+ online tools. Be concise and helpful.',
+  system?: string,
   onChunk?: (text: string) => void,
   opts?: AiStreamOptions,
 ): Promise<string> {
+  // Force the Farvixo AI master identity onto EVERY call, whatever system the
+  // caller passed (tool runners, tool configs, chat panel, etc.). Single choke point.
+  const { withFarvixoIdentity } = await import('@/lib/engines/farvixo-identity');
+  system = withFarvixoIdentity(system);
+
   if (getApiKey()) {
     opts?.onProvider?.({ provider: 'user-gemini', model: opts?.model || getModel(), label: 'Your Gemini' });
     try {

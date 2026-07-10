@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import { useUI } from '@/components/GlobalUI';
-import { aiComplete, getApiKey, getModel, type ActiveAiProvider, type ChatMessage } from '@/lib/ai';
+import { aiComplete, getModel, type ChatMessage } from '@/lib/ai';
 import { extractPdfText } from '@/lib/pdf';
 import { formatBytes } from '@/lib/download';
 import {
@@ -13,7 +13,6 @@ import {
   createSession,
   DEFAULT_CHAT_SETTINGS,
   deriveTitle,
-  estimateTokens,
   exportSessionJson,
   exportSessionMarkdown,
   getPersona,
@@ -56,7 +55,6 @@ export default function AiAssistantCore({
   const [busy, setBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [attachBusy, setAttachBusy] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<ActiveAiProvider | null>(null);
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -178,7 +176,7 @@ export default function AiAssistantCore({
       const full = await aiComplete(
         context, system,
         (streamed) => patchSession(session.id, { messages: [...history, { role: 'assistant', content: streamed }] }),
-        { temperature: session.settings.temperature, model: getModel(), signal: abortRef.current.signal, onProvider: setActiveProvider },
+        { temperature: session.settings.temperature, model: getModel(), signal: abortRef.current.signal },
       );
       patchSession(session.id, { messages: [...history, { role: 'assistant', content: full }] });
     } catch (err) {
@@ -210,7 +208,7 @@ export default function AiAssistantCore({
       const full = await aiComplete(
         context, system,
         (streamed) => patchSession(session.id, { messages: [...trimmed, { role: 'assistant', content: streamed }] }),
-        { temperature: session.settings.temperature, model: getModel(), signal: abortRef.current.signal, onProvider: setActiveProvider },
+        { temperature: session.settings.temperature, model: getModel(), signal: abortRef.current.signal },
       );
       patchSession(session.id, { messages: [...trimmed, { role: 'assistant', content: full }] });
     } catch (err) {
@@ -256,10 +254,6 @@ export default function AiAssistantCore({
     if (!session) return;
     patchSession(session.id, { settings: { ...session.settings, ...patch } });
   };
-
-  const tokenEst = session
-    ? estimateTokens(session.messages.map((m) => m.content).join('') + session.attachments.map((a) => a.content).join(''))
-    : 0;
 
   if (!session) return null;
 
@@ -386,13 +380,12 @@ export default function AiAssistantCore({
         )}
       </div>
       <div className="aichat-input-meta">
-        <span className="pdfword-privacy-badge" style={{ margin: 0, padding: '4px 10px', fontSize: 11 }}>
-          <Icon name="shield" size={12} />
-          {getApiKey() ? 'Your Gemini · unlimited' : activeProvider ? `100% Free · ${activeProvider.label}` : '100% Free AI'}
+        <span className="aichat-secure-badge">
+          <Icon name="shield" size={12} /> 100% Free &amp; Secure
         </span>
-        <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: 11 }} onClick={openSettings}>
-          {getApiKey() ? 'AI Settings' : 'Free Gemini key →'}
-        </button>
+        <span className="aichat-brand-tag">
+          <Icon name="sparkles" size={11} /> Powered by Farvixo AI
+        </span>
       </div>
     </div>
   );
@@ -420,7 +413,7 @@ export default function AiAssistantCore({
           <span className="aichat-avatar sm"><Icon name="sparkles" size={15} /></span>
           <div className="ai-panel-head-meta">
             <b>{displayTitle}</b>
-            <span className="muted">{activeProvider?.label || (getApiKey() ? 'Your Gemini' : 'Free AI')} · ~{tokenEst.toLocaleString()} tok</span>
+            <span className="aichat-status"><i className="aichat-status-dot" /> Online · Secure</span>
           </div>
           <div className="ai-panel-head-actions">
             <div className="ai-panel-history-wrap">
@@ -488,9 +481,7 @@ export default function AiAssistantCore({
             <span className="aichat-avatar"><Icon name="sparkles" size={18} /></span>
             <div>
               <b>{displayTitle}</b>
-              <span className="muted">
-                {activeProvider?.label || (getApiKey() ? 'Your Gemini' : 'Free AI')} · ~{tokenEst.toLocaleString()} tokens
-              </span>
+              <span className="aichat-status"><i className="aichat-status-dot" /> Online · Secure · Farvixo AI</span>
             </div>
           </div>
           {headerActions}

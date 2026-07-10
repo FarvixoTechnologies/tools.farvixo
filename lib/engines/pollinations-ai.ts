@@ -32,7 +32,7 @@ async function pollinationsTextGet(
 ): Promise<string> {
   const params = new URLSearchParams({
     model: opts?.model || DEFAULT_MODEL,
-    system: system.slice(0, 2000),
+    system: system.slice(0, 3000),
     temperature: String(opts?.temperature ?? 0.7),
   });
   const url = `${TEXT_BASE}/${encodeURIComponent(prompt.slice(0, 8000))}?${params}`;

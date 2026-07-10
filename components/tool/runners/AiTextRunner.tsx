@@ -19,7 +19,8 @@ export default function AiTextRunner({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
   const { openSettings } = useUI();
   const fields = ((tool.config?.fields as Field[]) || []);
-  const system = (tool.config?.system as string) || 'You are a helpful assistant.';
+  // Master Farvixo identity is force-injected inside aiComplete(); this is only the task hint.
+  const system = (tool.config?.system as string) || `You are Farvixo AI helping with the "${tool.name}" tool. Be helpful and precise.`;
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries(fields.map((f) => [f.key, f.type === 'select' ? (f.options?.[0] || '') : ''])),
   );

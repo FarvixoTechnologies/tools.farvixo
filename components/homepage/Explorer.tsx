@@ -61,7 +61,7 @@ export default function Explorer() {
       <div>
         <div className="explorer-head">
           <div>
-            <h2>{activeCat ? activeCat.name : 'All Tools'} <span>({activeCat ? list.length : '120+'})</span></h2>
+            <h2>{activeCat ? activeCat.name : 'All Tools'} <span>({activeCat ? list.length : '150+'})</span></h2>
             <p className="explorer-sub">Discover and use powerful tools for all your needs.</p>
           </div>
           <div className="explorer-controls">

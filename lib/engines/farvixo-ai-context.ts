@@ -59,7 +59,7 @@ export function buildRelevantToolsContext(query: string, limit = 8): string {
 export function buildFarvixoAiContext(userQuery?: string): string {
   const base = getFarvixoBaseUrl();
   const parts = [
-    `You are Farvixo AI — in-app assistant for Farvixo Tools (${PRODUCTION_URL}).`,
+    `You are the in-app assistant for Farvixo Tools (${PRODUCTION_URL}).`,
     `Site origin: ${base}. Tagline: Build Beyond. 139+ free AI & productivity tools.`,
     aiBehaviorRules(base),
     pdfToolsSection(base),

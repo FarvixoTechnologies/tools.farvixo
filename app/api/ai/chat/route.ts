@@ -91,7 +91,8 @@ export async function POST(req: Request) {
     const model = body.model && /^[a-z0-9./:_-]{1,80}$/i.test(body.model) ? body.model : undefined;
 
     const lastUser = [...(body.messages ?? [])].reverse().find((m) => m.role === 'user')?.content;
-    const system = (body.system || buildFarvixoDefaultSystem(lastUser)).slice(0, 16_000);
+    const { withFarvixoIdentity } = await import('@/lib/engines/farvixo-identity');
+    const system = withFarvixoIdentity(body.system || buildFarvixoDefaultSystem(lastUser)).slice(0, 16_000);
     const encoder = new TextEncoder();
     const { streamWithFallback } = await import('@/lib/gemini/free-providers');
 

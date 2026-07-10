@@ -47,6 +47,10 @@ export interface PersonaMeta {
   prompts: string[];
 }
 
+// The absolute identity lock now lives in `@/lib/engines/farvixo-identity` and is
+// force-injected inside `aiComplete()` / the server route, so it need not be
+// repeated in each persona's task-specific system prompt below.
+
 const FARVIXO_CONTEXT =
   'Farvixo Tools (tools.farvixo.com) — 139+ tools in one platform. Always link users directly to the exact tool URL; never generic navigation steps.';
 

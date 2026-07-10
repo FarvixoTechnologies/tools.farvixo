@@ -43,6 +43,7 @@ const ImageToPdfRunner = dynamic(() => import('./runners/ImageToPdfRunner'), { s
 const GradientRunner = dynamic(() => import('./runners/GradientRunner'), { ssr: false, loading });
 const WeatherRunner = dynamic(() => import('./runners/WeatherRunner'), { ssr: false, loading });
 const AgeCalculatorRunner = dynamic(() => import('./runners/AgeCalculatorRunner'), { ssr: false, loading });
+const HtmlViewerRunner = dynamic(() => import('./runners/HtmlViewerRunner'), { ssr: false, loading });
 
 export default function ToolRunner({ tool }: { tool: Tool }) {
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function ToolRunner({ tool }: { tool: Tool }) {
     case 'gradient': return <GradientRunner />;
     case 'weather': return <WeatherRunner />;
     case 'age-calc': return <Suspense fallback={<Processing label="Loading tool..." />}><AgeCalculatorRunner /></Suspense>;
+    case 'html-viewer': return <HtmlViewerRunner tool={tool} />;
     default: return <div className="error-box">This tool is coming soon.</div>;
   }
 }

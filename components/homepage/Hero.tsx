@@ -91,7 +91,7 @@ export default function Hero() {
         <div className="hero-left">
           <span className="eyebrow"><Icon name="sparkles" size={14} /> Smart Tools Ecosystem</span>
           <h1 className="hero-h1">
-            139+ Free<br />
+            150+ Free<br />
             AI &amp; Productivity Tools<br />
             <span className="gradient-text">Build Beyond.</span>
           </h1>
@@ -102,7 +102,7 @@ export default function Hero() {
               <Icon name="search" size={18} className="hero-search-lead" />
               <input
                 value={q}
-                placeholder="Search 139+ AI & Productivity Tools..."
+                placeholder="Search 150+ AI & Productivity Tools..."
                 onChange={(e) => { setQ(e.target.value); setActive(0); setOpen(true); }}
                 onFocus={() => { if (q.trim()) setOpen(true); }}
                 onKeyDown={onKeyDown}
@@ -161,7 +161,7 @@ export default function Hero() {
                   <div className="hero-suggest-empty">
                     <Icon name="search" size={22} />
                     <p>No tools found for “{q.trim()}”</p>
-                    <Link href="/tools" className="link-btn" onClick={() => setOpen(false)}>Browse all 139+ tools →</Link>
+                    <Link href="/tools" className="link-btn" onClick={() => setOpen(false)}>Browse all 150+ tools →</Link>
                   </div>
                 )}
               </div>
@@ -222,7 +222,7 @@ export default function Hero() {
           <span className="why-crown"><Icon name="crown" size={26} fill="var(--gold-premium)" strokeWidth={1.5} /></span>
           <h3>Why Farvixo?</h3>
           <ul className="why-list">
-            {['139+ Powerful Tools', 'AI-Powered Features', 'Blazing Fast Processing', 'Secure & Private', 'Cloud Storage (100GB)', 'No Ads, Ever'].map((f) => (
+            {['150+ Powerful Tools', 'AI-Powered Features', 'Blazing Fast Processing', 'Secure & Private', 'Cloud Storage (100GB)', 'No Ads, Ever'].map((f) => (
               <li key={f}><span className="why-check"><Icon name="check" size={16} strokeWidth={3} /></span> {f}</li>
             ))}
           </ul>

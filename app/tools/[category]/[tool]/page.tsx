@@ -361,7 +361,7 @@ export default async function ToolPage({ params }: Props) {
         <span>&#9889; {trustExtra}</span>
       </div>
 
-      <div className="tool-page-layout">
+      <div className={`tool-page-layout${slug === 'html-viewer' ? ' tool-page-layout-wide' : ''}`}>
         <div className="tool-page-main">
           <div className="workspace glass">
             <ToolRunner tool={tool} />
@@ -369,8 +369,8 @@ export default async function ToolPage({ params }: Props) {
           {/* Ad 2 — below primary action (728×90 desktop) */}
           <ToolMidAd />
         </div>
-        {/* Desktop right sidebar ad (300×250) */}
-        <ToolSidebarAd />
+        {/* Desktop right sidebar ad (300×250) — hidden for full-width IDE tools */}
+        {slug !== 'html-viewer' && <ToolSidebarAd />}
       </div>
 
       <section className="hiw">

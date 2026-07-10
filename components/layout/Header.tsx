@@ -81,7 +81,7 @@ export default function Header() {
           </select>
           <input
             value={q}
-            placeholder="Search 139+ AI & Productivity Tools..."
+            placeholder="Search 150+ AI & Productivity Tools..."
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
             onFocus={openPalette}
@@ -173,7 +173,7 @@ export default function Header() {
             </button>
 
             <div className="mobile-menu-links">
-              {navLinks.slice(0, 3).map((l) => (
+              {navLinks.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
@@ -189,21 +189,23 @@ export default function Header() {
                 onClick={() => setCatOpen((o) => !o)}
                 aria-expanded={catOpen}
               >
-                Tool Categories
+                All Categories
                 <Icon name={catOpen ? 'chevron-up' : 'chevron-down'} size={14} />
               </button>
               {catOpen && (
                 <div className="mobile-cat-list">
-                  {categories.map((c) => (
-                    <Link
-                      key={c.slug}
-                      href={`/tools/${c.slug}`}
-                      className={`mobile-menu-link ${pathname === `/tools/${c.slug}` ? 'active' : ''}`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <Icon name={c.icon} size={15} /> {c.name}
-                    </Link>
-                  ))}
+                  {categories
+                    .filter((c) => !navLinks.some((l) => l.href === `/tools/${c.slug}`))
+                    .map((c) => (
+                      <Link
+                        key={c.slug}
+                        href={`/tools/${c.slug}`}
+                        className={`mobile-menu-link ${pathname === `/tools/${c.slug}` ? 'active' : ''}`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Icon name={c.icon} size={15} /> {c.name}
+                      </Link>
+                    ))}
                 </div>
               )}
             </div>

@@ -33,7 +33,8 @@ export type RunnerKind =
   | 'image-to-pdf'
   | 'gradient'
   | 'weather'
-  | 'age-calc';
+  | 'age-calc'
+  | 'html-viewer';
 
 export type ToolConfig = Record<string, unknown>;
 
@@ -141,6 +142,7 @@ export const tools: Tool[] = [
   // ─── 💻 Developer Tools (8) ────────────────────────────────────────────
   { id: 138, slug: 'gradient-generator', name: 'AI Gradient Generator', description: 'Design studio for gradients — AI prompt, image palette extraction, mesh/aurora/noise types, animation & 6 export formats', category: 'developer', icon: 'wand', badge: 'ai', runner: 'gradient', mode: 'studio', keywords: ['gradient', 'css gradient', 'mesh gradient', 'aurora', 'background', 'tailwind gradient', 'color palette', 'design'] },
   { id: 139, slug: 'world-weather-pro', name: 'World Weather Pro', description: 'Live weather, hourly timeline, 7 & 14-day forecast, air quality index, interactive radar map, astronomy & AI insights for any city — free, no signup', category: 'utility', icon: 'cloud', badge: 'new', runner: 'weather', mode: 'pro', keywords: ['weather', 'live weather', 'weather today', 'forecast', 'weather forecast', 'temperature', 'air quality', 'aqi', 'humidity', 'wind speed', 'sunrise', 'sunset', 'moon phase', 'hourly forecast', '7 day forecast', '14 day forecast', 'weather radar map', 'rain forecast', 'weather near me'] },
+  { id: 139, slug: 'html-viewer', name: 'HTML Online Viewer', description: 'Advanced in-browser IDE — live HTML/CSS/JS editor, sandboxed preview, device simulation, console, AI fix/improve/generate & ZIP export', category: 'developer', icon: 'code', badge: 'new', runner: 'html-viewer', mode: 'ide', keywords: ['html viewer', 'html editor', 'live preview', 'code playground', 'css', 'javascript', 'codepen', 'online ide', 'html tester', 'sandbox', 'responsive preview'] },
   { id: 61, slug: 'json-formatter', name: 'JSON Formatter', description: 'Pretty-print and minify JSON', category: 'developer', icon: 'braces', badge: 'popular', runner: 'dev', mode: 'json-format' },
   { id: 62, slug: 'json-validator', name: 'JSON Validator', description: 'Validate JSON and locate syntax errors', category: 'developer', icon: 'braces', runner: 'dev', mode: 'json-validate' },
   { id: 63, slug: 'base64-encoder-decoder', name: 'Base64 Encoder & Decoder', description: 'Encode and decode Base64 text and files', category: 'developer', icon: 'binary', runner: 'dev', mode: 'base64' },

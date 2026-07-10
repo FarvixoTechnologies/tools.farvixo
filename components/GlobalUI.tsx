@@ -139,7 +139,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
             ref={inputRef}
             role="search"
             value={query}
-            placeholder="Search 120+ tools..."
+            placeholder="Search 150+ tools..."
             onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setSelected((s) => Math.min(s + 1, results.length - 1)); }
@@ -151,7 +151,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
         </div>
         <div className="palette-results">
           {results.length === 0 && (
-            <div className="palette-empty">No tools found for &ldquo;{query}&rdquo; — browse all 120+ tools instead.</div>
+            <div className="palette-empty">No tools found for &ldquo;{query}&rdquo; — browse all 150+ tools instead.</div>
           )}
           {results.map((t, i) => (
             <button key={t.slug} className={`palette-item ${i === selected ? 'selected' : ''}`} onClick={() => go(t.slug, t.category)}>
