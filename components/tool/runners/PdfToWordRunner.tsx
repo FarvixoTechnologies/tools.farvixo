@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
-import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import { ErrorBox, ShareButton, useStepScrollReset, useToolPhase, type ResultFile } from '../shared';
 import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { formatBytes, downloadBlob } from '@/lib/download';
@@ -253,6 +253,7 @@ export default function PdfToWordRunner({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
 
   const [step, setStep] = useState<Step>(0);
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [files, setFiles] = useState<File[]>([]);
   const [profile, setProfile] = useState<PdfProfile | null>(null);
   const [options, setOptions] = useState<PdfToWordOptions>(DEFAULT_PDF_TO_WORD_OPTIONS);

@@ -1,11 +1,12 @@
 import Icon from '../Icon';
 
 const features = [
-  { icon: 'sparkles', title: 'AI Powered', desc: 'Smart AI tools to boost your productivity' },
-  { icon: 'plane', title: 'Blazing Fast', desc: 'Lightning-fast processing for all your tasks' },
-  { icon: 'shield-check', title: 'Secure & Private', desc: 'Your data is 100% safe and encrypted' },
-  { icon: 'cloud', title: 'Cloud Storage', desc: 'Save and access your files anywhere' },
-  { icon: 'ban', title: 'No Ads', desc: 'Pure experience, no interruptions' },
+  { icon: 'grid', title: '150+ Tools', desc: 'All in One Place' },
+  { icon: 'sparkles', title: 'AI Powered', desc: 'Smart & Intelligent' },
+  { icon: 'zap', title: 'Blazing Fast', desc: 'Lightning Speed' },
+  { icon: 'shield-check', title: 'Secure & Private', desc: 'Your Data is Safe' },
+  { icon: 'cloud', title: 'Cloud Ready', desc: 'Work Anywhere' },
+  { icon: 'code', title: 'Developer Friendly', desc: 'API & Integrations' },
 ];
 
 export default function FeatureStrip() {

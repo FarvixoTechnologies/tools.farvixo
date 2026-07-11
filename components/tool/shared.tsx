@@ -4,6 +4,11 @@ import React, { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Icon from '../Icon';
 import { formatBytes } from '@/lib/download';
+import { useStepScrollReset } from '@/lib/scroll-engine';
+
+// Re-export so every runner can wire its own step state into the
+// universal scroll/transition engine with a single import.
+export { useStepScrollReset };
 import UniversalDragDropUploader, { fileMatchesAccept as matchesAccept } from './UniversalDragDropUploader';
 
 const ShareModal = dynamic(() => import('./ShareModal'), { ssr: false });
@@ -97,7 +102,7 @@ export function FileDrop({ accept, multiple, files, onFiles, hint }: FileDropPro
 
 export function Processing({ label, progress }: { label?: string; progress?: number }) {
   return (
-    <div className="processing-box">
+    <div className="processing-box step-enter" role="status" aria-live="polite">
       <div className="spinner" />
       <b>{label || 'Processing your file...'}</b>
       <div className="progress-track">
@@ -113,7 +118,7 @@ export function Processing({ label, progress }: { label?: string; progress?: num
 
 export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="error-box">
+    <div className="error-box step-enter" role="alert">
       ⚠️ {message}
       {onRetry && (
         <div className="mt-2">
@@ -154,7 +159,7 @@ export function ResultView({
   };
 
   return (
-    <div className="result-box">
+    <div className="result-box step-enter" role="status" aria-live="polite">
       <span className="result-badge"><Icon name="check-circle" size={16} /> Done! Your file is ready</span>
       {before !== undefined && after !== undefined && (
         <span className="size-compare">
@@ -224,6 +229,12 @@ export function useToolPhase() {
   const [phase, setPhase] = useState<ToolPhase>('idle');
   const [error, setError] = useState('');
   const [progress, setProgress] = useState<number | undefined>(undefined);
+
+  // Universal step-transition UX: every phase change (upload → working →
+  // done / error → reset) scrolls the tool to the top, resets inner
+  // scroll containers, and focuses the first interactive element.
+  useStepScrollReset(phase);
+
   const fail = (e: unknown) => {
     setError(e instanceof Error ? e.message : String(e));
     setPhase('error');

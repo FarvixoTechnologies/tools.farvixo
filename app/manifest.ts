@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Farvixo Tools',
     short_name: 'Farvixo',
-    description: '139+ free online AI & productivity tools — PDF, Image, Video, Audio, Developer & more.',
+    description: '150+ free online AI & productivity tools — PDF, Image, Video, Audio, Developer & more.',
     start_url: '/?source=pwa',
     display: 'standalone',
     background_color: '#0D0D12',

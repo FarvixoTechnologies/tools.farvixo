@@ -73,7 +73,7 @@ export function toolDescription(tool: Tool): string {
   return truncate(`${core}. Free, fast & 100% private — runs in your browser. No sign-up, no watermark, unlimited use.`);
 }
 
-/** Full rich metadata for ANY tool — used as the default for all 139+ tools. */
+/** Full rich metadata for ANY tool — used as the default for all 150+ tools. */
 export function toolMetadata(tool: Tool, cat?: Category): Metadata {
   const title = toolTitle(tool, cat);
   const description = toolDescription(tool);

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '@/components/Icon';
 import { useUI } from '@/components/GlobalUI';
-import { ErrorBox, Processing, ShareButton, useToolPhase } from '../shared';
+import { ErrorBox, Processing, ShareButton, useStepScrollReset, useToolPhase } from '../shared';
 import { downloadBlob } from '@/lib/download';
 import {
   AI_MODELS,
@@ -91,6 +91,7 @@ export default function AiImageRunner() {
 
   // Workflow
   const [step, setStep] = useState<StudioStep>('prompt');
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [leftTab, setLeftTab] = useState<'prompt' | 'model' | 'controls' | 'refs'>('prompt');
   const [rightTab, setRightTab] = useState<'edit' | 'enhance' | 'export' | 'assistant'>('edit');
 

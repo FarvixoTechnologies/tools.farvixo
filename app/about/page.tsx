@@ -4,7 +4,7 @@ import PageShell from '@/components/content/PageShell';
 
 export const metadata: Metadata = {
   title: 'About Us | Farvixo Tools',
-  description: 'Learn about Farvixo Tools — one platform with 139+ free online AI & productivity tools.',
+  description: 'Learn about Farvixo Tools — one platform with 150+ free online AI & productivity tools.',
 };
 
 export default function AboutPage() {
@@ -15,7 +15,7 @@ export default function AboutPage() {
       <p>Give everyone professional-grade tools for PDF, image, video, audio, AI, developer, SEO and business tasks — free, fast, and private.</p>
       <h2>By the numbers</h2>
       <ul>
-        <li>139+ tools across 15 categories</li>
+        <li>150+ tools across 15 categories</li>
         <li>A growing worldwide user community</li>
         <li>100% free to use</li>
         <li>100% browser-based processing where possible</li>

@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
-import { ErrorBox, useToolPhase, type ResultFile } from '../shared';
+import { ErrorBox, useStepScrollReset, useToolPhase, type ResultFile } from '../shared';
 import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { formatBytes } from '@/lib/download';
@@ -277,6 +277,7 @@ export default function MergePdfRunner({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset, progress, setProgress } = useToolPhase();
 
   const [step, setStep] = useState<Step>(0);
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [files, setFiles] = useState<MergeSourceFile[]>([]);
   const [pages, setPages] = useState<MergePage[]>([]);
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);

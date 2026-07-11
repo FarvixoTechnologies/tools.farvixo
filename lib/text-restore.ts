@@ -47,13 +47,13 @@ export function looksBrokenBengali(text: string): boolean {
   return mangledRa || detachedKar + splitWords >= 3 || mixedTokens >= 2;
 }
 
-async function callRestoreApi(chunk: string): Promise<string> {
+async function callRestoreApi(chunk: string, systemPrompt = RESTORE_SYSTEM_PROMPT, userLabel = 'Broken Input Bengali Text'): Promise<string> {
   const res = await fetch('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      system: RESTORE_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: `Broken Input Bengali Text:\n"""\n${chunk}\n"""` }],
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `${userLabel}:\n"""\n${chunk}\n"""` }],
     }),
   });
 
@@ -146,6 +146,73 @@ export async function restoreBengaliText(
     }
     try {
       out.push(await callRestoreApi(chunks[i]));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '';
+      if (/limit|credit|sign in/i.test(msg)) throw e; // quota — surface to the user
+      out.push(chunks[i]); // keep normalized text for transient failures
+    }
+  }
+  onProgress?.(chunks.length, chunks.length);
+  return out.join('\n');
+}
+
+const OCR_REPAIR_SYSTEM_PROMPT = `You are an expert multilingual OCR post-editor. An OCR engine has read an image and produced noisy, error-filled text. Your job is to reconstruct the correct, natural text the image most likely contained. Output ONLY the corrected text — no notes, no explanations, no code fences, no translation.
+
+Fix ALL of these OCR errors:
+1. Misrecognized characters and confusions (e.g. 0/O, 1/l/I, rn/m, cl/d, 5/S, 8/B), and script-specific glyph confusions.
+2. Broken or split words: join fragments into correct real words using context ("in for mation" -> "information").
+3. Wrongly split or merged spaces, stray punctuation, and junk symbols injected between letters.
+4. For Indic scripts (Devanagari/Hindi, Bengali, Tamil, Telugu, Gujarati, Punjabi, Kannada, Malayalam, Odia): reattach detached vowel signs (matra), rejoin broken conjuncts (yuktakshar), fix reph/half-letter placement, and remove stray spaces inside words. Every output word must be a real, valid word.
+5. For Arabic/Urdu: restore correct letter forms and joining, fix reversed or detached characters.
+6. For CJK (Chinese/Japanese/Korean): fix confused/lookalike characters.
+
+Rules:
+- Output valid, natural, grammatically correct text in the SAME language(s) as the input. Do NOT translate.
+- Keep genuine English words, numbers, dates, URLs, IDs and punctuation that clearly belong.
+- Preserve line breaks and the overall layout/order. Do not summarize, drop, merge, add, or reorder lines.
+- If a fragment is truly unreadable, make the best contextual guess rather than leaving garbage.
+- Respond with ONLY the corrected text.`;
+
+/** Non-Latin script ranges: if text has these, OCR repair is worth an AI pass. */
+function hasNonLatinScript(text: string): boolean {
+  return /[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0600-\u06FF\u0750-\u077F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0400-\u04FF\u0E00-\u0E7F]/.test(text);
+}
+
+/** Heuristic: does OCR text look noisy enough to warrant an AI repair pass? */
+export function looksNoisyOcr(text: string): boolean {
+  if (!text.trim()) return false;
+  if (hasNonLatinScript(text)) return true;
+  // Many single/orphan characters or stray symbols = noisy Latin OCR.
+  const tokens = text.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return false;
+  const shortTokens = tokens.filter((t) => t.length <= 2).length;
+  const junk = (text.match(/[|~^`¬°£€¥§©®™\\{}\[\]<>]/g) || []).length;
+  return shortTokens / tokens.length > 0.4 || junk >= 3;
+}
+
+/**
+ * General multilingual OCR text repair via the AI engine. Works for ANY
+ * language/script (Hindi, Tamil, Arabic, Chinese, English, …). Bengali is
+ * routed through the specialised {@link restoreBengaliText} for best results.
+ * Fail-soft per chunk; quota errors abort so the user sees why.
+ */
+export async function restoreOcrText(
+  text: string,
+  languageHint?: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<string> {
+  const normalized = normalizeIndicPage(text);
+  // Bengali has a dedicated, higher-accuracy repair pipeline.
+  if (hasBengaliText(normalized)) return restoreBengaliText(normalized, onProgress);
+
+  const chunks = chunkText(normalized);
+  const langLine = languageHint ? `The document language is: ${languageHint}. ` : '';
+  const out: string[] = [];
+  for (let i = 0; i < chunks.length; i++) {
+    onProgress?.(i, chunks.length);
+    if (!chunks[i].trim()) { out.push(chunks[i]); continue; }
+    try {
+      out.push(await callRestoreApi(`${langLine}${chunks[i]}`, OCR_REPAIR_SYSTEM_PROMPT, 'Noisy OCR text'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : '';
       if (/limit|credit|sign in/i.test(msg)) throw e; // quota — surface to the user

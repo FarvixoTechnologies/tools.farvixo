@@ -59,7 +59,7 @@ export default function Footer() {
               <BrandLogo variant="logo" alt="" className="logo-img" width={38} height={38} />
               <BrandLogo variant="wordmark" alt="Farvixo" className="logo-wordmark" width={132} height={34} />
             </div>
-            <p className="footer-desc">Farvixo Tools is a modern AI-powered productivity platform offering 139+ online tools for developers, creators, businesses, students, and professionals worldwide.</p>
+            <p className="footer-desc">Farvixo Tools is a modern AI-powered productivity platform offering 150+ online tools for developers, creators, businesses, students, and professionals worldwide.</p>
             <div className="social-row">
               {['facebook', 'twitter', 'linkedin', 'youtube', 'instagram', 'github'].map((s) => (
                 <a key={s} href="#" className="social-icon" aria-label={s}><Icon name={s} size={15} /></a>

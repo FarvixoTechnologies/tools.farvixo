@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
-import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import { ErrorBox, ShareButton, useStepScrollReset, useToolPhase, type ResultFile } from '../shared';
 import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { downloadBlob, formatBytes } from '@/lib/download';
@@ -206,6 +206,7 @@ export default function PdfCompressorRunner({ tool }: { tool: Tool }) {
   const presetTargetKB = typeof tool.config?.targetKB === 'number' ? tool.config.targetKB : 0;
 
   const [step, setStep] = useState<Step>(0);
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [queue, setQueue] = useState<PdfQueueItem[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [settings, setSettings] = useState<CompressSettings>(() => ({

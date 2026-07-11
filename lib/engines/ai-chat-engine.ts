@@ -52,7 +52,7 @@ export interface PersonaMeta {
 // repeated in each persona's task-specific system prompt below.
 
 const FARVIXO_CONTEXT =
-  'Farvixo Tools (tools.farvixo.com) — 139+ tools in one platform. Always link users directly to the exact tool URL; never generic navigation steps.';
+  'Farvixo Tools (tools.farvixo.com) — 150+ tools in one platform. Always link users directly to the exact tool URL; never generic navigation steps.';
 
 export const CHAT_PERSONAS: PersonaMeta[] = [
   {

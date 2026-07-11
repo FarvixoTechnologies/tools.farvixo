@@ -88,7 +88,7 @@ export const defaultAdminSettings: AdminSettings = {
   },
   disabled_tools: [],
   email_templates: [
-    { id: 'welcome', name: 'Welcome Email', subject: 'Welcome to Farvixo!', body: 'Hi {{name}}, welcome to Farvixo Tools — 139+ tools in one place.' },
+    { id: 'welcome', name: 'Welcome Email', subject: 'Welcome to Farvixo!', body: 'Hi {{name}}, welcome to Farvixo Tools — 150+ tools in one place.' },
     { id: 'reset', name: 'Password Reset', subject: 'Reset your Farvixo password', body: 'Click the link to reset your password: {{link}}' },
     { id: 'pro_receipt', name: 'Pro Receipt', subject: 'Your Farvixo Pro receipt', body: 'Thanks for upgrading to Pro, {{name}}!' },
   ],

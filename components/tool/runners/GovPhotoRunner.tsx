@@ -22,7 +22,7 @@ import {
   type PanFileType,
   type PanPortal,
 } from '@/lib/gov-photo';
-import { ErrorBox, Processing, ShareButton, useToolPhase } from '../shared';
+import { ErrorBox, Processing, ShareButton, useStepScrollReset, useToolPhase } from '../shared';
 import {
   GOV_SPECS,
   getGovSpec,
@@ -145,6 +145,7 @@ export default function GovPhotoRunner({ tool }: { tool: Tool }) {
   const specIds = (tool.config?.specIds as string[] | undefined) ?? [];
   const { phase, setPhase, error, fail, reset: resetPhase } = useToolPhase();
   const [step, setStep] = useState<Step>(isPanMode ? 'portal' : 'spec');
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [selectedSpecId, setSelectedSpecId] = useState<string | null>(specIds.length === 1 ? specIds[0] : null);
   const [govSpec, setGovSpec] = useState<GovSpec | null>(
     specIds.length === 1 ? getGovSpec(specIds[0]) ?? null : null,

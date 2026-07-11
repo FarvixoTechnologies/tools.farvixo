@@ -10,7 +10,7 @@ export default function SecurityPage() {
   return (
     <PageShell title="Security" subtitle="Your data safety is our top priority">
       <h2>🔒 Privacy by design</h2>
-      <p>139+ tools run entirely in your browser. Files never leave your device unless a tool explicitly requires server-side processing.</p>
+      <p>150+ tools run entirely in your browser. Files never leave your device unless a tool explicitly requires server-side processing.</p>
       <h2>Encryption</h2>
       <ul>
         <li>256-bit SSL/TLS on all connections</li>

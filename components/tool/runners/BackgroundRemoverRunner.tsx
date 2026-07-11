@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import type { Tool } from '@/data/tools';
 import Icon from '@/components/Icon';
-import { ErrorBox, ShareButton, useToolPhase, type ResultFile } from '../shared';
+import { ErrorBox, ShareButton, useStepScrollReset, useToolPhase, type ResultFile } from '../shared';
 import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { useUI } from '@/components/GlobalUI';
 import { downloadBlob, formatBytes, replaceExt } from '@/lib/download';
@@ -191,6 +191,7 @@ export default function BackgroundRemoverRunner({ tool }: { tool: Tool }) {
   const { phase, setPhase, error, fail, reset } = useToolPhase();
 
   const [step, setStep] = useState<Step>(0);
+  useStepScrollReset(step); // every step opens from the top, like a new page
   const [jobs, setJobs] = useState<ImageJob[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [options, setOptions] = useState<RemoveOptions>(DEFAULT_REMOVE_OPTIONS);
@@ -413,6 +414,12 @@ export default function BackgroundRemoverRunner({ tool }: { tool: Tool }) {
     setActiveIdx(0);
     setResultFile(null);
     undoStack.current = [];
+    // Full state reset per Scroll UX spec: preview, zoom, progress
+    setPreviewMode('after');
+    setZoom(100);
+    setBrushMode('erase');
+    setStatus('');
+    setProgress(0);
   };
 
   const fab = <FabRail options={options} setOptions={setOptions} onShare={resultFile ? () => setShareOpen(true) : step >= 2 ? () => setShareOpen(true) : undefined} onOpenAi={openAI} />;

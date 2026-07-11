@@ -2,7 +2,7 @@
   "name": "tools-farvixo",
   "version": "1.0.0",
   "private": true,
-  "description": "Farvixo Tools — Build Beyond. 139+ Free Online AI & Productivity Tools.",
+  "description": "Farvixo Tools — Build Beyond. 150+ Free Online AI & Productivity Tools.",
   "scripts": {
     "dev": "next dev",
     "dev:clean": "node -e \"const fs=require('fs');['.next','node_modules/.cache'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}))\" && next dev",

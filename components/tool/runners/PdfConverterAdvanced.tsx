@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
-import { ErrorBox, fileMatchesAccept, useToolPhase, type ResultFile } from '../shared';
+import { ErrorBox, fileMatchesAccept, useStepScrollReset, useToolPhase, type ResultFile } from '../shared';
 import UniversalDragDropUploader from '../UniversalDragDropUploader';
 import { renderPdfPages } from '@/lib/pdf';
 import { extractPdfTextSmart } from '@/lib/pdf-smart-text';
@@ -98,6 +98,7 @@ export default function PdfConverterAdvanced({ tool }: { tool: Tool }) {
   const [file, setFile] = useState<File | null>(null);
   const [inputKind, setInputKind] = useState<InputKind>('pdf');
   const [view, setView] = useState<ViewMode>('upload');
+  useStepScrollReset(view); // every view change opens from the top, like a new page
   const [structure, setStructure] = useState<DocumentStructure | null>(null);
   const [strategies, setStrategies] = useState<PageStrategy[]>([]);
   const [targetFormat, setTargetFormat] = useState<TargetFormat | null>(null);

@@ -150,7 +150,7 @@ print(body["data"]["summary"])`}</code></pre>
       </Endpoint>
 
       <Endpoint method="GET" path="/api/v1/tools" cost="free · no key">
-        <p>The full 139-tool catalog as JSON. Filter with <code>?category=pdf</code>.</p>
+        <p>The full tool catalog as JSON. Filter with <code>?category=pdf</code>.</p>
       </Endpoint>
 
       <h2>Account endpoints — free</h2>

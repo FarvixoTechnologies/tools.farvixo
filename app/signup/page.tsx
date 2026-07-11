@@ -68,7 +68,7 @@ export default function SignupPage() {
         <div className="auth-head">
           <BrandLogo variant="lockup" alt="Farvixo — Build Beyond." className="auth-logo" width={200} height={133} priority />
           <h1>Create your Farvixo Account</h1>
-          <p className="muted">Free forever · 139+ tools · No credit card</p>
+          <p className="muted">Free forever · 150+ tools · No credit card</p>
         </div>
         <form onSubmit={(e) => void signup(e)}>
           <div className="field mb-4">
