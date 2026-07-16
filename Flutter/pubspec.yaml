@@ -1,0 +1,50 @@
+name: farvixo_all
+description: "Farvixo Tools — One Platform. Infinite Tools. Powered by AI."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # Networking
+  dio: ^5.7.0
+
+  # Backend (guarded init — app runs without keys)
+  supabase_flutter: ^2.8.0
+
+  # Local storage
+  shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.2
+
+  # Biometric authentication
+  local_auth: ^2.3.0
+  flutter_dotenv: ^6.0.1
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - .env.example
+    - assets/logo/farvixo_logo.png
+    - assets/logo/farvixo_logo.svg
+    - assets/logo/app_icon_1024.png

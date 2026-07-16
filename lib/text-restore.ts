@@ -174,7 +174,7 @@ Rules:
 - Respond with ONLY the corrected text.`;
 
 /** Non-Latin script ranges: if text has these, OCR repair is worth an AI pass. */
-function hasNonLatinScript(text: string): boolean {
+export function hasNonLatinScript(text: string): boolean {
   return /[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0600-\u06FF\u0750-\u077F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0400-\u04FF\u0E00-\u0E7F]/.test(text);
 }
 
@@ -206,13 +206,18 @@ export async function restoreOcrText(
   if (hasBengaliText(normalized)) return restoreBengaliText(normalized, onProgress);
 
   const chunks = chunkText(normalized);
-  const langLine = languageHint ? `The document language is: ${languageHint}. ` : '';
+  // IMPORTANT: the language hint goes in the SYSTEM prompt, never prepended to
+  // the user's text — otherwise the model echoes "The document language is: X"
+  // back as if it were part of the image.
+  const sys = languageHint
+    ? `${OCR_REPAIR_SYSTEM_PROMPT}\n\nThe text is primarily in ${languageHint}. Do NOT translate it and do NOT mention the language in your output.`
+    : OCR_REPAIR_SYSTEM_PROMPT;
   const out: string[] = [];
   for (let i = 0; i < chunks.length; i++) {
     onProgress?.(i, chunks.length);
     if (!chunks[i].trim()) { out.push(chunks[i]); continue; }
     try {
-      out.push(await callRestoreApi(`${langLine}${chunks[i]}`, OCR_REPAIR_SYSTEM_PROMPT, 'Noisy OCR text'));
+      out.push(await callRestoreApi(chunks[i], sys, 'Noisy OCR text'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : '';
       if (/limit|credit|sign in/i.test(msg)) throw e; // quota — surface to the user

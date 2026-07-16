@@ -9,9 +9,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 // deployment platform's env vars are not set. This file is never imported by
 // client components, so the service-role key stays out of the browser bundle.
 // Real env vars, when present, always take precedence.
-const FALLBACK_URL = 'https://xtmcsndjbgalovoqipmb.supabase.co';
+const FALLBACK_URL = 'https://bujpwwxanaejfcyuigth.supabase.co';
 const FALLBACK_SERVICE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bWNzbmRqYmdhbG92b3FpcG1iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkxNjY1NiwiZXhwIjoyMDk4NDkyNjU2fQ.Lk7-HreWg29NQQ-4ltyWuoGxwkE18fm9A0jRKc825mc';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1anB3d3hhbmFlamZjeXVpZ3RoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzk1NzcxMSwiZXhwIjoyMDk5NTMzNzExfQ.wbvAqmtZh7hd9j4mybJaUrSWmJJbyfwahG6ZO3AGWiw';
 
 export function createAdminClient(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;

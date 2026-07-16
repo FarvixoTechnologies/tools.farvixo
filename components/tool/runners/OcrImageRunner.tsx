@@ -345,15 +345,17 @@ export default function OcrImageRunner({ tool }: { tool: Tool }) {
     : null;
 
   const getPreviewCanvas = (): string | null => {
-    if (!active?.result?.enhancedCanvas) return active?.previewUrl ?? null;
-    const canvas = active.result.enhancedCanvas;
-    if (previewMode === 'overlay') {
-      return drawOcrOverlay(canvas, active.result, 'boxes').toDataURL('image/png');
+    const result = active?.result;
+    // GOLDEN RULE: the preview always shows the UNTOUCHED original upload —
+    // never the binarized/cropped OCR working copy.
+    const base = result?.originalCanvas;
+    if ((previewMode === 'overlay' || previewMode === 'heatmap') && base && result) {
+      // Draw OCR boxes onto the original, mapping coords back via the transform.
+      return drawOcrOverlay(base, result, previewMode === 'heatmap' ? 'heatmap' : 'boxes', result.transform)
+        .toDataURL('image/png');
     }
-    if (previewMode === 'heatmap') {
-      return drawOcrOverlay(canvas, active.result, 'heatmap').toDataURL('image/png');
-    }
-    return canvas.toDataURL('image/png');
+    // Original / Split / Side → the raw uploaded file (best fidelity, no re-encode).
+    return active?.previewUrl ?? base?.toDataURL('image/png') ?? null;
   };
 
   const resetAll = () => {

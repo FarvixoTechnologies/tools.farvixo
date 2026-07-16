@@ -36,6 +36,53 @@ export async function geminiCompleteServer(
   return json.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
 }
 
+/**
+ * Multimodal OCR with Gemini — reads text directly out of an image. Gemini is
+ * excellent on Indic scripts (Hindi/Bengali/Tamil…), decorative poster fonts and
+ * handwriting, so this is the primary "Vision OCR" path. Returns trimmed text
+ * (empty string if the model found no readable text).
+ */
+export async function geminiVisionServer(
+  imageDataUrl: string,
+  prompt: string,
+  model = DEFAULT_MODEL,
+): Promise<string> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY is not configured on the server.');
+
+  const match = imageDataUrl.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (!match) throw new Error('Invalid image data URL');
+  const [, mimeType, data] = match;
+
+  const body = {
+    contents: [{
+      role: 'user',
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mimeType, data } },
+      ],
+    }],
+    generationConfig: { temperature: 0.1 },
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini vision error (${res.status}): ${errText.slice(0, 300)}`);
+  }
+
+  const json = await res.json() as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  return (json.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '').trim();
+}
+
 export async function* geminiStreamServer(
   messages: ChatMessage[],
   system: string,

@@ -31,7 +31,7 @@ export function AdminQuickGrid({ items, title = 'Admin Control Center' }: { item
       <p className="muted mb-4" style={{ fontSize: 13 }}>Quick access to all advanced admin pages</p>
       <div className="admin-quick-grid">
         {items.map((item) => (
-          <Link key={item.href} href={item.href} className="admin-quick-card">
+          <Link key={`${item.href}:${item.label}`} href={item.href} className="admin-quick-card">
             <span className="admin-quick-icon"><Icon name={item.icon} size={18} /></span>
             <b>{item.label}</b>
             {item.description && <span className="muted">{item.description}</span>}

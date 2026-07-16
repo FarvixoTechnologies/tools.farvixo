@@ -5,16 +5,30 @@ export const dynamic = 'force-static';
 const BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://tools.farvixo.com';
 
 const bearerSecurity = [{ bearerAuth: [] as string[] }];
+const cookieNote =
+  'Browser session (Supabase Auth cookie). Use after sign-in via web/Flutter OAuth — not an API key.';
 
 const envelope = (dataSchema: Record<string, unknown>) => ({
   type: 'object',
   properties: {
     success: { type: 'boolean' },
+    message: { type: 'string' },
     data: dataSchema,
     error: { type: 'string', nullable: true },
+    errorDetail: {
+      type: 'object',
+      nullable: true,
+      properties: { code: { type: 'string' }, message: { type: 'string' } },
+    },
     meta: {
       type: 'object',
-      properties: { requestId: { type: 'string' }, timestamp: { type: 'string' } },
+      properties: {
+        requestId: { type: 'string' },
+        timestamp: { type: 'string' },
+        page: { type: 'integer' },
+        pageSize: { type: 'integer' },
+        total: { type: 'integer' },
+      },
     },
   },
 });
@@ -30,8 +44,11 @@ const spec = {
     title: 'Farvixo API',
     version: '1.0.0',
     description:
-      'AI and utility endpoints. Authenticate with `Authorization: Bearer fx_live_...` — create keys at ' +
-      `${BASE}/dashboard/api-keys. AI endpoints cost 1 credit per call (auto-refunded on failure); utility endpoints are free.`,
+      'Farvixo Tools public API (Architecture v3). ' +
+      'Developer AI/utility endpoints use `Authorization: Bearer fx_live_...` (create keys at ' +
+      `${BASE}/dashboard/api-keys). ` +
+      'User routes use the signed-in session cookie. Interactive docs: ' +
+      `${BASE}/api/v1/docs`,
   },
   servers: [{ url: `${BASE}/api/v1` }],
   components: {
@@ -40,6 +57,135 @@ const spec = {
     },
   },
   paths: {
+    '/status': {
+      get: {
+        summary: 'API health',
+        responses: { '200': { description: 'OK', content: { 'application/json': { schema: envelope({ type: 'object' }) } } } },
+      },
+    },
+    '/auth/me': {
+      get: {
+        summary: 'Current user (session)',
+        description: cookieNote,
+        responses: { '200': { description: 'Profile' }, '401': { description: 'Unauthorized' } },
+      },
+    },
+    '/users/me': {
+      get: {
+        summary: 'Current user profile (session)',
+        description: cookieNote,
+        responses: { '200': { description: 'Profile' } },
+      },
+      patch: {
+        summary: 'Update profile (full_name, avatar_url)',
+        description: cookieNote,
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { full_name: { type: 'string' }, avatar_url: { type: 'string', nullable: true } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'Updated' } },
+      },
+    },
+    '/tools': {
+      get: {
+        summary: 'Full tool catalog (public)',
+        parameters: [{ name: 'category', in: 'query', schema: { type: 'string', example: 'pdf' } }],
+        responses: { '200': { description: 'Tool list' } },
+      },
+    },
+    '/tools/categories': {
+      get: { summary: 'Tool categories (public)', responses: { '200': { description: 'Categories' } } },
+    },
+    '/tools/search': {
+      get: {
+        summary: 'Search tools',
+        parameters: [
+          { name: 'q', in: 'query', schema: { type: 'string' } },
+          { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+        ],
+        responses: { '200': { description: 'Matches' } },
+      },
+    },
+    '/tools/{id}': {
+      get: {
+        summary: 'Tool by slug',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'Tool' }, '404': { description: 'Not found' } },
+      },
+    },
+    '/tools/favorite': {
+      get: { summary: 'List favorites (session)', description: cookieNote, responses: { '200': { description: 'Favorites' } } },
+      post: {
+        summary: 'Add/remove favorite (session)',
+        description: cookieNote,
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['toolSlug'],
+                properties: { toolSlug: { type: 'string' }, favorite: { type: 'boolean', default: true } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'Saved' } },
+      },
+    },
+    '/plans': {
+      get: { summary: 'Subscription plans (public)', responses: { '200': { description: 'Plans' } } },
+    },
+    '/wallet': {
+      get: { summary: 'Wallet balance (session)', description: cookieNote, responses: { '200': { description: 'Wallet' } } },
+    },
+    '/credits': {
+      get: { summary: 'Credits + ledger (session)', description: cookieNote, responses: { '200': { description: 'Credits' } } },
+    },
+    '/notifications': {
+      get: {
+        summary: 'Notifications (session)',
+        description: cookieNote,
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer' } },
+          { name: 'limit', in: 'query', schema: { type: 'integer' } },
+        ],
+        responses: { '200': { description: 'Inbox' } },
+      },
+      patch: {
+        summary: 'Mark read',
+        description: cookieNote,
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { ids: { type: 'array', items: { type: 'string' } }, all: { type: 'boolean' } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'Updated' } },
+      },
+      delete: {
+        summary: 'Delete notifications',
+        description: cookieNote,
+        responses: { '200': { description: 'Deleted' } },
+      },
+    },
+    '/ai/chat': {
+      post: {
+        summary: 'AI chat (1 credit) — alias of /chat',
+        security: bearerSecurity,
+        responses: { '200': { description: 'Reply' } },
+      },
+    },
     '/chat': {
       post: {
         summary: 'AI chat completion (1 credit)',
@@ -277,23 +423,16 @@ const spec = {
         },
       },
     },
-    '/tools': {
-      get: {
-        summary: 'Full tool catalog (free, no key required)',
-        parameters: [{ name: 'category', in: 'query', schema: { type: 'string', example: 'pdf' } }],
-        responses: { '200': { description: 'Tool list' } },
-      },
-    },
     '/me': {
       get: {
-        summary: 'Key info, credit balance and price list (free)',
+        summary: 'API key info + credit balance (free)',
         security: bearerSecurity,
         responses: { '200': { description: 'Account info' } },
       },
     },
     '/usage': {
       get: {
-        summary: 'Last 100 API calls with credit amounts (free)',
+        summary: 'Last 100 API calls (free)',
         security: bearerSecurity,
         responses: { '200': { description: 'Usage ledger' } },
       },
@@ -301,7 +440,7 @@ const spec = {
   },
 } as const;
 
-/** GET /api/v1/openapi.json — machine-readable OpenAPI 3.0 spec for the public API. */
+/** GET /api/v1/openapi.json — OpenAPI 3.0 for Farvixo API Architecture v3. */
 export async function GET() {
   return NextResponse.json(spec, {
     headers: { 'Cache-Control': 'public, max-age=3600' },

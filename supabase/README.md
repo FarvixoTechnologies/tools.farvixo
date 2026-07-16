@@ -1,6 +1,6 @@
 # Supabase setup
 
-## Live project status (`xtmcsndjbgalovoqipmb`)
+## Live project status (`bujpwwxanaejfcyuigth`)
 
 Already applied via API/bootstrap:
 

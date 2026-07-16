@@ -1,6 +1,6 @@
 -- ============================================================
--- Farvixo Tools — Missing admin tables (run on project xtmcsndjbgalovoqipmb)
--- Safe to re-run. Paste into Supabase → SQL Editor → Run.
+-- Farvixo Tools — Missing admin tables
+-- Project: bujpwwxanaejfcyuigth (safe to re-run)
 -- ============================================================
 
 -- Contact inbox columns

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import BrandLogo from '@/components/BrandLogo';
 import { useUI } from '@/components/GlobalUI';
-import { startOAuth } from '@/lib/auth-oauth';
+import { startOAuth, getEmailRedirectUrl } from '@/lib/auth-oauth';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
@@ -45,7 +45,7 @@ export default function SignupPage() {
       password,
       options: {
         data: { full_name: name.trim() },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`,
+        emailRedirectTo: getEmailRedirectUrl('/dashboard'),
       },
     });
     setBusy(false);

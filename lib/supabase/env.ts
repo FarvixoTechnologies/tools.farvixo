@@ -3,9 +3,9 @@
 // Used as a build-time fallback so the app works even if the deployment
 // platform's NEXT_PUBLIC_SUPABASE_* env vars are not set. Real env vars, when
 // present, always take precedence.
-const FALLBACK_URL = 'https://xtmcsndjbgalovoqipmb.supabase.co';
+const FALLBACK_URL = 'https://bujpwwxanaejfcyuigth.supabase.co';
 const FALLBACK_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0bWNzbmRqYmdhbG92b3FpcG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTY2NTYsImV4cCI6MjA5ODQ5MjY1Nn0.e9Yw64oZbisJ0VldyspqW2XfXi7t5hnufuXBTGH6UQ4';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1anB3d3hhbmFlamZjeXVpZ3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NTc3MTEsImV4cCI6MjA5OTUzMzcxMX0._U_Vrgl55wWs0jXbFXyXdD56SRFdoV9bjYj7raQa4Es';
 
 export function getSupabaseEnv(): { url: string; anonKey: string } | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;

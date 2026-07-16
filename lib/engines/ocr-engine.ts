@@ -3,7 +3,7 @@
 import { fileToTypedBlobAsync, loadImage, makeCanvas, sharpen } from '@/lib/image';
 import { renderPdfPages } from '@/lib/pdf';
 import { normalizeIndicPage } from '@/lib/indic-normalize';
-import { looksNoisyOcr, restoreOcrText } from '@/lib/text-restore';
+import { hasNonLatinScript, looksNoisyOcr, restoreOcrText } from '@/lib/text-restore';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -131,6 +131,15 @@ export interface DocumentDetection {
   megapixels: number;
 }
 
+/** Maps original-image pixel coords → enhanced/OCR-canvas coords:
+ *  enhancedX = (originalX - offsetX) * scale. Inverse is used to draw OCR
+ *  bounding boxes back onto the untouched original for overlay/heatmap. */
+export interface OcrTransform {
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+}
+
 export interface OcrResult {
   text: string;
   confidence: number;
@@ -139,7 +148,12 @@ export interface OcrResult {
   blocks: OcrBlock[];
   detection: DocumentDetection;
   barcodes: BarcodeHit[];
+  /** The binarized/processed canvas OCR actually ran on (working copy). */
   enhancedCanvas?: HTMLCanvasElement;
+  /** The untouched, full-resolution original — what the preview must show. */
+  originalCanvas?: HTMLCanvasElement;
+  /** Transform from original → enhanced, so boxes can be mapped back. */
+  transform?: OcrTransform;
   sourceName: string;
 }
 
@@ -310,6 +324,12 @@ function adjustContrastBrightness(canvas: HTMLCanvasElement, contrast = 1.12, br
   ctx.putImageData(img, 0, 0);
 }
 
+/**
+ * Edge-preserving 3×3 median denoise. A median filter removes speckle/salt-and-
+ * pepper noise WITHOUT the glyph-edge softening a mean/box blur causes — so small
+ * text stays crisp and OCR reads it correctly. This is the biggest single-filter
+ * accuracy win for keeping extracted text identical to the source.
+ */
 function simpleDenoise(canvas: HTMLCanvasElement): void {
   const ctx = canvas.getContext('2d')!;
   const { width: w, height: h } = canvas;
@@ -317,18 +337,26 @@ function simpleDenoise(canvas: HTMLCanvasElement): void {
   const out = ctx.createImageData(w, h);
   const s = src.data;
   const o = out.data;
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
+  const win = new Array<number>(9);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const oi = (y * w + x) * 4;
+      // Copy borders untouched (no full 3×3 neighbourhood available).
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) {
+        o[oi] = s[oi]; o[oi + 1] = s[oi + 1]; o[oi + 2] = s[oi + 2]; o[oi + 3] = s[oi + 3];
+        continue;
+      }
       for (let ch = 0; ch < 3; ch++) {
-        let sum = 0;
+        let k = 0;
         for (let dy = -1; dy <= 1; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
-            sum += s[((y + dy) * w + (x + dx)) * 4 + ch];
+            win[k++] = s[((y + dy) * w + (x + dx)) * 4 + ch];
           }
         }
-        o[(y * w + x) * 4 + ch] = Math.round(sum / 9);
+        win.sort((a, b) => a - b);
+        o[oi + ch] = win[4]; // median of the 9 samples
       }
-      o[(y * w + x) * 4 + 3] = s[(y * w + x) * 4 + 3];
+      o[oi + 3] = s[oi + 3];
     }
   }
   ctx.putImageData(out, 0, 0);
@@ -383,49 +411,72 @@ function toGrayscale(canvas: HTMLCanvasElement): void {
   ctx.putImageData(img, 0, 0);
 }
 
-/** Otsu global threshold — auto-picks the best black/white cutoff. */
-function otsuLevel(gray: Uint8ClampedArray): number {
-  const hist = new Array(256).fill(0);
-  let total = 0;
-  for (let i = 0; i < gray.length; i += 4) { hist[gray[i]]++; total++; }
-  let sum = 0;
-  for (let t = 0; t < 256; t++) sum += t * hist[t];
-  let sumB = 0;
-  let wB = 0;
-  let maxVar = 0;
-  let level = 128;
-  for (let t = 0; t < 256; t++) {
-    wB += hist[t];
-    if (wB === 0) continue;
-    const wF = total - wB;
-    if (wF === 0) break;
-    sumB += t * hist[t];
-    const mB = sumB / wB;
-    const mF = (sum - sumB) / wF;
-    const between = wB * wF * (mB - mF) * (mB - mF);
-    if (between > maxVar) { maxVar = between; level = t; }
-  }
-  return level;
-}
-
 /**
- * Adaptive binarization: grayscale + Otsu, then auto-invert if the page came
- * out mostly black (light text on dark background, like posters) so Tesseract
- * always sees dark text on a white page.
+ * Adaptive (local) binarization — Bradley–Roth thresholding via an integral
+ * image. Instead of one global cutoff (which erases whole regions of text when
+ * a photo has shadows or uneven lighting), every pixel is compared to the mean
+ * brightness of its own local neighbourhood. This keeps faint text in shadowed
+ * corners AND bright text near a window readable, so the OCR output matches the
+ * source far more closely on real-world phone photos and scans.
+ *
+ * Auto-inverts light-on-dark designs (posters/banners) so Tesseract always sees
+ * dark text on a white page.
  */
 function binarizeCanvas(canvas: HTMLCanvasElement): void {
   const ctx = canvas.getContext('2d')!;
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const w = canvas.width;
+  const h = canvas.height;
+  const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
-  const level = otsuLevel(d);
+
+  // Per-pixel luminance.
+  const gray = new Float64Array(w * h);
+  for (let p = 0, i = 0; p < w * h; p++, i += 4) {
+    gray[p] = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+  }
+
+  // Integral (summed-area) image for O(1) window sums. Size (w+1)×(h+1).
+  const iw = w + 1;
+  const integral = new Float64Array(iw * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let rowSum = 0;
+    for (let x = 0; x < w; x++) {
+      rowSum += gray[y * w + x];
+      integral[(y + 1) * iw + (x + 1)] = integral[y * iw + (x + 1)] + rowSum;
+    }
+  }
+
+  // Window ≈ 1/16 of the image width; t = 15% darkness bias (Bradley defaults).
+  const s = Math.max(8, Math.floor(w / 16));
+  const half = Math.floor(s / 2);
+  const t = 0.15;
+
+  const bin = new Uint8Array(w * h); // 1 = ink (dark), 0 = paper
   let darkCount = 0;
-  for (let i = 0; i < d.length; i += 4) if (d[i] < level) darkCount++;
-  const darkRatio = darkCount / (d.length / 4);
-  // If the "ink" (dark) covers most of the page, the real text is the light
-  // pixels on a dark background — invert so text ends up black on white.
-  const invert = darkRatio > 0.55;
-  for (let i = 0; i < d.length; i += 4) {
-    let on = d[i] < level; // true = dark pixel
+  for (let y = 0; y < h; y++) {
+    const y1 = Math.max(0, y - half);
+    const y2 = Math.min(h - 1, y + half);
+    for (let x = 0; x < w; x++) {
+      const x1 = Math.max(0, x - half);
+      const x2 = Math.min(w - 1, x + half);
+      const count = (x2 - x1 + 1) * (y2 - y1 + 1);
+      const sum =
+        integral[(y2 + 1) * iw + (x2 + 1)] -
+        integral[y1 * iw + (x2 + 1)] -
+        integral[(y2 + 1) * iw + x1] +
+        integral[y1 * iw + x1];
+      // Dark if pixel is meaningfully below the local mean.
+      const isDark = gray[y * w + x] * count <= sum * (1 - t);
+      bin[y * w + x] = isDark ? 1 : 0;
+      if (isDark) darkCount++;
+    }
+  }
+
+  // If "ink" covers most of the page, the real text is the light pixels on a
+  // dark background — invert so text ends up black on white.
+  const invert = darkCount / (w * h) > 0.55;
+  for (let p = 0, i = 0; p < w * h; p++, i += 4) {
+    let on = bin[p] === 1;
     if (invert) on = !on;
     const v = on ? 0 : 255;
     d[i] = d[i + 1] = d[i + 2] = v;
@@ -476,19 +527,29 @@ export async function fileToCanvas(file: File, pageIndex = 0): Promise<HTMLCanva
 export function applyEnhancements(
   source: HTMLCanvasElement,
   opts: OcrEnhancementOptions,
+  outTransform?: OcrTransform,
 ): HTMLCanvasElement {
   let canvas = source;
   const [copy, ctx] = makeCanvas(source.width, source.height);
   ctx.drawImage(source, 0, 0);
   canvas = copy;
 
+  let offsetX = 0;
+  let offsetY = 0;
+
   if (opts.autoCrop) {
     const { data, width: w, height: h } = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const b = contentBounds(data, w, h);
+    offsetX = b.x0;
+    offsetY = b.y0;
     const [cropped, cctx] = makeCanvas(b.x1 - b.x0, b.y1 - b.y0);
     cctx.drawImage(canvas, b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0, 0, 0, cropped.width, cropped.height);
     canvas = cropped;
   }
+
+  // Width (in original pixels) before any scaling — used to derive the uniform
+  // original→enhanced scale factor for bounding-box mapping.
+  const widthBeforeScale = canvas.width;
 
   // Upscale small images first so downstream filters work on crisp glyphs.
   canvas = upscaleToMin(canvas);
@@ -509,6 +570,14 @@ export function applyEnhancements(
 
   if (opts.upscale4x) canvas = upscaleCanvas(canvas, 4);
   else if (opts.upscale2x) canvas = upscaleCanvas(canvas, 2);
+
+  if (outTransform) {
+    // All scaling steps are uniform, so a single scale + crop offset fully
+    // describes the original → enhanced mapping.
+    outTransform.offsetX = offsetX;
+    outTransform.offsetY = offsetY;
+    outTransform.scale = widthBeforeScale > 0 ? canvas.width / widthBeforeScale : 1;
+  }
 
   return canvas;
 }
@@ -681,11 +750,12 @@ function canvasToVisionDataUrl(canvas: HTMLCanvasElement, maxDim = 1400): string
 }
 
 /**
- * Vision-AI OCR: sends the image itself to a free multimodal model that reads
- * text directly — dramatically better than Tesseract on photos, posters,
- * decorative fonts, handwriting and mixed scripts. No API key required
- * (Pollinations OpenAI-compatible vision endpoint). Returns '' on failure so
- * the caller can fall back to the local Tesseract result.
+ * Vision-AI OCR: sends the image to our own server route, which reads the text
+ * with a multimodal model (Gemini first — excellent on Indic scripts, poster
+ * fonts & handwriting — then a free Pollinations fallback). Going through the
+ * server avoids browser CORS failures (the previous direct browser→Pollinations
+ * call silently failed and dumped Tesseract garbage) and lets us use the app's
+ * Gemini key. Returns '' on failure so the caller can fall back to Tesseract.
  */
 export async function visionOcr(
   canvas: HTMLCanvasElement,
@@ -693,41 +763,17 @@ export async function visionOcr(
   signal?: AbortSignal,
 ): Promise<string> {
   const dataUrl = canvasToVisionDataUrl(canvas);
-  const langLine = languageHint ? ` The text is primarily in ${languageHint}.` : '';
-  const prompt =
-    `You are a precise OCR engine. Transcribe ALL text visible in this image EXACTLY as written, ` +
-    `including titles, headings and body text.${langLine} Preserve the original language and script — do NOT translate. ` +
-    `Preserve line breaks and reading order. If some text is stylised or decorative, still read it. ` +
-    `Output ONLY the transcribed text with no commentary, labels or quotes.`;
 
-  const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+  const res = await fetch('/api/ai/vision-ocr', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'openai',
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: dataUrl } },
-        ],
-      }],
-      stream: false,
-      temperature: 0.1,
-    }),
+    body: JSON.stringify({ image: dataUrl, languageHint }),
     signal,
   });
 
   if (!res.ok) throw new Error(`Vision OCR failed (${res.status})`);
-  const raw = await res.text();
-  let content = '';
-  try {
-    const json = JSON.parse(raw) as { choices?: { message?: { content?: string } }[] };
-    content = json.choices?.[0]?.message?.content ?? '';
-  } catch {
-    content = raw;
-  }
-  content = content.trim();
+  const json = (await res.json()) as { data?: { text?: string } | null };
+  let content = (json.data?.text ?? '').trim();
   // Strip a leading "Here is the text:" style preamble or code fence.
   const fence = content.match(/^```[a-z]*\n?([\s\S]*?)\n?```$/i);
   if (fence) content = fence[1].trim();
@@ -815,9 +861,18 @@ export async function runOcrOnCanvas(
     } catch { /* fall back to Tesseract text */ }
   }
 
-  // AI text repair for ALL languages — only needed when Vision wasn't used and
-  // the local OCR looks noisy / low-confidence (Hindi, Tamil, Arabic, CJK…).
-  if (!usedVision && options.aiRepair && text && (looksNoisyOcr(text) || avgConfEarly < 80)) {
+  // AI text repair — only for NON-Latin scripts (Hindi, Tamil, Arabic, CJK…),
+  // where OCR genuinely shatters glyphs and reconstruction helps. Latin/English
+  // is left as raw Tesseract output so the text stays literally exact and is
+  // never paraphrased/hallucinated by the repair model. Skipped when Vision was
+  // used (its transcription is already clean).
+  if (
+    !usedVision &&
+    options.aiRepair &&
+    text &&
+    hasNonLatinScript(text) &&
+    (looksNoisyOcr(text) || avgConfEarly < 80)
+  ) {
     onProgress?.(0.85, 'AI text repair...');
     try {
       text = await restoreOcrText(text, langHint, (d, t) => onProgress?.(0.85 + (d / t) * 0.1, 'AI text repair...'));
@@ -864,10 +919,15 @@ export async function runOcrOnFile(
   onProgress?.(0.08, 'Enhancing image...');
   const original = await fileToCanvas(file);
   // applyEnhancements copies the source, so `original` stays the untouched
-  // colour image — perfect input for Vision AI, while Tesseract gets the
-  // binarized version.
-  const enhanced = applyEnhancements(original, options.enhancement);
-  return runOcrOnCanvas(enhanced, file.name, detection, options, onProgress, original);
+  // colour image — perfect input for Vision AI AND for the preview, while
+  // Tesseract gets the binarized version. The transform lets us map OCR boxes
+  // (in enhanced space) back onto the original for overlay/heatmap.
+  const transform: OcrTransform = { offsetX: 0, offsetY: 0, scale: 1 };
+  const enhanced = applyEnhancements(original, options.enhancement, transform);
+  const result = await runOcrOnCanvas(enhanced, file.name, detection, options, onProgress, original);
+  result.originalCanvas = original;
+  result.transform = transform;
+  return result;
 }
 
 /* ─── Export ────────────────────────────────────────────────────────────── */
@@ -980,16 +1040,34 @@ export async function exportOcrBatchZip(
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }
 
+/**
+ * Draw OCR boxes/heatmap over a base image. Pass the ORIGINAL canvas as `base`
+ * plus the `transform` so word boxes (which are in enhanced/OCR-canvas space)
+ * are mapped back onto the untouched original — the overlay/heatmap views then
+ * show the real image with aligned boxes, never the binarized working copy.
+ */
 export function drawOcrOverlay(
-  canvas: HTMLCanvasElement,
+  base: HTMLCanvasElement,
   result: OcrResult,
   mode: 'boxes' | 'heatmap' = 'boxes',
+  transform?: OcrTransform,
 ): HTMLCanvasElement {
-  const [out, ctx] = makeCanvas(canvas.width, canvas.height);
-  ctx.drawImage(canvas, 0, 0);
+  const [out, ctx] = makeCanvas(base.width, base.height);
+  ctx.drawImage(base, 0, 0);
+
+  // Inverse of the original→enhanced transform: original = enhanced/scale + offset.
+  const scale = transform?.scale ?? 1;
+  const ox = transform?.offsetX ?? 0;
+  const oy = transform?.offsetY ?? 0;
+  const mapX = (x: number) => x / scale + ox;
+  const mapY = (y: number) => y / scale + oy;
+
   for (const w of result.words) {
     if (!w.text.trim()) continue;
-    const { x0, y0, x1, y1 } = w.bbox;
+    const x0 = mapX(w.bbox.x0);
+    const y0 = mapY(w.bbox.y0);
+    const x1 = mapX(w.bbox.x1);
+    const y1 = mapY(w.bbox.y1);
     if (mode === 'heatmap') {
       const alpha = Math.min(0.55, Math.max(0.15, w.confidence / 100));
       const hue = w.confidence > 80 ? 140 : w.confidence > 50 ? 45 : 0;
@@ -997,7 +1075,7 @@ export function drawOcrOverlay(
       ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
     } else {
       ctx.strokeStyle = w.confidence > 80 ? 'rgba(34,197,94,0.9)' : w.confidence > 50 ? 'rgba(245,185,61,0.9)' : 'rgba(239,68,68,0.9)';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = Math.max(1.5, 1.5 / scale);
       ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
     }
   }

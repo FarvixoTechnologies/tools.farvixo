@@ -982,6 +982,26 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
 .admin-modal-danger .admin-modal-head h3 { color: #fca5a5; }
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .admin-form-span-2 { grid-column: 1 / -1; }
+.admin-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.admin-kpi-row .admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+}
+.admin-kpi-row .admin-panel b { font-size: 22px; font-family: var(--font-display); }
+.admin-list { list-style: none; margin: 0; padding: 0; }
+.admin-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+.admin-list li:last-child { border-bottom: none; }
 .admin-textarea { background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text-primary); font-size: 13px; resize: vertical; min-height: 80px; font-family: inherit; }
 .admin-textarea.w-full, .admin-input.w-full { width: 100%; min-width: 0; box-sizing: border-box; }
 .admin-select.w-full { width: 100%; min-width: 0; }

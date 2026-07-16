@@ -56,12 +56,19 @@ export function clientIp(req: Request): string {
 
 /** Standard 429 response matching the app's API envelope. */
 export function rateLimitResponse(retryAfterSeconds: number): Response {
+  const message = 'Too many requests — please slow down and try again shortly.';
   return Response.json(
     {
       success: false,
+      message,
       data: null,
-      error: 'Too many requests — please slow down and try again shortly.',
-      meta: { requestId: crypto.randomUUID(), timestamp: new Date().toISOString() },
+      error: message,
+      errorDetail: { code: 'RATE_LIMITED', message },
+      meta: {
+        requestId: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        code: 'RATE_LIMITED',
+      },
     },
     { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } },
   );
