@@ -118,13 +118,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body className={`${sora.variable} ${inter.variable} ${jetbrains.variable}`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <GlobalUI>
           <ScrollManager />
           <AuthProvider>
             <FirebaseProvider />
             <MicrosoftClarity />
             <Header />
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
             <Footer />
             <BottomNav />
           </AuthProvider>

@@ -5428,3 +5428,7 @@ html[data-scrolled][data-theme='light'] .header {
 .ocr-camera-video { max-width: min(100%, 640px); max-height: 70vh; border-radius: 20px; }
 .ocr-camera-actions { display: flex; gap: 12px; }
 
+
+/* ─── Skip link (WCAG 2.4.1) — visually hidden until keyboard-focused ─── */
+.skip-link { position: fixed; top: -48px; left: 12px; z-index: 10000; padding: 10px 18px; border-radius: var(--radius-sm); background: var(--brand-primary); color: #fff; font-size: 14px; font-weight: 600; transition: top 0.15s ease-out; }
+.skip-link:focus-visible { top: 12px; outline: 2px solid #fff; outline-offset: 2px; }
