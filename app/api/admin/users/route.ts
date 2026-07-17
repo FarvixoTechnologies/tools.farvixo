@@ -43,8 +43,20 @@ export async function GET(req: Request) {
 
     if (plan) query = query.eq('plan', plan.toUpperCase());
     if (role) query = query.eq('role', role.toUpperCase());
-    if (hasBanCol && status === 'banned') query = query.eq('is_banned', true);
-    if (hasBanCol && status === 'active') query = query.eq('is_banned', false);
+    if (hasBanCol) {
+      const nowIso = new Date().toISOString();
+      if (status === 'deleted') {
+        query = query.not('deleted_at', 'is', null);
+      } else {
+        // Hide soft-deleted rows from every non-deleted view.
+        query = query.is('deleted_at', null);
+        if (status === 'banned') query = query.eq('is_banned', true);
+        else if (status === 'suspended') query = query.gt('suspended_until', nowIso);
+        else if (status === 'active') {
+          query = query.eq('is_banned', false).or(`suspended_until.is.null,suspended_until.lte.${nowIso}`);
+        }
+      }
+    }
 
     if (q) {
       const safe = escapeIlike(q);

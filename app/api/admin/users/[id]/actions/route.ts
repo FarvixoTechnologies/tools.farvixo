@@ -22,6 +22,7 @@ export async function POST(req: Request, ctx: RouteCtx) {
   let body: {
     action?: AdminUserAction;
     reason?: string;
+    hours?: number;
     title?: string;
     body?: string;
     href?: string;
@@ -94,6 +95,94 @@ export async function POST(req: Request, ctx: RouteCtx) {
 
       await logAdminAction(admin, actorId, 'user.unban', targetId);
       return apiOk({ unbanned: true });
+    }
+
+    case 'suspend': {
+      const reason = (body.reason ?? '').trim().slice(0, 500) || 'Suspended by admin';
+      // hours defaults to 24h; clamp 1h..8760h (1 year)
+      const hours = Math.min(Math.max(Math.floor(Number(body.hours ?? 24)) || 24, 1), 8760);
+      const until = new Date(Date.now() + hours * 3600_000).toISOString();
+
+      // Temporary auth ban so the user actually cannot sign in until it lifts.
+      const { error: authErr } = await admin.auth.admin.updateUserById(targetId, { ban_duration: `${hours}h` });
+      if (authErr) return apiErr(authErr.message, 500);
+
+      const { error } = await admin.from('profiles').update({
+        suspended_until: until,
+        suspended_at: new Date().toISOString(),
+        suspended_reason: reason,
+        updated_at: new Date().toISOString(),
+      }).eq('id', targetId);
+      if (error) {
+        if (isMissingColumnError(error.message)) {
+          return apiErr('Auth suspension applied, but profile flags need the latest migration.', 400);
+        }
+        return apiErr(error.message, 500);
+      }
+
+      await logAdminAction(admin, actorId, 'user.suspend', targetId, { reason, hours, until });
+      return apiOk({ suspended: true, until, reason });
+    }
+
+    case 'unsuspend': {
+      const { error: authErr } = await admin.auth.admin.updateUserById(targetId, { ban_duration: 'none' });
+      if (authErr) return apiErr(authErr.message, 500);
+
+      const { error } = await admin.from('profiles').update({
+        suspended_until: null,
+        suspended_at: null,
+        suspended_reason: null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', targetId);
+      if (error && !isMissingColumnError(error.message)) return apiErr(error.message, 500);
+
+      await logAdminAction(admin, actorId, 'user.unsuspend', targetId);
+      return apiOk({ unsuspended: true });
+    }
+
+    case 'soft_delete': {
+      // Reversible delete: hide from the app + block sign-in, but keep the row
+      // so it can be restored. Permanent removal stays on DELETE /users/[id].
+      const reason = (body.reason ?? '').trim().slice(0, 500) || null;
+      const { error: authErr } = await admin.auth.admin.updateUserById(targetId, { ban_duration: BAN_DURATION });
+      if (authErr) return apiErr(authErr.message, 500);
+
+      const { error } = await admin.from('profiles').update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: actorId,
+        updated_at: new Date().toISOString(),
+      }).eq('id', targetId);
+      if (error) {
+        if (isMissingColumnError(error.message)) {
+          return apiErr('Sign-in blocked, but soft-delete needs the latest migration.', 400);
+        }
+        return apiErr(error.message, 500);
+      }
+
+      await logAdminAction(admin, actorId, 'user.soft_delete', targetId, { reason });
+      return apiOk({ deleted: true });
+    }
+
+    case 'restore': {
+      // Clear soft-delete + any suspension and re-enable sign-in.
+      const { error: authErr } = await admin.auth.admin.updateUserById(targetId, { ban_duration: 'none' });
+      if (authErr) return apiErr(authErr.message, 500);
+
+      const { error } = await admin.from('profiles').update({
+        deleted_at: null,
+        deleted_by: null,
+        suspended_until: null,
+        suspended_at: null,
+        suspended_reason: null,
+        is_banned: false,
+        banned_at: null,
+        ban_reason: null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', targetId);
+      if (error && !isMissingColumnError(error.message)) return apiErr(error.message, 500);
+
+      await logAdminAction(admin, actorId, 'user.restore', targetId);
+      return apiOk({ restored: true });
     }
 
     case 'reset_quota': {

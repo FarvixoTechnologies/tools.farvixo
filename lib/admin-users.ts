@@ -10,6 +10,10 @@ export type AdminUserProfile = {
   is_banned: boolean;
   banned_at: string | null;
   ban_reason: string | null;
+  suspended_until: string | null;
+  suspended_at: string | null;
+  suspended_reason: string | null;
+  deleted_at: string | null;
   admin_notes: string | null;
   storage_used_mb: number;
   daily_tool_limit: number | null;
@@ -18,6 +22,18 @@ export type AdminUserProfile = {
   created_at: string;
   updated_at: string;
 };
+
+/** Derived lifecycle state for a user row (most-severe first). */
+export type UserLifecycle = 'deleted' | 'banned' | 'suspended' | 'active';
+
+export function lifecycleOf(
+  p: Pick<AdminUserProfile, 'deleted_at' | 'is_banned' | 'suspended_until'>,
+): UserLifecycle {
+  if (p.deleted_at) return 'deleted';
+  if (p.is_banned) return 'banned';
+  if (p.suspended_until && new Date(p.suspended_until).getTime() > Date.now()) return 'suspended';
+  return 'active';
+}
 
 export type AdminUserAuth = {
   email: string;
@@ -31,12 +47,16 @@ export type AdminUserAuth = {
 export type AdminUserAction =
   | 'ban'
   | 'unban'
+  | 'suspend'
+  | 'unsuspend'
+  | 'soft_delete'
+  | 'restore'
   | 'reset_quota'
   | 'notify'
   | 'password_reset';
 
 export const PROFILE_SELECT =
-  'id, full_name, avatar_url, email, plan, role, credits, tools_used_today, is_banned, banned_at, ban_reason, admin_notes, storage_used_mb, daily_tool_limit, stripe_customer_id, stripe_subscription_id, created_at, updated_at';
+  'id, full_name, avatar_url, email, plan, role, credits, tools_used_today, is_banned, banned_at, ban_reason, suspended_until, suspended_at, suspended_reason, deleted_at, admin_notes, storage_used_mb, daily_tool_limit, stripe_customer_id, stripe_subscription_id, created_at, updated_at';
 
 /** Progressively smaller selects so admin pages keep working on databases
  *  where the 06_user_admin.sql migration has not been run yet. */
@@ -64,6 +84,10 @@ export function normalizeProfileRow(row: Record<string, unknown>): AdminUserProf
     is_banned: (row.is_banned as boolean) ?? false,
     banned_at: (row.banned_at as string) ?? null,
     ban_reason: (row.ban_reason as string) ?? null,
+    suspended_until: (row.suspended_until as string) ?? null,
+    suspended_at: (row.suspended_at as string) ?? null,
+    suspended_reason: (row.suspended_reason as string) ?? null,
+    deleted_at: (row.deleted_at as string) ?? null,
     admin_notes: (row.admin_notes as string) ?? null,
     storage_used_mb: (row.storage_used_mb as number) ?? 0,
     daily_tool_limit: (row.daily_tool_limit as number) ?? null,

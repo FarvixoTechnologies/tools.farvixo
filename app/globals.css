@@ -925,6 +925,7 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
 .status-pill { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .status-completed, .status-used { background: rgba(34,197,94,0.15); color: var(--success-green); }
 .status-failed { background: rgba(239,68,68,0.15); color: #ef4444; }
+.status-suspended { background: rgba(245,158,11,0.15); color: #f59e0b; }
 .status-new { background: rgba(59,130,246,0.15); color: #3b82f6; }
 .status-read { background: rgba(148,163,184,0.15); color: #94a3b8; }
 .status-replied { background: rgba(34,197,94,0.15); color: var(--success-green); }

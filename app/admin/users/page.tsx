@@ -17,8 +17,17 @@ type UserRow = {
   tools_used_today: number;
   is_banned: boolean;
   ban_reason: string | null;
+  suspended_until: string | null;
+  deleted_at: string | null;
   created_at: string;
 };
+
+function rowLifecycle(u: UserRow): 'deleted' | 'banned' | 'suspended' | 'active' {
+  if (u.deleted_at) return 'deleted';
+  if (u.is_banned) return 'banned';
+  if (u.suspended_until && new Date(u.suspended_until).getTime() > Date.now()) return 'suspended';
+  return 'active';
+}
 
 type ModalTarget = UserRow | null;
 
@@ -69,6 +78,34 @@ export default function AdminUsersPage() {
       method: 'POST',
       body: JSON.stringify({ action, ...payload }),
     });
+  };
+
+  const lifecycleAction = async (u: UserRow, action: 'suspend' | 'unsuspend' | 'soft_delete' | 'restore') => {
+    setOpenMenu(null);
+    try {
+      if (action === 'suspend') {
+        const hoursRaw = window.prompt('Suspend for how many hours? (1–8760)', '24');
+        if (hoursRaw === null) return;
+        const hours = Math.max(1, Math.min(8760, Math.floor(Number(hoursRaw)) || 24));
+        const reason = window.prompt('Reason (optional):', '') ?? '';
+        await runAction(u.id, 'suspend', { hours, reason });
+        toast(`Suspended for ${hours}h`, 'success');
+      } else if (action === 'soft_delete') {
+        if (!window.confirm(`Soft-delete ${u.email}? They can be restored later.`)) return;
+        await runAction(u.id, 'soft_delete', { reason: window.prompt('Reason (optional):', '') ?? '' });
+        toast('User deleted (restorable)', 'success');
+      } else if (action === 'restore') {
+        if (!window.confirm(`Restore ${u.email}? This clears delete, ban and suspension.`)) return;
+        await runAction(u.id, 'restore');
+        toast('User restored', 'success');
+      } else {
+        await runAction(u.id, 'unsuspend');
+        toast('Suspension lifted', 'success');
+      }
+      void load();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Action failed', 'error');
+    }
   };
 
   const saveEdit = async (data: {
@@ -164,7 +201,9 @@ export default function AdminUsersPage() {
         <select className="admin-select" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">All status</option>
           <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
           <option value="banned">Banned</option>
+          <option value="deleted">Deleted</option>
         </select>
         <select className="admin-select" value={plan} onChange={(e) => { setPlan(e.target.value); setPage(1); }}>
           <option value="">All plans</option>
@@ -203,7 +242,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className={u.is_banned ? 'admin-row-banned' : ''}>
+                  <tr key={u.id} className={rowLifecycle(u) !== 'active' ? 'admin-row-banned' : ''}>
                     <td>
                       <Link href={`/admin/users/${u.id}`} className="admin-user-link-inline">
                         <b>{u.full_name || '—'}</b>
@@ -212,11 +251,13 @@ export default function AdminUsersPage() {
                       <div className="mono muted" style={{ fontSize: 10 }}>{u.id.slice(0, 8)}…</div>
                     </td>
                     <td>
-                      {u.is_banned ? (
-                        <span className="status-pill status-failed" title={u.ban_reason ?? ''}>Banned</span>
-                      ) : (
-                        <span className="status-pill status-completed">Active</span>
-                      )}
+                      {(() => {
+                        const lc = rowLifecycle(u);
+                        if (lc === 'deleted') return <span className="status-pill status-failed">Deleted</span>;
+                        if (lc === 'banned') return <span className="status-pill status-failed" title={u.ban_reason ?? ''}>Banned</span>;
+                        if (lc === 'suspended') return <span className="status-pill status-suspended" title={`Until ${new Date(u.suspended_until!).toLocaleString()}`}>Suspended</span>;
+                        return <span className="status-pill status-completed">Active</span>;
+                      })()}
                     </td>
                     <td><span className={`pill pill-sm pill-plan-${u.plan.toLowerCase()}`}>{u.plan}</span></td>
                     <td><span className="pill pill-sm">{u.role.replace('_', ' ')}</span></td>
@@ -255,6 +296,24 @@ export default function AdminUsersPage() {
                               <button type="button" className="admin-actions-item" onClick={() => { setBanTarget(u); setOpenMenu(null); }}>
                                 <Icon name="shield" size={14} /> {u.is_banned ? 'Unban user' : 'Ban user'}
                               </button>
+                              {rowLifecycle(u) === 'suspended' ? (
+                                <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'unsuspend')}>
+                                  <Icon name="clock" size={14} /> Lift suspension
+                                </button>
+                              ) : (
+                                <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'suspend')}>
+                                  <Icon name="clock" size={14} /> Suspend user
+                                </button>
+                              )}
+                              {u.deleted_at ? (
+                                <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'restore')}>
+                                  <Icon name="refresh" size={14} /> Restore user
+                                </button>
+                              ) : (
+                                <button type="button" className="admin-actions-item admin-actions-danger" onClick={() => void lifecycleAction(u, 'soft_delete')}>
+                                  <Icon name="ban" size={14} /> Delete user
+                                </button>
+                              )}
                               <button type="button" className="admin-actions-item" onClick={() => copyText(u.id, 'User ID')}>
                                 <Icon name="copy" size={14} /> Copy ID
                               </button>
