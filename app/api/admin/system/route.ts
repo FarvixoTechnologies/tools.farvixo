@@ -1,5 +1,6 @@
 import { apiOk } from '@/lib/api-response';
 import { requireAdmin } from '@/lib/admin-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseEnv } from '@/lib/supabase/env';
 
 export const dynamic = 'force-dynamic';
@@ -11,8 +12,8 @@ export async function GET() {
   const env = getSupabaseEnv();
   const checks = {
     supabase: Boolean(env?.url && env?.anonKey),
-    serviceRole: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
-    gemini: Boolean(process.env.GEMINI_API_KEY),
+    serviceRole: createAdminClient() !== null,
+    gemini: Boolean(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY),
     stripe: Boolean(process.env.STRIPE_SECRET_KEY),
     appUrl: Boolean(process.env.NEXT_PUBLIC_APP_URL),
   };
@@ -31,7 +32,8 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV ?? 'unknown',
     nextVersion: '15.1.11',
     checks,
-    allGreen: Object.values(checks).every(Boolean),
+    // Core path: Supabase + service role. Optional integrations don't fail "all green".
+    allGreen: checks.supabase && checks.serviceRole && checks.appUrl,
     health,
     timestamp: new Date().toISOString(),
   });

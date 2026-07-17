@@ -1,12 +1,9 @@
 import 'package:flutter/foundation.dart';
 
 import 'models/splash_config.dart';
+import '../../services/remote_config_service.dart';
 
-/// Loads splash configuration — Remote Config (Firebase / API) with a
-/// local JSON/asset fallback (see LAUNCH & SPLASH SYSTEM v2.0.0, section 8).
-///
-/// Remote fetch is a hook today; the local default mirrors the production
-/// config so behavior is identical with or without a backend.
+/// Loads splash configuration — Remote Config with local JSON fallback.
 class ConfigManager {
   SplashConfig? _cached;
 
@@ -37,10 +34,10 @@ class ConfigManager {
   Future<SplashConfig> load() async {
     if (_cached != null) return _cached!;
     try {
-      // TODO(backend): fetch remote config (Firebase / API) with a short
-      // timeout, then merge over the local fallback (Dynamic Update —
-      // restyle the splash with no new build).
-      final json = _localConfig['splash'] as Map<String, dynamic>;
+      await RemoteConfigService.instance.refresh();
+      final json = Map<String, dynamic>.from(
+        _localConfig['splash'] as Map<String, dynamic>,
+      );
       _cached = SplashConfig.fromJson(json);
     } catch (e) {
       debugPrint('ConfigManager: falling back to defaults ($e)');

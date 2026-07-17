@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Optional mirror of Supabase profiles. Auth SoT remains Supabase.
+    // Enable App Check enforcement in Console before production traffic.
+    match /users/{userId} {
+      allow read: if false;
+      allow create, update: if request.resource.data.id == userId
+        && request.resource.data.source == 'supabase'
+        && request.resource.data.keys().hasAll(['id', 'email', 'source']);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -39,7 +39,6 @@ export default function AdminLoginForm() {
 
       if (!json.success) {
         toast(json.error || 'Invalid login credentials', 'error');
-        setBusy(false);
         return;
       }
 
@@ -49,6 +48,7 @@ export default function AdminLoginForm() {
       router.refresh();
     } catch {
       toast('Network error — try again', 'error');
+    } finally {
       setBusy(false);
     }
   };

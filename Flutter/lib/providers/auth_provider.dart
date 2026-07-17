@@ -7,7 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
 import '../models/user_model.dart';
+import '../services/analytics_service.dart';
 import '../services/biometric_service.dart';
+import '../services/crashlytics_service.dart';
+import '../services/firestore_mirror_service.dart';
+import '../services/notification_service.dart';
 import '../services/secure_storage_service.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
@@ -132,6 +136,20 @@ class AuthNotifier extends StateNotifier<AppUser?> {
     await _storage.setUserJson(json);
     if (!user.isGuest) await _secure.setLastUserJson(json);
     if (mounted) state = user;
+
+    if (!user.isGuest) {
+      await AnalyticsService.instance.setUser(userId: user.id, plan: user.plan);
+      await CrashlyticsService.instance.setUserId(user.id);
+      await FirestoreMirrorService.instance.upsertUser(user);
+      await NotificationService.instance.syncPlanTopic(user.plan);
+      if (provider == 'email' ||
+          provider == 'google' ||
+          provider == 'github' ||
+          provider == 'apple' ||
+          provider == 'signup') {
+        await AnalyticsService.instance.login(provider);
+      }
+    }
     _logEvent('login_success', provider);
   }
 
@@ -204,6 +222,7 @@ class AuthNotifier extends StateNotifier<AppUser?> {
         throw const AuthException('Sign-up failed. Please try again.');
       }
       if (res.session != null) {
+        await AnalyticsService.instance.signup('email');
         await _persistSession(
           _mapUser(res.user!),
           res.session,
@@ -216,6 +235,7 @@ class AuthNotifier extends StateNotifier<AppUser?> {
       }
     } catch (e) {
       _logEvent('login_failed', 'signup');
+      await AnalyticsService.instance.error('signup_failed');
       throw AuthException(_authErrorMessage(e));
     }
   }
@@ -415,8 +435,23 @@ class AuthNotifier extends StateNotifier<AppUser?> {
 
   // -------------------------------------------------------------- logout
 
+  /// Update in-memory + local cache after profile/avatar changes (no re-auth).
+  Future<void> applyLocalUser(AppUser user) async {
+    final json = jsonEncode(user.toJson());
+    await _storage.setUserJson(json);
+    if (!user.isGuest) await _secure.setLastUserJson(json);
+    if (mounted) state = user;
+  }
+
   Future<void> signOut() async {
     _logEvent('logout');
+    final uid = state?.id;
+    await AnalyticsService.instance.logout();
+    await AnalyticsService.instance.clearUser();
+    await CrashlyticsService.instance.setUserId(null);
+    if (uid != null && uid != 'guest') {
+      await FirestoreMirrorService.instance.clearLastSeen(uid);
+    }
     try {
       await SupabaseService.client?.auth.signOut();
     } catch (_) {}

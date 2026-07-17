@@ -61,14 +61,21 @@ export default function Footer() {
             </div>
             <p className="footer-desc">Farvixo Tools is a modern AI-powered productivity platform offering 150+ online tools for developers, creators, businesses, students, and professionals worldwide.</p>
             <div className="social-row">
-              {['facebook', 'twitter', 'linkedin', 'youtube', 'instagram', 'github'].map((s) => (
-                <a key={s} href="#" className="social-icon" aria-label={s}><Icon name={s} size={15} /></a>
+              {[
+                ['facebook', 'https://www.facebook.com/farvixo'],
+                ['twitter', 'https://twitter.com/farvixo'],
+                ['linkedin', 'https://www.linkedin.com/company/farvixo'],
+                ['youtube', 'https://www.youtube.com/@farvixo'],
+                ['instagram', 'https://www.instagram.com/farvixo'],
+                ['github', 'https://github.com/farvixo'],
+              ].map(([s, url]) => (
+                <a key={s} href={url} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label={`Farvixo on ${s}`}><Icon name={s} size={15} /></a>
               ))}
             </div>
           </div>
 
           <div>
-            <h4>Explore</h4>
+            <h3>Explore</h3>
             <ul>
               {explore.map((e) => (
                 <li key={e.label}>
@@ -79,17 +86,17 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4>Top Features</h4>
+            <h3>Top Features</h3>
             <ul>{features.map((f) => (<li key={f.label}><Link href={f.href}>{f.label}</Link></li>))}</ul>
           </div>
 
           <div>
-            <h4>Resources</h4>
+            <h3>Resources</h3>
             <ul>{resources.map((r) => (<li key={r.label}><Link href={r.href}>{r.label}</Link></li>))}</ul>
           </div>
 
           <div>
-            <h4>Company</h4>
+            <h3>Company</h3>
             <ul>
               {company.map((c) => (
                 <li key={c.label}>
@@ -100,15 +107,15 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4>Get Farvixo App</h4>
+            <h3>Get Farvixo App</h3>
             <div className="store-grid">
-              <a href="#" className="store-btn"><Icon name="download" size={16} /><span>Download on the<b>App Store</b></span></a>
-              <a href="#" className="store-btn"><Icon name="play" size={16} /><span>Get it on<b>Google Play</b></span></a>
-              <a href="#" className="store-btn"><Icon name="grid" size={16} /><span>Download for<b>Windows</b></span></a>
-              <a href="#" className="store-btn"><Icon name="hexagon" size={16} /><span>Download for<b>macOS</b></span></a>
+              <button type="button" className="store-btn" aria-label="Download on the App Store — coming soon"><Icon name="download" size={16} /><span>Download on the<b>App Store</b></span></button>
+              <button type="button" className="store-btn" aria-label="Get it on Google Play — coming soon"><Icon name="play" size={16} /><span>Get it on<b>Google Play</b></span></button>
+              <button type="button" className="store-btn" aria-label="Download for Windows — coming soon"><Icon name="grid" size={16} /><span>Download for<b>Windows</b></span></button>
+              <button type="button" className="store-btn" aria-label="Download for macOS — coming soon"><Icon name="hexagon" size={16} /><span>Download for<b>macOS</b></span></button>
             </div>
             <div className="trust-panel">
-              <h5><Icon name="shield-check" size={15} /> Trusted &amp; Secure</h5>
+              <h4><Icon name="shield-check" size={15} /> Trusted &amp; Secure</h4>
               <ul>
                 <li><Icon name="check" size={12} /> 256-bit SSL Encrypted</li>
                 <li><Icon name="check" size={12} /> <Link href="/gdpr">GDPR Compliant</Link></li>

@@ -4,11 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_config.dart';
+import '../../providers/app_settings_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../services/notification_feed_service.dart';
+import '../../services/settings_sync_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../utils/profile_actions.dart';
 
 /// Settings — "Customize your experience ✨"
 /// Premium glass design: glowing profile card with stats, grouped sections
@@ -28,10 +32,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   late final AnimationController _pulse = AnimationController(
       vsync: this, duration: const Duration(milliseconds: 2200))
     ..repeat(reverse: true);
-
-  // local demo toggles (no persisted keys yet)
-  bool _sound = true;
-  bool _animations = true;
 
   @override
   void dispose() {
@@ -135,6 +135,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                             },
                             onTap: () {
                               ref.read(themeModeProvider.notifier).setMode(mode);
+                              SettingsSyncService.instance
+                                  .setThemeMode(mode.name);
                               setSheet(() {});
                             },
                           ),
@@ -161,6 +163,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                             ref
                                 .read(accentColorProvider.notifier)
                                 .setColor(color);
+                            SettingsSyncService.instance
+                                .setAccentColor(color.toARGB32());
                             setSheet(() {});
                           },
                         ),
@@ -203,6 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     : null,
                 onTap: () {
                   ref.read(languageProvider.notifier).setLanguage(lang.code);
+                  SettingsSyncService.instance.setLanguage(lang.code);
                   Navigator.pop(context);
                   setState(() {});
                 },
@@ -268,6 +273,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final soundOn = ref.watch(soundEnabledProvider);
+    final animationsOn = ref.watch(animationsEnabledProvider);
     final langCode = ref.watch(languageProvider);
     final langName = supportedLanguages
         .firstWhere((l) => l.code == langCode,
@@ -316,7 +323,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       const SizedBox(width: 8),
                       _CircleBtn(
                         icon: Icons.notifications_outlined,
-                        badge: '7',
+                        badge: () {
+                          final n =
+                              ref.watch(unreadNotificationsCountProvider);
+                          return n > 0 ? '$n' : null;
+                        }(),
                         onTap: () => context.push('/notifications'),
                       ),
                     ],
@@ -356,32 +367,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                 children: [
                                   CircleAvatar(
                                     radius: 32,
-                                    backgroundColor: AppPalette.of(context).surface2,
-                                    child: Text(
-                                      (user?.displayName.isNotEmpty ?? false)
-                                          ? user!.displayName[0].toUpperCase()
-                                          : '?',
-                                      style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w800,
-                                          color:
-                                              AppColors.brandPrimaryHover),
-                                    ),
+                                    backgroundColor:
+                                        AppPalette.of(context).surface2,
+                                    backgroundImage:
+                                        (user?.avatarUrl?.isNotEmpty ?? false)
+                                            ? NetworkImage(user!.avatarUrl!)
+                                            : null,
+                                    child: (user?.avatarUrl?.isNotEmpty ??
+                                            false)
+                                        ? null
+                                        : Text(
+                                            (user?.displayName.isNotEmpty ??
+                                                    false)
+                                                ? user!.displayName[0]
+                                                    .toUpperCase()
+                                                : '?',
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w800,
+                                              color:
+                                                  AppColors.brandPrimaryHover,
+                                            ),
+                                          ),
                                   ),
                                   Positioned(
                                     right: 0,
                                     bottom: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(5),
-                                      decoration: BoxDecoration(
-                                        color: AppPalette.of(context).surface2,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: AppPalette.of(context).border),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: () =>
+                                            pickAndUploadAvatar(context, ref),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            color: AppPalette.of(context).surface2,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: AppPalette.of(context)
+                                                    .border),
+                                          ),
+                                          child: const Icon(
+                                              Icons.photo_camera_outlined,
+                                              size: 12),
+                                        ),
                                       ),
-                                      child: const Icon(
-                                          Icons.photo_camera_outlined,
-                                          size: 12),
                                     ),
                                   ),
                                 ],
@@ -480,18 +511,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                               ),
                             ),
                             OutlinedButton(
-                              onPressed: () => context.push('/profile'),
+                              onPressed: () =>
+                                  showEditProfileDialog(context, ref),
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
                                     color: AppColors.brandPrimaryHover
                                         .withValues(alpha: .5)),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 10),
-                                // The global theme sets minimumSize to
-                                // Size.fromHeight(52) = infinite width, which
-                                // made this button eat the whole row and
-                                // collapse the name/email column. Pin it to
-                                // wrap its content instead.
                                 minimumSize: Size.zero,
                                 tapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
@@ -580,8 +607,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           title: 'Sound & Haptics',
                           subtitle: 'Manage sounds and vibration',
                           trailing: _GlowSwitch(
-                            value: _sound,
-                            onChanged: (v) => setState(() => _sound = v),
+                            value: soundOn,
+                            onChanged: (v) {
+                              ref.read(soundEnabledProvider.notifier).set(v);
+                              SettingsSyncService.instance.setSoundEnabled(v);
+                            },
                           ),
                         ),
                         _SettingTile(
@@ -590,9 +620,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           title: 'Animations',
                           subtitle: 'Enable or disable animations',
                           trailing: _GlowSwitch(
-                            value: _animations,
-                            onChanged: (v) =>
-                                setState(() => _animations = v),
+                            value: animationsOn,
+                            onChanged: (v) {
+                              ref
+                                  .read(animationsEnabledProvider.notifier)
+                                  .set(v);
+                              SettingsSyncService.instance
+                                  .setAnimationsEnabled(v);
+                            },
                           ),
                           isLast: true,
                         ),
@@ -629,14 +664,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           color: AppColors.brandPrimaryHover,
                           title: 'Devices',
                           subtitle: 'Manage your connected devices',
-                          onTap: () => _soon('Devices'),
+                          onTap: () => context.push('/devices'),
                         ),
                         _SettingTile(
                           icon: Icons.person_pin_circle_outlined,
                           color: AppColors.accentDev,
                           title: 'Active Sessions',
                           subtitle: 'View and manage active sessions',
-                          onTap: () => _soon('Active Sessions'),
+                          onTap: () => context.push('/devices'),
                           isLast: true,
                         ),
                       ],

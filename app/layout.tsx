@@ -4,6 +4,8 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import GlobalUI from '@/components/GlobalUI';
+import FirebaseProvider from '@/components/FirebaseProvider';
+import MicrosoftClarity from '@/components/MicrosoftClarity';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import BottomNav from '@/components/layout/BottomNav';
 import ScrollManager from '@/components/ScrollManager';
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
     template: '%s | Farvixo Tools',
   },
   description:
-    'Farvixo Tools is a fast, modern, AI-powered platform offering 150+ free online tools including PDF tools, image tools, text utilities, developer tools, calculators, converters, SEO tools, AI tools, productivity apps, and much more.',
+    'Use 150+ free AI-powered online tools — PDF, image, video, audio, developer, SEO tools, converters and calculators. Fast, secure and private. Build Beyond.',
   keywords: [
     'farvixo', 'farvixo tools', 'ai tools', 'online tools', 'developer tools',
     'free pdf tools', 'image tools', 'seo tools', 'converters', 'calculators',
@@ -52,8 +54,8 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
   },
   openGraph: {
-    title: 'Farvixo Tools',
-    description: '150+ Free AI & Productivity Tools. Build Beyond.',
+    title: 'Farvixo Tools — 150+ Free Online AI & Productivity Tools',
+    description: 'Use 150+ free AI-powered online tools — PDF, image, video, audio, developer & SEO tools, converters and calculators. Fast, secure and private.',
     url: SITE_URL,
     siteName: 'Farvixo Tools',
     type: 'website',
@@ -62,8 +64,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Farvixo Tools',
-    description: '150+ Free AI & Productivity Tools. Build Beyond.',
+    title: 'Farvixo Tools — 150+ Free Online AI & Productivity Tools',
+    description: 'Use 150+ free AI-powered online tools — PDF, image, video, audio, developer & SEO tools, converters and calculators. Fast, secure and private.',
     images: [DEFAULT_OG],
     creator: '@farvixo',
   },
@@ -119,6 +121,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GlobalUI>
           <ScrollManager />
           <AuthProvider>
+            <FirebaseProvider />
+            <MicrosoftClarity />
             <Header />
             <main>{children}</main>
             <Footer />

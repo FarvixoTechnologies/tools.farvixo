@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "282376161241",
+    "project_id": "farvixo-production-2026",
+    "storage_bucket": "farvixo-production-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:282376161241:android:24f8d9a3431ca6b81f7bc8",
+        "android_client_info": {
+          "package_name": "com.farvixo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "282376161241-btc2vek28aolekldjembehrc0dhqve4i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHLQNCybE5BY4KJKPlcMIw91MsFK-8qRM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "282376161241-btc2vek28aolekldjembehrc0dhqve4i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

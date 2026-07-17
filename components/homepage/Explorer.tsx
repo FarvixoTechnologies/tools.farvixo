@@ -40,7 +40,7 @@ export default function Explorer() {
     <section className="container explorer" id="tools">
       {/* Sidebar */}
       <aside className="sidebar glass" aria-label="Browse by category">
-        <h3>Browse by Category</h3>
+        <h2>Browse by Category</h2>
         {sidebarEntries.map((e) => (
           <button
             key={e.label}

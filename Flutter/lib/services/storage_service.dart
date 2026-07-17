@@ -57,6 +57,17 @@ class StorageService {
   Future<void> setFeatureCloudSync(bool v) =>
       _prefs.setBool(_kFeatureCloudSync, v);
 
+  // ---- app preference toggles (Settings › Preferences) ----
+  static const _kSound = 'pref_sound_enabled';
+  static const _kAnimations = 'pref_animations_enabled';
+
+  bool get soundEnabled => _prefs.getBool(_kSound) ?? true;
+  Future<void> setSoundEnabled(bool v) => _prefs.setBool(_kSound, v);
+
+  bool get animationsEnabled => _prefs.getBool(_kAnimations) ?? true;
+  Future<void> setAnimationsEnabled(bool v) =>
+      _prefs.setBool(_kAnimations, v);
+
   static const _kRecentTools = 'recent_tools';
   static const _kFavoriteTools = 'favorite_tools';
 
@@ -72,4 +83,21 @@ class StorageService {
   String? get userJson => _prefs.getString(_kUserJson);
   Future<void> setUserJson(String json) => _prefs.setString(_kUserJson, json);
   Future<void> clearUser() => _prefs.remove(_kUserJson);
+
+  static const _kDeviceRowId = 'current_user_device_row_id';
+  static const _kDeviceKey = 'current_device_install_key';
+
+  String? get currentDeviceRowId => _prefs.getString(_kDeviceRowId);
+  Future<void> setCurrentDeviceRowId(String? id) async {
+    if (id == null || id.isEmpty) {
+      await _prefs.remove(_kDeviceRowId);
+    } else {
+      await _prefs.setString(_kDeviceRowId, id);
+    }
+  }
+
+  /// Stable per-install id used as `user_devices.device_key`.
+  String? get deviceInstallKey => _prefs.getString(_kDeviceKey);
+  Future<void> setDeviceInstallKey(String key) =>
+      _prefs.setString(_kDeviceKey, key);
 }

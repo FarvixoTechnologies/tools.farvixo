@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/firebase/pending_deep_link.dart';
 import '../features/ai/ai_assistant_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -13,6 +14,7 @@ import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/search/search_screen.dart';
+import '../features/settings/devices_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/shell/main_shell.dart';
 import '../ui/splash/splash_screen.dart';
@@ -41,6 +43,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (_isAuthCallback(state.uri)) {
         // Supabase auth listener exchanges the code; send user into the app.
         return '/home';
+      }
+      final pending = PendingDeepLink.take();
+      if (pending != null &&
+          pending != state.matchedLocation &&
+          pending.startsWith('/')) {
+        return pending;
       }
       return null;
     },
@@ -97,6 +105,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/devices',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const DevicesScreen(),
       ),
       GoRoute(
         path: '/tool/:id',

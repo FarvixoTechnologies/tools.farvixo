@@ -1,64 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
 import '../../widgets/premium_kit.dart';
 
-class _NotificationItem {
-  const _NotificationItem(
-      this.icon, this.color, this.title, this.body, this.time, this.unread);
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String body;
-  final String time;
-  final bool unread;
-}
-
-const _demoNotifications = [
-  _NotificationItem(
-    Icons.celebration_rounded,
-    AppColors.brandPrimary,
-    'Welcome to Farvixo!',
-    'Explore 120+ tools and the AI Assistant — all in one app.',
-    'Just now',
-    true,
-  ),
-  _NotificationItem(
-    Icons.auto_awesome_rounded,
-    AppColors.accentAi,
-    'AI Assistant is ready',
-    'Ask anything — write, summarize, translate and more.',
-    'Today',
-    true,
-  ),
-  _NotificationItem(
-    Icons.new_releases_rounded,
-    AppColors.success,
-    'New tools added',
-    'AI Image Upscaler and Text Compare just landed.',
-    'Yesterday',
-    false,
-  ),
-  _NotificationItem(
-    Icons.workspace_premium_rounded,
-    AppColors.goldPremium,
-    'Unlock Farvixo Pro',
-    'Remove limits, go ad-free and access every premium tool.',
-    '2 days ago',
-    false,
-  ),
-];
-
-/// Notifications — premium galaxy backdrop, glass header with unread count,
-/// glowing glass cards with staggered entrance.
-class NotificationsScreen extends StatelessWidget {
+/// Notifications — Supabase feed with offline fallback list.
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final unread = _demoNotifications.where((n) => n.unread).length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(notificationsListProvider);
+    final p = AppPalette.of(context);
+
     return Scaffold(
       body: PremiumBackground(
         child: SafeArea(
@@ -67,27 +24,88 @@ class NotificationsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: FadeSlideIn(
-                  child: PremiumHeader(
-                    title: 'Notifications',
-                    subtitle: unread > 0
-                        ? '$unread unread update${unread == 1 ? '' : 's'}'
-                        : 'You are all caught up',
-                    emoji: '🔔',
-                    onBack: () => context.canPop()
-                        ? context.pop()
-                        : context.go('/home'),
+                  child: async.when(
+                    data: (items) {
+                      final unread = items.where((n) => !n.isRead).length;
+                      return PremiumHeader(
+                        title: 'Notifications',
+                        subtitle: unread > 0
+                            ? '$unread unread update${unread == 1 ? '' : 's'}'
+                            : 'You are all caught up',
+                        emoji: '🔔',
+                        onBack: () => context.canPop()
+                            ? context.pop()
+                            : context.go('/home'),
+                        actions: unread > 0
+                            ? [
+                                TextButton(
+                                  onPressed: () async {
+                                    await NotificationFeedService.instance
+                                        .markAllRead();
+                                    ref.invalidate(notificationsListProvider);
+                                  },
+                                  child: const Text('Mark all read'),
+                                ),
+                              ]
+                            : const [],
+                      );
+                    },
+                    loading: () => PremiumHeader(
+                      title: 'Notifications',
+                      subtitle: 'Loading…',
+                      emoji: '🔔',
+                      onBack: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/home'),
+                    ),
+                    error: (_, _) => PremiumHeader(
+                      title: 'Notifications',
+                      subtitle: 'Offline',
+                      emoji: '🔔',
+                      onBack: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/home'),
+                    ),
                   ),
                 ),
               ),
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-                  itemCount: _demoNotifications.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) => FadeSlideIn(
-                    index: i,
-                    child: _NotificationCard(item: _demoNotifications[i]),
+                child: async.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (_, _) => Center(
+                    child: Text('Could not load notifications',
+                        style: TextStyle(color: p.textSecondary)),
                   ),
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No notifications yet',
+                          style: TextStyle(color: p.textSecondary),
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+                      itemCount: items.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) => FadeSlideIn(
+                        index: i,
+                        child: _NotificationCard(
+                          item: items[i],
+                          onTap: () async {
+                            if (!items[i].isRead &&
+                                !items[i].id.startsWith('local-')) {
+                              await NotificationFeedService.instance
+                                  .markRead(items[i].id);
+                              ref.invalidate(notificationsListProvider);
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -99,65 +117,120 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({required this.item});
-  final _NotificationItem item;
+  const _NotificationCard({required this.item, required this.onTap});
+
+  final AppNotification item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    return GlassCard(
-      glowColor: item.color,
-      borderColor: item.unread
-          ? item.color.withValues(alpha: .35)
-          : p.border,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GlowIcon(icon: item.icon, color: item.color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    final color = _colorFor(item.type);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: GlassCard(
+          borderColor: item.isRead
+              ? null
+              : AppColors.brandPrimary.withValues(alpha: .35),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: color.withValues(alpha: .18),
+                child: Icon(_iconFor(item.type), color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 14,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w800,
-                              color: p.textPrimary)),
+                              fontSize: 14.5,
+                            ),
+                          ),
+                        ),
+                        if (!item.isRead)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.brandPrimaryHover,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
                     ),
-                    if (item.unread)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: item.color,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                                color: item.color.withValues(alpha: .6),
-                                blurRadius: 8),
-                          ],
+                    if (item.body != null && item.body!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        item.body!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: p.textSecondary,
+                          height: 1.35,
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 6),
+                    Text(
+                      _timeLabel(item.createdAt),
+                      style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(item.body,
-                    style: TextStyle(
-                        fontSize: 12.5, height: 1.4, color: p.textSecondary)),
-                const SizedBox(height: 6),
-                Text(item.time,
-                    style: TextStyle(fontSize: 11, color: p.textMuted)),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  static Color _colorFor(String type) {
+    switch (type) {
+      case 'ai':
+        return AppColors.accentAi;
+      case 'promo':
+        return AppColors.goldPremium;
+      case 'security':
+        return AppColors.error;
+      case 'tool':
+        return AppColors.success;
+      default:
+        return AppColors.brandPrimary;
+    }
+  }
+
+  static IconData _iconFor(String type) {
+    switch (type) {
+      case 'ai':
+        return Icons.auto_awesome_rounded;
+      case 'promo':
+        return Icons.workspace_premium_rounded;
+      case 'security':
+        return Icons.shield_rounded;
+      case 'tool':
+        return Icons.new_releases_rounded;
+      default:
+        return Icons.notifications_rounded;
+    }
+  }
+
+  static String _timeLabel(DateTime dt) {
+    final d = DateTime.now().difference(dt);
+    if (d.inMinutes < 2) return 'Just now';
+    if (d.inHours < 1) return '${d.inMinutes}m ago';
+    if (d.inDays < 1) return 'Today';
+    if (d.inDays < 2) return 'Yesterday';
+    return '${d.inDays}d ago';
   }
 }

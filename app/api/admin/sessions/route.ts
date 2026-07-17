@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   ]);
 
   return apiOk({
-    ready: !sessions.error || !logins.error || !devices.error,
+    ready: !sessions.error && !logins.error && !devices.error,
     errors: {
       sessions: sessions.error?.message ?? null,
       logins: logins.error?.message ?? null,

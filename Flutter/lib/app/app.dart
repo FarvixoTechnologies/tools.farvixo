@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_config.dart';
 import '../providers/theme_provider.dart';
 import '../routes/app_router.dart';
+import '../services/user_sync_coordinator.dart';
 import '../theme/app_theme.dart';
 
 class FarvixoApp extends ConsumerWidget {
@@ -12,6 +13,7 @@ class FarvixoApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(supabaseLoginSyncProvider);
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
     final accent = ref.watch(accentColorProvider);

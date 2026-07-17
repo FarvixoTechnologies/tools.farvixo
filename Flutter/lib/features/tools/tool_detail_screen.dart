@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/tools_data.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
 import '../../widgets/premium_kit.dart';
@@ -25,6 +28,14 @@ enum _ToolState { empty, fileSelected, processing, done }
 class _ToolDetailScreenState extends State<ToolDetailScreen> {
   _ToolState _state = _ToolState.empty;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(AnalyticsService.instance.toolOpen(widget.toolId));
+    });
+  }
+
   Future<void> _selectFile() async {
     // TODO: integrate file_picker once backend processing is wired in.
     setState(() => _state = _ToolState.fileSelected);
@@ -32,8 +43,13 @@ class _ToolDetailScreenState extends State<ToolDetailScreen> {
 
   Future<void> _process() async {
     setState(() => _state = _ToolState.processing);
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _state = _ToolState.done);
+    try {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (mounted) setState(() => _state = _ToolState.done);
+      await AnalyticsService.instance.toolFinish(widget.toolId, success: true);
+    } catch (_) {
+      await AnalyticsService.instance.toolFinish(widget.toolId, success: false);
+    }
   }
 
   @override

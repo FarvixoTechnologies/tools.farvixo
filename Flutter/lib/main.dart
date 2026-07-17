@@ -5,14 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'config/app_config.dart';
+import 'core/firebase/pending_deep_link.dart';
 import 'providers/app_providers.dart';
+import 'services/firebase_service.dart';
 import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Let premium backgrounds extend behind the system bars. Screens still use
-  // SafeArea for touch-safe content.
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -24,6 +24,9 @@ Future<void> main() async {
   );
 
   await AppConfig.loadEnv();
+  await FirebaseService.init(
+    onNotificationOpen: PendingDeepLink.set,
+  );
   final prefs = await SharedPreferences.getInstance();
   await SupabaseService.init();
 

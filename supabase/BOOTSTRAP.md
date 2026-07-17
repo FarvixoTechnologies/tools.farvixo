@@ -15,7 +15,8 @@ Dashboard → **SQL Editor** → Run each file **in order** (one at a time).
 | 6 | `08_production_next_steps.sql` | Yes |
 | 7 | `09_architecture_v3_foundation.sql` | Yes |
 | 8 | `10_seed_tools_catalog.sql` | Yes |
-| 9 | `02_promote_super_admin.sql` | Yes (after you sign up once) |
+| 9 | `11_admin_v3_hardening.sql` | Yes (role/plan lock + admin table RLS) |
+| 10 | `02_promote_super_admin.sql` | Yes (after you sign up once) |
 
 Or generate one merged file locally:
 

@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/tool_activity_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../utils/profile_actions.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -82,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                       email: email,
                       isPro: isPro,
                       isGuest: user?.isGuest ?? true,
-                      onEdit: () => _snack(context, 'Edit profile coming soon'),
+                      onEdit: () => showEditProfileDialog(context, ref),
                       onQr: () => _snack(context, 'Profile QR coming soon'),
                       onShare: () => _shareProfile(context, displayName),
                     ),

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import Icon from '@/components/Icon';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -10,7 +11,12 @@ import { initials, isAdminUser } from '@/lib/auth';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, refresh } = useAuth();
+
+  // Re-fetch profile role when opening admin (catches DB promotions / cookie logins).
+  useEffect(() => {
+    if (!loading) void refresh();
+  }, [loading, refresh]);
 
   if (loading) {
     return (
@@ -44,6 +50,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="admin-actions-row" style={{ justifyContent: 'center' }}>
             <button type="button" className="btn btn-primary btn-sm" onClick={() => void signOut()}>
               Sign out
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => void refresh()}>
+              Refresh role
             </button>
             <Link href="/dashboard" className="btn btn-ghost btn-sm">User Dashboard</Link>
             <Link href="/" className="btn btn-ghost btn-sm">Home</Link>

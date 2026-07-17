@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/tool_activity_provider.dart';
+import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/farvixo_logo.dart';
 
@@ -536,16 +537,16 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _BouncyBell extends StatefulWidget {
+class _BouncyBell extends ConsumerStatefulWidget {
   const _BouncyBell({required this.onTap, required this.palette});
   final VoidCallback onTap;
   final HomePalette palette;
 
   @override
-  State<_BouncyBell> createState() => _BouncyBellState();
+  ConsumerState<_BouncyBell> createState() => _BouncyBellState();
 }
 
-class _BouncyBellState extends State<_BouncyBell>
+class _BouncyBellState extends ConsumerState<_BouncyBell>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
@@ -560,6 +561,7 @@ class _BouncyBellState extends State<_BouncyBell>
 
   @override
   Widget build(BuildContext context) {
+    final unread = ref.watch(unreadNotificationsCountProvider);
     return AnimatedBuilder(
       animation: _c,
       builder: (context, child) {
@@ -577,25 +579,26 @@ class _BouncyBellState extends State<_BouncyBell>
             ),
             tooltip: 'Notifications',
           ),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              padding: const EdgeInsets.all(3.5),
-              decoration: const BoxDecoration(
-                gradient: AppColors.brandGradient,
-                shape: BoxShape.circle,
-              ),
-              child: const Text(
-                '3',
-                style: TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+          if (unread > 0)
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                padding: const EdgeInsets.all(3.5),
+                decoration: const BoxDecoration(
+                  gradient: AppColors.brandGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  unread > 9 ? '9+' : '$unread',
+                  style: const TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

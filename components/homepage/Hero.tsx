@@ -711,7 +711,9 @@ export default function Hero() {
                 onFocus={() => { if (!programmaticFocus.current) setOpen(true); }}
                 onKeyDown={onKeyDown}
                 aria-label="Search any tool"
+                role="combobox"
                 aria-expanded={showPanel}
+                aria-controls="hero-suggest-panel"
                 aria-autocomplete="list"
                 autoComplete="off"
                 enterKeyHint="search"
@@ -743,7 +745,7 @@ export default function Hero() {
             {listening && <span className="sr-only" role="status">Listening for voice search</span>}
 
             {showPanel && (
-              <div className="hero-suggest" role="listbox">
+              <div className="hero-suggest" role="listbox" id="hero-suggest-panel">
                 {q.trim() ? (
                   results.length > 0 ? (
                     <>
@@ -858,7 +860,7 @@ export default function Hero() {
               {stats && <span className="avatar-c avatar-count">{formatCount(stats.users)}+</span>}
             </div>
             <div>
-              <div className="stars" aria-label="Five star rated">★★★★★</div>
+              <div className="stars" role="img" aria-label="Five star rated">★★★★★</div>
               <div className="proof-text">
                 {stats
                   ? `Trusted by ${formatCount(stats.users)}+ users worldwide`

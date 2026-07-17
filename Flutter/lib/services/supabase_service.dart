@@ -23,9 +23,14 @@ class SupabaseService {
       return;
     }
     try {
+      // Prefer legacy JWT anon key (most compatible). Fall back to
+      // sb_publishable_… when only that is configured.
+      final key = AppConfig.supabaseAnonKey.isNotEmpty
+          ? AppConfig.supabaseAnonKey
+          : AppConfig.supabasePublishableKey;
       await Supabase.initialize(
         url: AppConfig.supabaseUrl,
-        publishableKey: AppConfig.supabasePublishableKey,
+        publishableKey: key,
         authOptions: const FlutterAuthClientOptions(
           authFlowType: AuthFlowType.pkce,
         ),

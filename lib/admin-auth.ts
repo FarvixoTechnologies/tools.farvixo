@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { apiErr } from '@/lib/api-response';
+import { isAdminRoleString } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 
@@ -8,7 +9,7 @@ export type AdminRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
 const AUDIT_FALLBACK_EVENT = '__admin_audit__';
 
 export function isAdminRole(role: string | null | undefined): boolean {
-  return role === 'ADMIN' || role === 'SUPER_ADMIN';
+  return isAdminRoleString(role);
 }
 
 type AdminContext = {
@@ -40,7 +41,7 @@ export async function requireAdmin(): Promise<RequireAdminResult> {
 export async function requireSuperAdmin(): Promise<RequireAdminResult> {
   const result = await requireAdmin();
   if (!result.ok) return result;
-  if (result.ctx.role !== 'SUPER_ADMIN') {
+  if ((result.ctx.role ?? '').toUpperCase() !== 'SUPER_ADMIN') {
     return { ok: false, response: apiErr('Forbidden — super admin required', 403) };
   }
   return result;
