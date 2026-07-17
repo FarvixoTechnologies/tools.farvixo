@@ -917,6 +917,26 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
 .admin-table th { text-align: left; padding: 10px 12px; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border-subtle); }
 .admin-table td { padding: 12px; border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
 .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Sessions & Devices module ---------------------------------------------- */
+.admin-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.admin-panel-head h2 { margin: 0; }
+.admin-seg { display: inline-flex; background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 2px; gap: 2px; }
+.admin-seg-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: transparent; cursor: pointer; }
+.admin-seg-btn.active { background: var(--brand-primary); color: #fff; }
+.admin-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.admin-inline-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.admin-actions-danger { color: #ef4444; }
+
+/* Mobile: turn wide tables into stacked cards (no horizontal scrolling). */
+@media (max-width: 720px) {
+  .admin-table-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .admin-table-cards tr { display: block; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 10px; padding: 4px 0; }
+  .admin-table-cards td { display: flex; justify-content: space-between; gap: 12px; border: none; padding: 8px 12px; text-align: right; }
+  .admin-table-cards td::before { content: attr(data-label); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; text-align: left; }
+  .admin-table-cards td:empty { display: none; }
+  .admin-inline-actions { justify-content: flex-end; }
+}
 .admin-toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 16px; align-items: center; }
 .admin-input, .admin-select { background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 13px; min-width: 160px; }
 .admin-select-sm { min-width: 100px; padding: 4px 8px; font-size: 12px; }

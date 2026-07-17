@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { User } from '@/lib/auth';
 import { fetchCurrentUser, signOut as authSignOut } from '@/lib/auth-client';
 import { createClient } from '@/lib/supabase/client';
+import { trackSession } from '@/lib/session-track';
 
 interface AuthContextValue {
   user: User | null;
@@ -32,8 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       void refresh();
+      // Record session/device on sign-in, and keep last-active fresh on refresh.
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') trackSession(event);
     });
     return () => subscription.unsubscribe();
   }, [refresh]);
