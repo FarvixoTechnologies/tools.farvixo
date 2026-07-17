@@ -18,15 +18,13 @@ export async function GET() {
     appUrl: Boolean(process.env.NEXT_PUBLIC_APP_URL),
   };
 
-  let health: { status: string; uptime: number } | null = null;
-  try {
-    const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${base}/api/health`, { cache: 'no-store' });
-    const json = (await res.json()) as { data?: { status: string; uptime: number } };
-    health = json.data ?? null;
-  } catch {
-    health = null;
-  }
+  // Health is computed inline. Do NOT fetch our own /api/health here: on
+  // Cloudflare, fetching the Worker's own hostname re-enters the same Worker
+  // (WORKER_SELF_REFERENCE), exhausting its resource limits → Error 1102.
+  const health: { status: string; uptime: number } = {
+    status: 'ok',
+    uptime: process.uptime(),
+  };
 
   return apiOk({
     nodeEnv: process.env.NODE_ENV ?? 'unknown',
