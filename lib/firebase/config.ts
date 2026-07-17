@@ -22,7 +22,7 @@ const PUBLIC_WEB_FALLBACK = {
   storageBucket: 'farvixo-production-2026.firebasestorage.app',
   messagingSenderId: '282376161241',
   appId: '1:282376161241:web:d0bca9dcc89c299e1f7bc8',
-  measurementId: 'G-6HLF16105N',
+  measurementId: 'G-VTGV5YE47C',
 } as const;
 
 function pick(envVal: string | undefined, fallback: string): string {
