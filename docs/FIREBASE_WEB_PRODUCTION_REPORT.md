@@ -36,7 +36,7 @@ projectId: farvixo-production-2026
 storageBucket: farvixo-production-2026.firebasestorage.app
 messagingSenderId: 282376161241
 appId: 1:282376161241:web:d0bca9dcc89c299e1f7bc8
-measurementId: G-VTGV5YE47C
+measurementId: G-6HLF16105N
 ```
 
 Next.js requires `NEXT_PUBLIC_` for browser env. Aliases without prefix are also read server-side via `config.ts`.

@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
     projectId: 'farvixo-production-2026',
     authDomain: 'farvixo-production-2026.firebaseapp.com',
     storageBucket: 'farvixo-production-2026.firebasestorage.app',
-    measurementId: 'G-VTGV5YE47C',
+    measurementId: 'G-6HLF16105N',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

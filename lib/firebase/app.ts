@@ -8,7 +8,7 @@ let initPromise: Promise<FirebaseApp | null> | null = null;
 
 /**
  * Single Firebase app instance for the whole SPA.
- * App Check must be activated via `ensureFirebaseReady()` before using other products.
+ * App Check must be activated via `getFirebaseApp()` before using other products.
  */
 export function getFirebaseAppSync(): FirebaseApp | null {
   if (typeof window === 'undefined') return null;
@@ -31,6 +31,8 @@ export async function getFirebaseApp(): Promise<FirebaseApp | null> {
   initPromise = (async () => {
     const instance = getFirebaseAppSync();
     if (!instance) return null;
+    // App Check is best-effort: activateAppCheck() catches its own errors and
+    // resolves to null on failure, so it can never block Analytics from booting.
     const { activateAppCheck } = await import('@/lib/firebase/appCheck');
     await activateAppCheck(instance);
     return instance;

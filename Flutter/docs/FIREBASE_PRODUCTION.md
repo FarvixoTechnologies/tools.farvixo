@@ -9,7 +9,7 @@
 
 | Product | Role |
 |---|---|
-| Analytics | Funnel events (`login`, `tool_open`, …) + Web GA (`G-VTGV5YE47C`) |
+| Analytics | Funnel events (`login`, `tool_open`, …) + Web GA (`G-6HLF16105N`) |
 | Crashlytics | Flutter / platform / API errors |
 | Cloud Messaging | Push + topics `all_users`, `plan_free`, `plan_pro` |
 | Remote Config | `maintenance_mode`, `min_app_version`, banners, premium toggle |
@@ -36,7 +36,7 @@
   storageBucket: "farvixo-production-2026.firebasestorage.app",
   messagingSenderId: "282376161241",
   appId: "1:282376161241:web:d0bca9dcc89c299e1f7bc8",
-  measurementId: "G-VTGV5YE47C"
+  measurementId: "G-6HLF16105N"
 }
 ```
 
