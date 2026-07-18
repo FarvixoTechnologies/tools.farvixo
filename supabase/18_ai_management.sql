@@ -1,0 +1,8 @@
+-- 18_ai_management.sql — AI Management schema (providers, models, keys, usage,
+-- feedback, logs, quotas, prompt templates + versions). See applied migrations
+-- ai_management_schema + ai_management_rls_rpc for the authoritative version.
+-- Tables carry RLS: catalog (providers/models) readable by authenticated;
+-- usage/feedback/logs are own-row; keys/quotas/templates are service-role only.
+-- Realtime enabled on ai_usage, ai_logs, ai_models, ai_providers.
+-- RPC ai_usage_stats(from,to) powers the dashboard KPIs.
+-- (Full DDL applied via Supabase migration; this file is the checked-in record.)
