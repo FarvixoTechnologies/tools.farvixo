@@ -21,10 +21,23 @@ function LoginForm() {
 
   const redirectParam = searchParams.get('redirect');
   const urlError = searchParams.get('error');
+  const reason = searchParams.get('reason');
 
   useEffect(() => {
     if (urlError) toast(decodeURIComponent(urlError), 'error');
   }, [urlError, toast]);
+
+  useEffect(() => {
+    if (!reason) return;
+    const msg: Record<string, string> = {
+      revoked: 'Your session was ended by an administrator.',
+      banned: 'Your account has been banned.',
+      suspended: 'Your account is temporarily suspended.',
+      deleted: 'This account is no longer available.',
+      invalid: 'Please sign in again.',
+    };
+    toast(msg[reason] ?? 'Please sign in again.', 'error');
+  }, [reason, toast]);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();

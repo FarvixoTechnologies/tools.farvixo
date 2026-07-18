@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { User } from '@/lib/auth';
 import { fetchCurrentUser, signOut as authSignOut } from '@/lib/auth-client';
 import { createClient } from '@/lib/supabase/client';
-import { trackSession } from '@/lib/session-track';
+import { ensureDeviceCookie, trackSession } from '@/lib/session-track';
 
 interface AuthContextValue {
   user: User | null;
@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    ensureDeviceCookie();
     void refresh();
     const supabase = createClient();
     if (!supabase) {

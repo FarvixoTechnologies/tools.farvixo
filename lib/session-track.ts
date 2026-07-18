@@ -17,10 +17,21 @@ function getDeviceId(): string {
           : `dev_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
       localStorage.setItem(DEVICE_KEY, id);
     }
+    // Mirror to a cookie so middleware can identify this device's session.
+    // Not a secret — just a stable per-device identifier.
+    if (typeof document !== 'undefined' && !document.cookie.includes(`fv_device=${id}`)) {
+      document.cookie = `fv_device=${id}; path=/; max-age=31536000; samesite=lax`;
+    }
     return id;
   } catch {
     return 'web';
   }
+}
+
+/** Ensure the fv_device cookie exists as early as possible (called on mount). */
+export function ensureDeviceCookie(): void {
+  if (typeof window === 'undefined') return;
+  try { getDeviceId(); } catch { /* ignore */ }
 }
 
 function detectPlatform(): string {
