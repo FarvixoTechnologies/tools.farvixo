@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin, requireSuperAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.invite');
   if (!auth.ok) return auth.response;
   const { admin, userId, role: actorRole } = auth.ctx;
 
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.invite');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 

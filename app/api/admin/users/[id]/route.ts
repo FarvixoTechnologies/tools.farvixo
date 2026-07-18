@@ -1,5 +1,5 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin, requireSuperAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { isMissingColumnError, normalizeProfileRow, PROFILE_SELECT_FALLBACKS } from '@/lib/admin-users';
 
 export const dynamic = 'force-dynamic';
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 type RouteCtx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, ctx: RouteCtx) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('users.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
   const { id } = await ctx.params;
@@ -81,7 +81,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
 }
 
 export async function PATCH(req: Request, ctx: RouteCtx) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('users.write');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
   const { id } = await ctx.params;
@@ -136,7 +136,7 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
 }
 
 export async function DELETE(_req: Request, ctx: RouteCtx) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('users.delete');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
   const { id } = await ctx.params;

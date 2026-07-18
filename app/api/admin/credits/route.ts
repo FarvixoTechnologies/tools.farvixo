@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { adjustCredits, InsufficientCreditsError } from '@/lib/credits';
 
 export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/credits?userId=&page= — credit ledger (all users or one). */
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('billing.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
 /** POST /api/admin/credits — grant (+) or deduct (−) credits for a user. */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('billing.write');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
 

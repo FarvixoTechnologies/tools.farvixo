@@ -1,10 +1,10 @@
 import { apiOk } from '@/lib/api-response';
-import { listAdminAuditLogs, requireAdmin } from '@/lib/admin-auth';
+import { listAdminAuditLogs, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('security.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 

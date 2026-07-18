@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Icon from '@/components/Icon';
 import { BanModal, ConfirmModal, CreditsModal, EditUserModal, NotifyModal } from '@/components/admin/UserAdminModals';
 import { useUI } from '@/components/GlobalUI';
+import { useAdminPermissions } from '@/components/admin/PermissionsProvider';
 import { adminFetch } from '@/lib/admin-client';
 
 type UserRow = {
@@ -33,6 +34,7 @@ type ModalTarget = UserRow | null;
 
 export default function AdminUsersPage() {
   const { toast } = useUI();
+  const { can } = useAdminPermissions();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -281,22 +283,30 @@ export default function AdminUsersPage() {
                               <Link href={`/admin/users/${u.id}`} className="admin-actions-item" onClick={() => setOpenMenu(null)}>
                                 <Icon name="user" size={14} /> View details
                               </Link>
-                              <button type="button" className="admin-actions-item" onClick={() => { setEditTarget(u); setOpenMenu(null); }}>
-                                <Icon name="pen" size={14} /> Edit user
-                              </button>
-                              <button type="button" className="admin-actions-item" onClick={() => { setCreditsTarget(u); setOpenMenu(null); }}>
-                                <Icon name="zap" size={14} /> Adjust credits
-                              </button>
-                              <button type="button" className="admin-actions-item" onClick={() => { setResetTarget(u); setOpenMenu(null); }}>
-                                <Icon name="refresh" size={14} /> Reset daily quota
-                              </button>
+                              {can('users.write') && (
+                                <button type="button" className="admin-actions-item" onClick={() => { setEditTarget(u); setOpenMenu(null); }}>
+                                  <Icon name="pen" size={14} /> Edit user
+                                </button>
+                              )}
+                              {can('billing.write') && (
+                                <button type="button" className="admin-actions-item" onClick={() => { setCreditsTarget(u); setOpenMenu(null); }}>
+                                  <Icon name="zap" size={14} /> Adjust credits
+                                </button>
+                              )}
+                              {can('users.write') && (
+                                <button type="button" className="admin-actions-item" onClick={() => { setResetTarget(u); setOpenMenu(null); }}>
+                                  <Icon name="refresh" size={14} /> Reset daily quota
+                                </button>
+                              )}
                               <button type="button" className="admin-actions-item" onClick={() => { setNotifyTarget(u); setOpenMenu(null); }}>
                                 <Icon name="bell" size={14} /> Send notification
                               </button>
-                              <button type="button" className="admin-actions-item" onClick={() => { setBanTarget(u); setOpenMenu(null); }}>
-                                <Icon name="shield" size={14} /> {u.is_banned ? 'Unban user' : 'Ban user'}
-                              </button>
-                              {rowLifecycle(u) === 'suspended' ? (
+                              {can('users.suspend') && (
+                                <button type="button" className="admin-actions-item" onClick={() => { setBanTarget(u); setOpenMenu(null); }}>
+                                  <Icon name="shield" size={14} /> {u.is_banned ? 'Unban user' : 'Ban user'}
+                                </button>
+                              )}
+                              {can('users.suspend') && (rowLifecycle(u) === 'suspended' ? (
                                 <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'unsuspend')}>
                                   <Icon name="clock" size={14} /> Lift suspension
                                 </button>
@@ -304,15 +314,19 @@ export default function AdminUsersPage() {
                                 <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'suspend')}>
                                   <Icon name="clock" size={14} /> Suspend user
                                 </button>
-                              )}
+                              ))}
                               {u.deleted_at ? (
-                                <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'restore')}>
-                                  <Icon name="refresh" size={14} /> Restore user
-                                </button>
+                                can('users.suspend') && (
+                                  <button type="button" className="admin-actions-item" onClick={() => void lifecycleAction(u, 'restore')}>
+                                    <Icon name="refresh" size={14} /> Restore user
+                                  </button>
+                                )
                               ) : (
-                                <button type="button" className="admin-actions-item admin-actions-danger" onClick={() => void lifecycleAction(u, 'soft_delete')}>
-                                  <Icon name="ban" size={14} /> Delete user
-                                </button>
+                                can('users.delete') && (
+                                  <button type="button" className="admin-actions-item admin-actions-danger" onClick={() => void lifecycleAction(u, 'soft_delete')}>
+                                    <Icon name="ban" size={14} /> Delete user
+                                  </button>
+                                )
                               )}
                               <button type="button" className="admin-actions-item" onClick={() => copyText(u.id, 'User ID')}>
                                 <Icon name="copy" size={14} /> Copy ID

@@ -1,10 +1,10 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { listAdminAuditLogs, logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { listAdminAuditLogs, logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.read');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.read');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 

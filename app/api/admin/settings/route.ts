@@ -1,18 +1,18 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { getAdminSettings, saveAdminSettings } from '@/lib/admin-settings-store';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.read');
   if (!auth.ok) return auth.response;
   const settings = await getAdminSettings(auth.ctx.admin);
   return apiOk(settings);
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.manage');
   if (!auth.ok) return auth.response;
 
   let body: Record<string, unknown>;

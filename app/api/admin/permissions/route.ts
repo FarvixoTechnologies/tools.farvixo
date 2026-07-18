@@ -1,11 +1,11 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 /** All permissions, grouped by module — feeds the permission matrix. */
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 

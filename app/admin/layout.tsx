@@ -6,12 +6,23 @@ import { useEffect } from 'react';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import Icon from '@/components/Icon';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { adminNavSections, isAdminPathActive } from '@/lib/admin-nav';
+import { AdminPermissionsProvider, useAdminPermissions } from '@/components/admin/PermissionsProvider';
+import { visibleNavSections, isAdminPathActive } from '@/lib/admin-nav';
 import { initials, isAdminUser } from '@/lib/auth';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminPermissionsProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </AdminPermissionsProvider>
+  );
+}
+
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, loading, signOut, refresh } = useAuth();
+  const { can } = useAdminPermissions();
+  const navSections = visibleNavSections(can);
 
   // Re-fetch profile role when opening admin (catches DB promotions / cookie logins).
   useEffect(() => {
@@ -80,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </Link>
         <nav className="admin-nav">
-          {adminNavSections.map((section) => (
+          {navSections.map((section) => (
             <div key={section.title} className="admin-nav-section">
               <span className="admin-nav-label">{section.title}</span>
               {section.items.map((n) => (

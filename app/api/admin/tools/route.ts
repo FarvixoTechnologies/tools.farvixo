@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { getAdminSettings } from '@/lib/admin-settings-store';
 import { tools } from '@/data/tools';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('tools.read');
   if (!auth.ok) return auth.response;
 
   const settings = await getAdminSettings(auth.ctx.admin);
@@ -23,7 +23,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('tools.write');
   if (!auth.ok) return auth.response;
 
   let body: { slug?: string; enabled?: boolean };

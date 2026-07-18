@@ -6,6 +6,7 @@ import { useUI } from '@/components/GlobalUI';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { adminFetch } from '@/lib/admin-client';
 import { createClient } from '@/lib/supabase/client';
+import { useAdminPermissions } from '@/components/admin/PermissionsProvider';
 import Icon from '@/components/Icon';
 
 type Tab = 'team' | 'roles' | 'matrix' | 'invites';
@@ -114,6 +115,7 @@ function TeamTab({ userId, toast }: { userId?: string; toast: Toast }) {
 
 /* ─────────── Roles ─────────── */
 function RolesTab({ toast }: { toast: Toast }) {
+  const { can } = useAdminPermissions();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -161,7 +163,7 @@ function RolesTab({ toast }: { toast: Toast }) {
     <div className="admin-panel glass">
       <div className="admin-panel-head">
         <h2>Roles</h2>
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => setCreating((v) => !v)}><Icon name="pen" size={13} /> New role</button>
+        {can('roles.write') && <button type="button" className="btn btn-primary btn-sm" onClick={() => setCreating((v) => !v)}><Icon name="pen" size={13} /> New role</button>}
       </div>
 
       {creating && (
@@ -201,7 +203,7 @@ function RolesTab({ toast }: { toast: Toast }) {
                   <td data-label="Members">{r.member_count}</td>
                   <td data-label="Type">{r.is_system ? <span className="pill pill-sm">System</span> : <span className="pill pill-sm pill-nav-new">Custom</span>}</td>
                   <td data-label="Actions">
-                    {!r.is_system && <button type="button" className="btn btn-ghost btn-sm admin-actions-danger" onClick={() => void del(r.key)}><Icon name="ban" size={13} /></button>}
+                    {!r.is_system && can('roles.delete') && <button type="button" className="btn btn-ghost btn-sm admin-actions-danger" onClick={() => void del(r.key)}><Icon name="ban" size={13} /></button>}
                   </td>
                 </tr>
               ))}
@@ -217,6 +219,8 @@ function RolesTab({ toast }: { toast: Toast }) {
 
 /* ─────────── Permission Matrix ─────────── */
 function MatrixTab({ toast }: { toast: Toast }) {
+  const { can } = useAdminPermissions();
+  const canEdit = can('roles.write');
   const [roles, setRoles] = useState<Role[]>([]);
   const [active, setActive] = useState('');
   const [groups, setGroups] = useState<Record<string, Perm[]>>({});
@@ -272,7 +276,7 @@ function MatrixTab({ toast }: { toast: Toast }) {
           <select className="admin-select" value={active} onChange={(e) => setActive(e.target.value)}>
             {roles.map((r) => <option key={r.key} value={r.key}>{r.name} ({r.key})</option>)}
           </select>
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => void save()} disabled={saving || isSystem}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => void save()} disabled={saving || isSystem || !canEdit}>
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
@@ -289,7 +293,7 @@ function MatrixTab({ toast }: { toast: Toast }) {
                 const inherited = effective.has(perm.key) && !direct.has(perm.key);
                 return (
                   <label key={perm.key} className={`rbac-perm ${inherited ? 'inherited' : ''}`}>
-                    <input type="checkbox" checked={direct.has(perm.key)} disabled={isSystem} onChange={() => toggle(perm.key)} />
+                    <input type="checkbox" checked={direct.has(perm.key)} disabled={isSystem || !canEdit} onChange={() => toggle(perm.key)} />
                     <span className="rbac-perm-text">
                       <b>{perm.description || perm.key}</b>
                       <span className="mono muted">{perm.key}</span>
@@ -308,6 +312,8 @@ function MatrixTab({ toast }: { toast: Toast }) {
 
 /* ─────────── Invitations ─────────── */
 function InvitesTab({ toast }: { toast: Toast }) {
+  const { can } = useAdminPermissions();
+  const canInvite = can('roles.invite');
   const [invites, setInvites] = useState<Invite[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -360,13 +366,15 @@ function InvitesTab({ toast }: { toast: Toast }) {
     <div className="admin-panel glass">
       <div className="admin-panel-head"><h2>Admin invitations</h2></div>
 
-      <div className="admin-toolbar" style={{ padding: 0, background: 'none', marginBottom: 12, flexWrap: 'wrap' }}>
-        <input className="admin-input" type="email" placeholder="admin@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <select className="admin-select" value={roleKey} onChange={(e) => setRoleKey(e.target.value)}>
-          {roles.filter((r) => r.key !== 'USER').map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
-        </select>
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => void invite()}><Icon name="mail" size={13} /> Invite</button>
-      </div>
+      {canInvite && (
+        <div className="admin-toolbar" style={{ padding: 0, background: 'none', marginBottom: 12, flexWrap: 'wrap' }}>
+          <input className="admin-input" type="email" placeholder="admin@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <select className="admin-select" value={roleKey} onChange={(e) => setRoleKey(e.target.value)}>
+            {roles.filter((r) => r.key !== 'USER').map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
+          </select>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => void invite()}><Icon name="mail" size={13} /> Invite</button>
+        </div>
+      )}
       {link && (
         <div className="admin-alert mb-4" style={{ wordBreak: 'break-all' }}>
           Email delivery is off — share this invite link manually:<br /><code>{link}</code>
@@ -396,7 +404,7 @@ function InvitesTab({ toast }: { toast: Toast }) {
                   <td data-label="Status"><span className={`status-pill ${badge(i.status)}`}>{i.status}</span></td>
                   <td data-label="Expires" className="muted">{new Date(i.expires_at).toLocaleDateString()}</td>
                   <td data-label="Actions">
-                    {i.status === 'pending' && <button type="button" className="btn btn-ghost btn-sm admin-actions-danger" onClick={() => void revoke(i.id)}>Revoke</button>}
+                    {i.status === 'pending' && canInvite && <button type="button" className="btn btn-ghost btn-sm admin-actions-danger" onClick={() => void revoke(i.id)}>Revoke</button>}
                   </td>
                 </tr>
               ))}

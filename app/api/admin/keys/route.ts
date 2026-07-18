@@ -1,11 +1,11 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/keys — list all API keys across users. */
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
 /** DELETE /api/admin/keys?id= — revoke any user's key. */
 export async function DELETE(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('system.manage');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
 

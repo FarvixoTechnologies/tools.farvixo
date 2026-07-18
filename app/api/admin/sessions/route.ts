@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +27,7 @@ async function withUsers<T extends Row>(
 }
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('security.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -75,7 +75,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('security.manage');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
 

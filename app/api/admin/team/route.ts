@@ -1,10 +1,10 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.invite');
   if (!auth.ok) return auth.response;
   const { admin, userId, role: actorRole } = auth.ctx;
 

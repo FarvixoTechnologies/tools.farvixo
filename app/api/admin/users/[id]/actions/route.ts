@@ -1,5 +1,5 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { createNotification } from '@/lib/notifications';
 import { isMissingColumnError, type AdminUserAction } from '@/lib/admin-users';
 
@@ -10,7 +10,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 const BAN_DURATION = '876000h'; // ~100 years
 
 export async function POST(req: Request, ctx: RouteCtx) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('users.suspend');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId, role: actorRole } = auth.ctx;
   const { id: targetId } = await ctx.params;

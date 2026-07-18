@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 import { broadcastNotifications, createNotification, sanitizeNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/notifications — broadcast history + platform stats. */
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('content.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
 
 /** POST /api/admin/notifications — send broadcast or single-user notification. */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('content.write');
   if (!auth.ok) return auth.response;
   const { admin, userId: actorId } = auth.ctx;
 

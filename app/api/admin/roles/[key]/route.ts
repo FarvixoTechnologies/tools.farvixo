@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin, requireSuperAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 type RouteCtx = { params: Promise<{ key: string }> };
 
 export async function GET(_req: Request, ctx: RouteCtx) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
   const key = (await ctx.params).key.toUpperCase();
@@ -34,7 +34,7 @@ export async function GET(_req: Request, ctx: RouteCtx) {
 
 /** Replace a role's DIRECT permission set (the matrix save). */
 export async function PUT(req: Request, ctx: RouteCtx) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.write');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
   const key = (await ctx.params).key.toUpperCase();

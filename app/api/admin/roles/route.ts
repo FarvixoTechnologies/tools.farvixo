@@ -1,12 +1,12 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { logAdminAction, requireAdmin, requireSuperAdmin } from '@/lib/admin-auth';
+import { logAdminAction, requirePermission } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 const KEY_RE = /^[A-Z0-9_]{2,32}$/;
 
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('roles.read');
   if (!auth.ok) return auth.response;
   const { admin } = auth.ctx;
 
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.write');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.write');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 
@@ -111,7 +111,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireSuperAdmin();
+  const auth = await requirePermission('roles.delete');
   if (!auth.ok) return auth.response;
   const { admin, userId } = auth.ctx;
 
