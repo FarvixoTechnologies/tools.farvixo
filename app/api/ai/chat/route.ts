@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { apiErr } from '@/lib/api-response';
 import type { ChatMessage } from '@/lib/ai';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
@@ -13,11 +14,33 @@ const BURST_LIMIT = 12;              // per minute per IP
 const FREE_DAILY_LIMIT = 50;        // server messages/day — then auto-falls back to free client AI
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-async function getCallerPlan(): Promise<{ userId: string | null; plan: string }> {
-  if (!getSupabaseEnv()) return { userId: null, plan: 'FREE' };
+async function getCallerPlan(req: Request): Promise<{ userId: string | null; plan: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { userId: null, plan: 'FREE' };
+
   try {
+    const bearer = req.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+    if (bearer && !bearer.startsWith('fx_')) {
+      const supabase = createClient(env.url, env.anonKey, {
+        global: { headers: { Authorization: `Bearer ${bearer}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(bearer);
+      if (!user) return { userId: null, plan: 'FREE' };
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', user.id)
+        .maybeSingle();
+      return { userId: user.id, plan: profile?.plan ?? 'FREE' };
+    }
+
     const { supabase } = await createRouteHandlerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { userId: null, plan: 'FREE' };
     const { data: profile } = await supabase
       .from('profiles')
@@ -39,7 +62,7 @@ export async function POST(req: Request) {
 
   // Daily quota — Pro/Enterprise unlimited, everyone else 10/day.
   // Signed-in users past the free limit can keep going by spending 1 credit per message.
-  const { userId, plan } = await getCallerPlan();
+  const { userId, plan } = await getCallerPlan(req);
 
   // AI Management quota enforcement (daily/monthly, user- or plan-scoped).
   {
@@ -110,34 +133,51 @@ export async function POST(req: Request) {
     const { withFarvixoIdentity } = await import('@/lib/engines/farvixo-identity');
     const system = withFarvixoIdentity(body.system || buildFarvixoDefaultSystem(lastUser)).slice(0, 16_000);
     const encoder = new TextEncoder();
-    const { streamWithFallback } = await import('@/lib/gemini/free-providers');
+
+    // Resolve the provider chain from the database (models → providers →
+    // priority → health → Vault key). No hardcoded order.
+    const routeAdmin = createAdminClient();
+    const { resolveChain, streamChat } = await import('@/lib/ai/router');
+    const chain = routeAdmin ? await resolveChain(routeAdmin, 'chat') : [];
 
     // Usage/observability accounting (recorded after the stream completes).
     const startedAt = Date.now();
-    const inputTokens = estimateTokens(body.messages.map((m) => m.content ?? '').join(' ') + system);
+    const inputChars = body.messages.map((m) => m.content ?? '').join(' ') + system;
     const providerPath: string[] = [];
     let usedProvider: string | null = null;
     let usedModel: string | null = model ?? null;
     let outputText = '';
+    let exactUsage: { promptTokens: number; completionTokens: number } | null = null;
 
     const stream = new ReadableStream({
       async start(controller) {
         let ok = true;
         let errorMessage: string | null = null;
+        let providerSent = false;
+        const emit = (chunk: { text: string; provider: string; model: string }) => {
+          if (chunk.provider !== usedProvider) { usedProvider = chunk.provider; usedModel = chunk.model; providerPath.push(chunk.provider); }
+          if (!providerSent) { controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: chunk.provider, model: chunk.model })}\n\n`)); providerSent = true; }
+          // router yields cumulative text — send only the delta
+          const delta = chunk.text.startsWith(outputText) ? chunk.text.slice(outputText.length) : chunk.text;
+          outputText = chunk.text.length >= outputText.length ? chunk.text : outputText + chunk.text;
+          if (delta) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
+        };
         try {
-          let providerSent = false;
-          for await (const chunk of streamWithFallback(body.messages!, system, model, body.temperature)) {
-            if (chunk.provider && chunk.provider !== usedProvider) {
-              usedProvider = chunk.provider;
-              usedModel = chunk.model ?? usedModel;
-              providerPath.push(chunk.provider);
+          if (chain.length > 0) {
+            for await (const chunk of streamChat(chain, body.messages!, system, body.temperature,
+              (u) => { if (u) exactUsage = u; },
+              (pid, err) => { void (routeAdmin && logAi(routeAdmin, { userId, providerId: pid, kind: 'error', level: 'warn', message: `retry: ${pid} — ${err}`, meta: { retry: true } })); })) {
+              emit(chunk);
             }
-            if (!providerSent) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: chunk.provider, model: chunk.model })}\n\n`));
-              providerSent = true;
+          } else {
+            // Safety net: keyless free provider chain when no DB provider is usable.
+            const { streamWithFallback } = await import('@/lib/gemini/free-providers');
+            for await (const chunk of streamWithFallback(body.messages!, system, model, body.temperature)) {
+              outputText += chunk.text ?? '';
+              if (chunk.provider !== usedProvider) { usedProvider = chunk.provider; usedModel = chunk.model; providerPath.push(chunk.provider); }
+              if (!providerSent) { controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: chunk.provider, model: chunk.model })}\n\n`)); providerSent = true; }
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.text })}\n\n`));
             }
-            outputText += chunk.text ?? '';
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.text })}\n\n`));
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
@@ -147,23 +187,22 @@ export async function POST(req: Request) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
           controller.close();
         } finally {
-          // Record usage + log the request/fallback path (best-effort).
-          const admin = createAdminClient();
+          const admin = routeAdmin ?? createAdminClient();
           if (admin) {
             const latencyMs = Date.now() - startedAt;
-            const completionTokens = estimateTokens(outputText);
+            // Exact tokens where the provider reported them; estimate otherwise.
+            const promptTokens = exactUsage?.promptTokens ?? estimateTokens(inputChars);
+            const completionTokens = exactUsage?.completionTokens ?? estimateTokens(outputText);
             void recordUsage(admin, {
               userId, providerId: usedProvider, modelId: usedModel,
-              promptTokens: inputTokens, completionTokens, latencyMs,
-              status: ok ? 'success' : 'error',
-              errorCode: ok ? null : 'stream_error',
+              promptTokens, completionTokens, latencyMs,
+              status: ok ? 'success' : 'error', errorCode: ok ? null : 'stream_error',
             });
             void logAi(admin, {
               userId, providerId: usedProvider, modelId: usedModel,
-              kind: ok ? 'request' : 'error',
-              level: ok ? 'info' : 'error',
+              kind: ok ? 'request' : 'error', level: ok ? 'info' : 'error',
               message: ok ? `chat ok via ${usedProvider}` : (errorMessage ?? 'error'),
-              meta: { fallback_path: providerPath, retry_count: Math.max(0, providerPath.length - 1), latency_ms: latencyMs },
+              meta: { fallback_path: providerPath, retry_count: Math.max(0, providerPath.length - 1), latency_ms: latencyMs, token_source: exactUsage ? 'provider' : 'estimated' },
             });
           }
         }
@@ -175,9 +214,24 @@ export async function POST(req: Request) {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept',
       },
     });
   } catch {
     return apiErr('Invalid request body', 400);
   }
+}
+
+/** Flutter web / mobile preflight for cross-origin chat. */
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }

@@ -1,5 +1,20 @@
 import { apiErr } from '@/lib/api-response';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
+import { getSupabaseEnv } from '@/lib/supabase/env';
+import { checkQuota, recordUsage, logAi } from '@/lib/ai/engine';
+
+async function caller(): Promise<{ userId: string | null; plan: string }> {
+  if (!getSupabaseEnv()) return { userId: null, plan: 'FREE' };
+  try {
+    const { supabase } = await createRouteHandlerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { userId: null, plan: 'FREE' };
+    const { data } = await supabase.from('profiles').select('plan').eq('id', user.id).maybeSingle();
+    return { userId: user.id, plan: data?.plan ?? 'FREE' };
+  } catch { return { userId: null, plan: 'FREE' }; }
+}
 
 const BURST_LIMIT = 10;
 const DAILY_LIMIT = 200;
@@ -55,6 +70,15 @@ export async function POST(req: Request) {
     return apiErr('Daily free limit reached — try again in a few hours.', 429);
   }
 
+  // AI Management quota enforcement.
+  const { userId, plan } = await caller();
+  const admin = createAdminClient();
+  if (admin) {
+    const q = await checkQuota(admin, userId, plan);
+    if (!q.allowed) return apiErr(`AI ${q.reason} quota reached (${q.used}/${q.limit}).`, 429);
+  }
+  const startedAt = Date.now();
+
   let body: ImageGenBody;
   try {
     body = (await req.json()) as ImageGenBody;
@@ -98,6 +122,10 @@ export async function POST(req: Request) {
   for (const url of urls) {
     const buf = await fetchImage(url);
     if (buf) {
+      if (admin) {
+        void recordUsage(admin, { userId, providerId: 'pollinations', modelId: model, promptTokens: 0, completionTokens: 0, latencyMs: Date.now() - startedAt, status: 'success' });
+        void logAi(admin, { userId, providerId: 'pollinations', modelId: model, kind: 'request', message: 'image ok', meta: { width, height } });
+      }
       return new Response(buf, {
         status: 200,
         headers: {
@@ -108,6 +136,10 @@ export async function POST(req: Request) {
     }
   }
 
+  if (admin) {
+    void recordUsage(admin, { userId, providerId: 'pollinations', modelId: model, promptTokens: 0, completionTokens: 0, latencyMs: Date.now() - startedAt, status: 'error', errorCode: 'image_unavailable' });
+    void logAi(admin, { userId, providerId: 'pollinations', modelId: model, kind: 'error', level: 'error', message: 'image server busy' });
+  }
   return apiErr(
     'Free image server busy — please wait 10 seconds and try again, or use a shorter prompt.',
     502,

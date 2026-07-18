@@ -9,7 +9,8 @@
     "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.2.0",
@@ -47,6 +48,8 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.1.11",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   }
 }

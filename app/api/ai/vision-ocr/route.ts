@@ -1,6 +1,21 @@
 import { apiOk, apiErr } from '@/lib/api-response';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { geminiVisionServer } from '@/lib/gemini/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
+import { getSupabaseEnv } from '@/lib/supabase/env';
+import { checkQuota, recordUsage, logAi, estimateTokens } from '@/lib/ai/engine';
+
+async function caller(): Promise<{ userId: string | null; plan: string }> {
+  if (!getSupabaseEnv()) return { userId: null, plan: 'FREE' };
+  try {
+    const { supabase } = await createRouteHandlerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { userId: null, plan: 'FREE' };
+    const { data } = await supabase.from('profiles').select('plan').eq('id', user.id).maybeSingle();
+    return { userId: user.id, plan: data?.plan ?? 'FREE' };
+  } catch { return { userId: null, plan: 'FREE' }; }
+}
 
 const BURST_LIMIT = 20; // vision OCR requests per minute per IP
 
@@ -136,11 +151,24 @@ export async function POST(req: Request) {
   const prompt = buildPrompt(body.languageHint);
   const errors: string[] = [];
 
+  const { userId, plan } = await caller();
+  const admin = createAdminClient();
+  if (admin) {
+    const q = await checkQuota(admin, userId, plan);
+    if (!q.allowed) return apiErr(`AI ${q.reason} quota reached (${q.used}/${q.limit}).`, 429);
+  }
+  const startedAt = Date.now();
+  const record = (provider: string, text: string) => {
+    if (!admin) return;
+    void recordUsage(admin, { userId, providerId: provider, modelId: `${provider}-vision`, promptTokens: estimateTokens(prompt), completionTokens: estimateTokens(text), latencyMs: Date.now() - startedAt, status: 'success' });
+    void logAi(admin, { userId, providerId: provider, kind: 'request', message: `vision-ocr ok via ${provider}` });
+  };
+
   // 1) Groq vision — the app's known-good key (confirmed working). Fast & free.
   if (process.env.GROQ_API_KEY) {
     try {
       const text = await groqVision(image, prompt);
-      if (hasText(text)) return apiOk({ text, provider: 'groq' });
+      if (hasText(text)) { record('groq', text); return apiOk({ text, provider: 'groq' }); }
       errors.push('groq returned empty');
     } catch (e) {
       errors.push(e instanceof Error ? e.message : 'groq failed');
@@ -151,7 +179,7 @@ export async function POST(req: Request) {
   if (process.env.GEMINI_API_KEY) {
     try {
       const text = cleanContent(await geminiVisionServer(image, prompt));
-      if (hasText(text)) return apiOk({ text, provider: 'gemini' });
+      if (hasText(text)) { record('gemini', text); return apiOk({ text, provider: 'gemini' }); }
       errors.push('gemini returned empty');
     } catch (e) {
       errors.push(e instanceof Error ? e.message : 'gemini failed');
@@ -161,11 +189,12 @@ export async function POST(req: Request) {
   // 3) Pollinations vision — free, server-side (bypasses browser CORS).
   try {
     const text = await pollinationsVision(image, prompt);
-    if (hasText(text)) return apiOk({ text, provider: 'pollinations' });
+    if (hasText(text)) { record('pollinations', text); return apiOk({ text, provider: 'pollinations' }); }
     errors.push('pollinations returned empty');
   } catch (e) {
     errors.push(e instanceof Error ? e.message : 'pollinations failed');
   }
 
+  if (admin) void logAi(admin, { userId, providerId: null, kind: 'error', level: 'error', message: `vision-ocr failed: ${errors.join(' · ')}` });
   return apiErr(`Vision OCR unavailable: ${errors.join(' · ')}`, 502);
 }
