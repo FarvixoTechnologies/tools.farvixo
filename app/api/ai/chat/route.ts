@@ -5,6 +5,7 @@ import { getSupabaseEnv } from '@/lib/supabase/env';
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { adjustCredits, InsufficientCreditsError } from '@/lib/credits';
+import { checkQuota, recordUsage, logAi, estimateTokens } from '@/lib/ai/engine';
 
 import { buildFarvixoDefaultSystem } from '@/lib/engines/farvixo-ai-context';
 
@@ -39,6 +40,21 @@ export async function POST(req: Request) {
   // Daily quota — Pro/Enterprise unlimited, everyone else 10/day.
   // Signed-in users past the free limit can keep going by spending 1 credit per message.
   const { userId, plan } = await getCallerPlan();
+
+  // AI Management quota enforcement (daily/monthly, user- or plan-scoped).
+  {
+    const admin = createAdminClient();
+    if (admin) {
+      const quota = await checkQuota(admin, userId, plan);
+      if (!quota.allowed) {
+        return apiErr(
+          `AI ${quota.reason} quota reached (${quota.used}/${quota.limit}). Try again later or upgrade your plan.`,
+          429,
+        );
+      }
+    }
+  }
+
   if (plan !== 'PRO' && plan !== 'ENTERPRISE') {
     const identity = userId ? `user:${userId}` : `ip:${ip}`;
     const daily = rateLimit(`ai:daily:${identity}`, FREE_DAILY_LIMIT, DAY_MS);
@@ -96,23 +112,60 @@ export async function POST(req: Request) {
     const encoder = new TextEncoder();
     const { streamWithFallback } = await import('@/lib/gemini/free-providers');
 
+    // Usage/observability accounting (recorded after the stream completes).
+    const startedAt = Date.now();
+    const inputTokens = estimateTokens(body.messages.map((m) => m.content ?? '').join(' ') + system);
+    const providerPath: string[] = [];
+    let usedProvider: string | null = null;
+    let usedModel: string | null = model ?? null;
+    let outputText = '';
+
     const stream = new ReadableStream({
       async start(controller) {
+        let ok = true;
+        let errorMessage: string | null = null;
         try {
           let providerSent = false;
           for await (const chunk of streamWithFallback(body.messages!, system, model, body.temperature)) {
+            if (chunk.provider && chunk.provider !== usedProvider) {
+              usedProvider = chunk.provider;
+              usedModel = chunk.model ?? usedModel;
+              providerPath.push(chunk.provider);
+            }
             if (!providerSent) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: chunk.provider, model: chunk.model })}\n\n`));
               providerSent = true;
             }
+            outputText += chunk.text ?? '';
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.text })}\n\n`));
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'AI generation failed';
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
+          ok = false;
+          errorMessage = err instanceof Error ? err.message : 'AI generation failed';
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
           controller.close();
+        } finally {
+          // Record usage + log the request/fallback path (best-effort).
+          const admin = createAdminClient();
+          if (admin) {
+            const latencyMs = Date.now() - startedAt;
+            const completionTokens = estimateTokens(outputText);
+            void recordUsage(admin, {
+              userId, providerId: usedProvider, modelId: usedModel,
+              promptTokens: inputTokens, completionTokens, latencyMs,
+              status: ok ? 'success' : 'error',
+              errorCode: ok ? null : 'stream_error',
+            });
+            void logAi(admin, {
+              userId, providerId: usedProvider, modelId: usedModel,
+              kind: ok ? 'request' : 'error',
+              level: ok ? 'info' : 'error',
+              message: ok ? `chat ok via ${usedProvider}` : (errorMessage ?? 'error'),
+              meta: { fallback_path: providerPath, retry_count: Math.max(0, providerPath.length - 1), latency_ms: latencyMs },
+            });
+          }
         }
       },
     });

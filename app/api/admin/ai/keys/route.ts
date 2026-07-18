@@ -59,12 +59,15 @@ export async function POST(req: Request) {
 
   const validation = b.validate ? await validateKey(b.provider_id, key) : null;
 
+  // Encrypt at rest via Supabase Vault (pgsodium); store only the secret id.
+  const { data: secretId, error: vaultErr } = await admin.rpc('ai_key_store', { p_secret: key, p_name: `ai-${b.provider_id}` });
+  if (vaultErr) return apiErr(`Key encryption failed: ${vaultErr.message}`, 500);
+
   const { data: row, error } = await admin.from('ai_api_keys').insert({
     provider_id: b.provider_id,
     label: b.label.trim().slice(0, 80),
     key_masked: mask(key),
-    // Service-role-only column, never exposed via the API. See note in module docs.
-    key_ciphertext: Buffer.from(key, 'utf8').toString('base64'),
+    vault_secret_id: secretId,
     status: 'active',
     validation_ok: validation,
     last_validated_at: b.validate ? new Date().toISOString() : null,
@@ -85,7 +88,7 @@ export async function PATCH(req: Request) {
   try { b = (await req.json()) as typeof b; } catch { return apiErr('Invalid body', 400); }
   if (!b.id || !b.action) return apiErr('id and action required', 400);
 
-  const { data: existing } = await admin.from('ai_api_keys').select('id, provider_id, key_ciphertext').eq('id', b.id).maybeSingle();
+  const { data: existing } = await admin.from('ai_api_keys').select('id, provider_id, vault_secret_id').eq('id', b.id).maybeSingle();
   if (!existing) return apiErr('Key not found', 404);
 
   if (b.action === 'revoke') {
@@ -98,9 +101,11 @@ export async function PATCH(req: Request) {
     const key = (b.key ?? '').trim();
     if (!key) return apiErr('New key required for rotation', 400);
     const ok = await validateKey(existing.provider_id, key);
+    const { data: newSecret, error: vErr } = await admin.rpc('ai_key_store', { p_secret: key, p_name: `ai-${existing.provider_id}` });
+    if (vErr) return apiErr(`Key encryption failed: ${vErr.message}`, 500);
     await admin.from('ai_api_keys').update({
       key_masked: mask(key),
-      key_ciphertext: Buffer.from(key, 'utf8').toString('base64'),
+      vault_secret_id: newSecret,
       status: 'active',
       validation_ok: ok,
       last_validated_at: new Date().toISOString(),
@@ -109,8 +114,12 @@ export async function PATCH(req: Request) {
     return apiOk({ rotated: true, validation: ok });
   }
 
-  // validate
-  const raw = existing.key_ciphertext ? Buffer.from(existing.key_ciphertext, 'base64').toString('utf8') : '';
+  // validate — decrypt from Vault
+  let raw = '';
+  if (existing.vault_secret_id) {
+    const { data: dec } = await admin.rpc('ai_key_read', { p_id: existing.vault_secret_id });
+    raw = (dec as string) ?? '';
+  }
   const ok = raw ? await validateKey(existing.provider_id, raw) : null;
   await admin.from('ai_api_keys').update({ validation_ok: ok, last_validated_at: new Date().toISOString() }).eq('id', b.id);
   return apiOk({ validation: ok });
