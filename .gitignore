@@ -51,3 +51,13 @@ next-env.d.ts
 
 # JVM crash logs
 hs_err_pid*.log
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+!.env.example
