@@ -10,6 +10,7 @@ import '../../providers/tool_activity_provider.dart';
 import '../../providers/tool_repository_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/retry_view.dart';
@@ -141,7 +142,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
               ),
               decoration: BoxDecoration(
                 color: p.surface,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: Radii.brSheet,
                 border: Border.all(color: p.border),
               ),
               child: Column(
@@ -155,7 +156,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: p.border,
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: Radii.brPill,
                       ),
                     ),
                   ),
@@ -238,8 +239,8 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                         backgroundColor: p.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: Radii.brButton,
                         ),
                       ),
                       child: const Text(
@@ -741,22 +742,18 @@ class _IconBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: p.surface.withValues(alpha: 0.65),
-            shape: BoxShape.circle,
-            border: Border.all(color: p.border),
-          ),
-          child: Icon(icon, size: 20, color: p.textPrimary),
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: p.surface.withValues(alpha: 0.65),
+          shape: BoxShape.circle,
+          border: Border.all(color: p.border),
         ),
+        child: Icon(icon, size: 20, color: p.textPrimary),
       ),
     );
   }
@@ -769,33 +766,29 @@ class _FiltersButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: p.surface.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: p.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.tune_rounded, size: 16, color: p.textPrimary),
-              const SizedBox(width: 6),
-              Text(
-                'Filters',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: p.textPrimary,
-                ),
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: p.surface.withValues(alpha: 0.75),
+          borderRadius: Radii.brButton,
+          border: Border.all(color: p.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tune_rounded, size: 16, color: p.textPrimary),
+            const SizedBox(width: 6),
+            Text(
+              'Filters',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: p.textPrimary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -887,7 +880,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: gradient ? AppColors.brandGradient : null,
         color: gradient ? null : p.surface.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: Radii.brCard,
         border: gradient ? null : Border.all(color: p.border),
         boxShadow: gradient
             ? [
@@ -956,18 +949,16 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+    return PressableScale(
+      onTap: onTap,
+      child: AnimatedContainer(
+          duration: Motion.base,
+          curve: Motion.standard,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             gradient: selected ? AppColors.brandGradient : null,
             color: selected ? null : p.surface.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: Radii.brPill,
             border: Border.all(
               color: selected ? Colors.transparent : p.border,
             ),
@@ -1000,7 +991,6 @@ class _CategoryChip extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }
@@ -1031,7 +1021,7 @@ class _SheetChip extends StatelessWidget {
       ),
       side: BorderSide(color: selected ? p.accent : p.border),
       backgroundColor: p.surface2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      shape: const RoundedRectangleBorder(borderRadius: Radii.brPill),
     );
   }
 }
@@ -1050,7 +1040,7 @@ class _PremiumUpgradeBanner extends StatelessWidget {
           end: Alignment.centerRight,
           colors: [Color(0xFF3B1D6E), Color(0xFF5B21B6), Color(0xFF7C3AED)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: Radii.brPanel,
         boxShadow: [
           BoxShadow(
             color: AppColors.brandPrimary.withValues(alpha: 0.35),
@@ -1100,36 +1090,32 @@ class _PremiumUpgradeBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onUpgrade,
-              borderRadius: BorderRadius.circular(999),
-              child: Ink(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-                  ),
-                  borderRadius: BorderRadius.circular(999),
+          PressableScale(
+            onTap: onUpgrade,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Upgrade Now',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                borderRadius: Radii.brPill,
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Upgrade Now',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
-                    SizedBox(width: 4),
-                    Icon(Icons.chevron_right_rounded,
-                        size: 16, color: Colors.white),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded,
+                      size: 16, color: Colors.white),
+                ],
               ),
             ),
           ),

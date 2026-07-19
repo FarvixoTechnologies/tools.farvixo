@@ -10,6 +10,7 @@ import '../../providers/tool_repository_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/tool_card.dart';
@@ -329,13 +330,14 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (spec.needsFile)
-          InkWell(
-            borderRadius: BorderRadius.circular(18),
+          PressableScale(
             onTap: _pick,
-            child: Container(
+            child: AnimatedContainer(
+              duration: Motion.base,
+              curve: Motion.standard,
               height: 184,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: Radii.brPanel,
                 border: Border.all(
                   color: hasFiles ? AppColors.success : accent,
                   width: 1.5,
@@ -352,12 +354,18 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    hasFiles
-                        ? Icons.check_circle_rounded
-                        : Icons.cloud_upload_rounded,
-                    size: 50,
-                    color: hasFiles ? AppColors.success : accent,
+                  AnimatedSwitcher(
+                    duration: Motion.fast,
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Icon(
+                      hasFiles
+                          ? Icons.check_circle_rounded
+                          : Icons.cloud_upload_rounded,
+                      key: ValueKey(hasFiles),
+                      size: 50,
+                      color: hasFiles ? AppColors.success : accent,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

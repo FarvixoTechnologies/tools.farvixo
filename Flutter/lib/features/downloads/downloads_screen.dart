@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
 /// Downloads — premium galaxy backdrop, glass header, animated empty state.
@@ -15,7 +16,7 @@ class DownloadsScreen extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(Insets.md, 12, Insets.md, 0),
                 child: FadeSlideIn(
                   child: PremiumHeader(
                     title: 'Downloads',

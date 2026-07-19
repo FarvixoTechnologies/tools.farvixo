@@ -13,6 +13,7 @@ import '../../providers/language_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../utils/profile_actions.dart';
 import '../../widgets/premium_kit.dart';
 import 'settings_capability.dart';
@@ -156,7 +157,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       height: 4,
                       decoration: BoxDecoration(
                         color: p.border,
-                        borderRadius: BorderRadius.circular(99),
+                        borderRadius: Radii.brPill,
                       ),
                     ),
                     const SizedBox(height: 16),

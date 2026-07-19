@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
 /// Shared glass section shell used by hub inline cards.
@@ -411,7 +412,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: Radii.brButton,
                         gradient: const LinearGradient(
                           colors: [AppColors.goldPremium, Color(0xFFF97316)],
                         ),
@@ -479,7 +480,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(99),
+                          borderRadius: Radii.brPill,
                           color: p.surface2.withValues(alpha: 0.7),
                           border: Border.all(color: p.border),
                         ),
@@ -521,7 +522,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                       height: 48,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: Radii.brCard,
                           gradient: const LinearGradient(
                             colors: [
                               AppColors.goldPremium,
@@ -542,7 +543,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: onUpgrade,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: Radii.brCard,
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

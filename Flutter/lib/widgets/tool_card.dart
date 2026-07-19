@@ -11,6 +11,8 @@ import '../providers/tool_activity_provider.dart';
 import '../providers/tool_repository_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/design_tokens.dart';
+import 'animations.dart';
 
 /// Compact glass tool card — 3-col mobile grid (TOOLS_PAGE.md 2026).
 class ToolCard extends ConsumerWidget {
@@ -155,16 +157,16 @@ class ToolCard extends ConsumerWidget {
     );
     final shortCat = category.name.replaceAll(' Tools', '');
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+    return RepaintBoundary(
+      child: PressableScale(
+        // _open already fires a selection haptic; keep exactly one.
+        haptic: false,
         onTap: () => _open(context, ref),
         onLongPress: () => _longPressMenu(context, ref),
-        child: Ink(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: p.surface.withValues(alpha: p.isDark ? 0.72 : 0.95),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: Radii.brPanel,
             border: Border.all(
               color: p.border.withValues(alpha: p.isDark ? 0.9 : 1),
             ),
@@ -177,7 +179,7 @@ class ToolCard extends ConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: EdgeInsets.all(compact ? 12 : 16),
+            padding: EdgeInsets.all(compact ? Insets.sm + 4 : Insets.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

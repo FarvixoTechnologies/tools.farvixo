@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/design_tokens.dart';
 import '../../utils/validators.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/social_login_button.dart';
@@ -361,7 +362,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 7),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(99),
+                                  borderRadius: Radii.brPill,
                                   border: Border.all(
                                     color: AppColors.brandPrimaryHover
                                         .withValues(
@@ -838,7 +839,7 @@ class _MethodCardState extends State<_MethodCard> {
           curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: Radii.brCard,
             gradient: d.selected
                 ? LinearGradient(colors: [
                     AppColors.brandPrimary.withValues(alpha: .28),
@@ -915,7 +916,7 @@ class _GlowFieldState extends State<_GlowField> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: Radii.brButton,
           boxShadow: _focused
               ? [
                   BoxShadow(
@@ -956,7 +957,7 @@ class _GlowGradientButton extends StatelessWidget {
         final t = pulse.value;
         return DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: Radii.brCard,
             boxShadow: [
               BoxShadow(
                 color:
@@ -973,7 +974,7 @@ class _GlowGradientButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: isLoading ? null : onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: Radii.brCard,
           child: Ink(
             height: 56,
             decoration: BoxDecoration(
@@ -984,7 +985,7 @@ class _GlowGradientButton extends StatelessWidget {
                   Color(0xFFEC4899),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: Radii.brCard,
             ),
             child: Center(
               child: isLoading

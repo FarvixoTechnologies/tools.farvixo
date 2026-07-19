@@ -44,13 +44,13 @@ class AppPalette {
           )
         : AppPalette(
             isDark: false,
-            bg: const Color(0xFFF6F6FB),
-            surface: Colors.white,
-            surface2: const Color(0xFFEFEFF7),
-            border: const Color(0xFFE3E3F0),
-            textPrimary: const Color(0xFF1A1330),
-            textSecondary: const Color(0xFF5A5876),
-            textMuted: const Color(0xFF8A88A3),
+            bg: AppColors.lightBg,
+            surface: AppColors.lightSurface,
+            surface2: AppColors.lightSurface2,
+            border: AppColors.lightBorder,
+            textPrimary: AppColors.lightTextPrimary,
+            textSecondary: AppColors.lightTextSecondary,
+            textMuted: AppColors.lightTextMuted,
             accent: accent,
           );
   }

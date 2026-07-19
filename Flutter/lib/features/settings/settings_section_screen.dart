@@ -18,6 +18,7 @@ import '../../services/settings_capability_services.dart';
 import '../../services/settings_sync_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import 'accent_color_picker_sheet.dart';
 import 'settings_capability.dart';
@@ -259,7 +260,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: p.textMuted.withValues(alpha: .5),
-                        borderRadius: BorderRadius.circular(99),
+                        borderRadius: Radii.brPill,
                       ),
                     ),
                   ),
@@ -350,7 +351,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: p.textMuted.withValues(alpha: .5),
-                        borderRadius: BorderRadius.circular(99),
+                        borderRadius: Radii.brPill,
                       ),
                     ),
                   ),
@@ -429,7 +430,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: p.textMuted.withValues(alpha: .5),
-                        borderRadius: BorderRadius.circular(99),
+                        borderRadius: Radii.brPill,
                       ),
                     ),
                   ),

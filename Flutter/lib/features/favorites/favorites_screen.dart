@@ -6,6 +6,7 @@ import '../../data/tools_data.dart';
 import '../../models/tool_model.dart';
 import '../../providers/tool_activity_provider.dart';
 import '../../providers/tool_repository_provider.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/retry_view.dart';
 import '../../widgets/skeletons.dart';
@@ -66,7 +67,8 @@ class FavoritesScreen extends ConsumerWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.fromLTRB(
+                    Insets.md, 12, Insets.md, Insets.xs),
                 child: FadeSlideIn(
                   child: PremiumHeader(
                     title: 'Favorites',
@@ -106,8 +108,8 @@ class FavoritesScreen extends ConsumerWidget {
                               ],
                             )
                           : GridView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 12, 16, 120),
+                              padding: const EdgeInsets.fromLTRB(
+                                  Insets.md, 12, Insets.md, 120),
                               physics: const AlwaysScrollableScrollPhysics(
                                 parent: BouncingScrollPhysics(),
                               ),
@@ -120,7 +122,7 @@ class FavoritesScreen extends ConsumerWidget {
                               ),
                               itemCount: tools.length,
                               itemBuilder: (context, i) => FadeSlideIn(
-                                index: i,
+                                index: i.clamp(0, 12),
                                 child: ToolCard(tool: tools[i]),
                               ),
                             ),

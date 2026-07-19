@@ -11,6 +11,7 @@ import '../../providers/appearance_layout_provider.dart';
 import '../../providers/tool_activity_provider.dart';
 import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/animations.dart';
 import '../../widgets/farvixo_logo.dart';
 
 /// FARVIXO — Home Dashboard FINAL (v10 Ultimate Enterprise, screen 022).
@@ -842,10 +843,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
             // galaxy particles (only meaningful on the dark galaxy card)
             if (isDark)
               Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: widget.bg,
-                  builder: (context, _) => CustomPaint(
-                    painter: _HeroParticlesPainter(widget.bg.value),
+                child: RepaintBoundary(
+                  child: AnimatedBuilder(
+                    animation: widget.bg,
+                    builder: (context, _) => CustomPaint(
+                      painter: _HeroParticlesPainter(widget.bg.value),
+                    ),
                   ),
                 ),
               ),
@@ -1212,8 +1215,7 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    return PressableScale(
       onTap: () =>
           action.route.startsWith('/tool/') ||
               action.route == '/downloads' ||
@@ -1412,8 +1414,7 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
+    return PressableScale(
       onTap: () => context.go(category.route),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
@@ -1577,8 +1578,7 @@ class _TrendingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
+    return PressableScale(
       onTap: () {
         if (item.toolId != null) {
           ref.read(recentToolsProvider.notifier).recordUse(item.toolId!);
@@ -1803,8 +1803,7 @@ class _PopularRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
+    return PressableScale(
       onTap: () {
         if (item.toolId != null) {
           ref.read(recentToolsProvider.notifier).recordUse(item.toolId!);

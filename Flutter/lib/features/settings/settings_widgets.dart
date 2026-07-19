@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
 /// Section hub row on the main Settings screen.
@@ -81,7 +82,7 @@ class SettingsSectionTile extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: p.surface2,
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: Radii.brPill,
                   border: Border.all(color: p.border),
                 ),
                 child: Text(
@@ -238,7 +239,7 @@ class SettingsGlowSwitch extends StatelessWidget {
         height: 27,
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: Radii.brPill,
           gradient: value ? AppColors.brandGradient : null,
           color: value ? null : AppPalette.of(context).surface2,
           border: Border.all(
@@ -283,7 +284,7 @@ class SettingsSoonBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.brandPrimary.withValues(alpha: .12),
-        borderRadius: BorderRadius.circular(99),
+        borderRadius: Radii.brPill,
         border: Border.all(
           color: AppColors.brandPrimaryHover.withValues(alpha: .35),
         ),
@@ -316,7 +317,7 @@ class SettingsUnavailableBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: AppPalette.of(context).surface2,
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: Radii.brPill,
           border: Border.all(color: AppPalette.of(context).border),
         ),
         child: Text(
@@ -355,7 +356,7 @@ class AppearanceModeChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: Radii.brButton,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -364,7 +365,7 @@ class AppearanceModeChip extends StatelessWidget {
           color: selected
               ? accent.withValues(alpha: .14)
               : p.surface2,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: Radii.brButton,
           border: Border.all(
             color: selected ? accent.withValues(alpha: .7) : p.border,
             width: 1.4,

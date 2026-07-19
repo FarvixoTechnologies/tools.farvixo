@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/tool_repository_provider.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/retry_view.dart';
 import '../../widgets/skeletons.dart';
@@ -114,15 +115,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 ),
                               ),
                               if (hasQuery)
-                                InkWell(
-                                  customBorder: const CircleBorder(),
+                                PressableScale(
                                   onTap: () {
                                     _controller.clear();
                                     _debounce?.cancel();
                                     setState(() => _query = '');
                                   },
-                                  child: Icon(Icons.close_rounded,
-                                      size: 18, color: p.textMuted),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(Insets.xs),
+                                    decoration: BoxDecoration(
+                                      color: p.surface2,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.close_rounded,
+                                        size: 16, color: p.textMuted),
+                                  ),
                                 ),
                             ],
                           ),
@@ -168,23 +175,66 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 'Try a different keyword.',
           );
         }
+        final p = AppPalette.of(context);
         return RefreshIndicator(
           onRefresh: () async =>
               ref.invalidate(remoteToolSearchProvider(_query)),
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.35,
-            ),
-            itemCount: results.length,
-            itemBuilder: (context, i) =>
-                FadeSlideIn(index: i, child: ToolCard(tool: results[i])),
+            slivers: [
+              SliverToBoxAdapter(
+                child: FadeSlideIn(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        Insets.gutter, Insets.sm, Insets.gutter, Insets.sm),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${results.length} '
+                          'result${results.length == 1 ? '' : 's'}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: p.textPrimary,
+                          ),
+                        ),
+                        Gaps.w8,
+                        Expanded(
+                          child: Text(
+                            'for "$_query"',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 12.5, color: p.textMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                    Insets.md, 0, Insets.md, 120),
+                sliver: SliverGrid(
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.35,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => FadeSlideIn(
+                        index: i.clamp(0, 12),
+                        child: ToolCard(tool: results[i])),
+                    childCount: results.length,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

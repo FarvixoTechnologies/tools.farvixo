@@ -10,6 +10,16 @@ class AppColors {
   static const Color bgSurface2 = Color(0xFF1A1A28);
   static const Color borderSubtle = Color(0xFF2A2A3C);
 
+  // Base surfaces + text (light) — single source for the light theme, shared by
+  // AppTheme.light() and AppPalette so Light/Dark/Custom stay consistent.
+  static const Color lightBg = Color(0xFFF6F6FB);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurface2 = Color(0xFFEFEFF7);
+  static const Color lightBorder = Color(0xFFE3E3F0);
+  static const Color lightTextPrimary = Color(0xFF1A1330);
+  static const Color lightTextSecondary = Color(0xFF5A5876);
+  static const Color lightTextMuted = Color(0xFF8A88A3);
+
   // Brand
   static const Color brandPrimary = Color(0xFF7C3AED);
   static const Color brandPrimaryHover = Color(0xFF8B5CF6);

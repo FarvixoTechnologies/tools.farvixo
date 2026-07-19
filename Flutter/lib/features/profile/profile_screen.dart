@@ -10,7 +10,9 @@ import 'package:go_router/go_router.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_details_provider.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../utils/profile_actions.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -19,12 +21,15 @@ import '../../widgets/premium_kit.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  // Bespoke, vibrant profile palette (matches the approved hero design).
+  // Status hues route through AppColors tokens; the gradient accents below are
+  // intentionally distinct from the category tokens for the hero look.
   static const _purple = Color(0xFF7B3FF2);
   static const _blue = Color(0xFF4D8DFF);
   static const _pink = Color(0xFFFF4FD8);
-  static const _success = Color(0xFF22C55E);
+  static const _success = AppColors.success;
   static const _warning = Color(0xFFF59E0B);
-  static const _danger = Color(0xFFEF4444);
+  static const _danger = AppColors.error;
   static const _orange = Color(0xFFFF7A3D);
 
   @override
@@ -357,15 +362,15 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: Blurs.heavy, sigmaY: Blurs.heavy),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+            padding: const EdgeInsets.fromLTRB(Insets.gutter, 14, Insets.gutter, 28),
             decoration: BoxDecoration(
               color: p.surface.withValues(alpha: 0.92),
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
+                  const BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
               border: Border.all(color: p.border),
             ),
             child: Column(
@@ -376,7 +381,7 @@ class ProfileScreen extends ConsumerWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: p.border,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: Radii.brPill,
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -403,8 +408,8 @@ class ProfileScreen extends ConsumerWidget {
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
                           side: BorderSide(color: p.border),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: Radii.brCard,
                           ),
                         ),
                         child: Text(
@@ -714,21 +719,30 @@ class _GlassIconButton extends StatelessWidget {
   const _GlassIconButton({required this.icon, required this.onTap});
   final IconData icon;
   final VoidCallback onTap;
+  static const String tooltip = 'Back';
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Material(
-          color: Colors.white.withValues(alpha: 0.14),
-          child: InkWell(
-            onTap: onTap,
-            child: SizedBox(
-              width: 42,
-              height: 42,
-              child: Icon(icon, size: 18, color: Colors.white),
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: ClipRRect(
+          borderRadius: Radii.brButton,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: Blurs.glass, sigmaY: Blurs.glass),
+            child: PressableScale(
+              onTap: onTap,
+              child: DecoratedBox(
+                decoration:
+                    BoxDecoration(color: Colors.white.withValues(alpha: 0.14)),
+                child: SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: Icon(icon, size: 18, color: Colors.white),
+                ),
+              ),
             ),
           ),
         ),
@@ -743,15 +757,15 @@ class _EditPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: 'Edit Profile',
+      child: PressableScale(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Ink(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: Radii.brPill,
             gradient: LinearGradient(
               colors: [
                 Colors.white.withValues(alpha: 0.22),
@@ -886,19 +900,26 @@ class _AvatarRingState extends State<_AvatarRing>
           Positioned(
             right: 8,
             bottom: 8,
-            child: Material(
-              color: ProfileScreen._purple,
-              shape: const CircleBorder(),
-              elevation: 4,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: widget.onEditPhoto,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(
-                    Icons.photo_camera_rounded,
-                    size: 16,
-                    color: Colors.white,
+            child: Semantics(
+              button: true,
+              label: 'Change profile photo',
+              child: Tooltip(
+                message: 'Change photo',
+                child: Material(
+                  color: ProfileScreen._purple,
+                  shape: const CircleBorder(),
+                  elevation: 4,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: widget.onEditPhoto,
+                    child: const Padding(
+                      padding: EdgeInsets.all(Insets.sm),
+                      child: Icon(
+                        Icons.photo_camera_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1003,15 +1024,15 @@ class _QuickAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: label,
+      child: PressableScale(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
+        child: Container(
           height: 56,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: Radii.brPanel,
             color: p.surface.withValues(alpha: p.isDark ? 0.55 : 0.85),
             border: Border.all(color: p.border),
             boxShadow: [
@@ -1026,7 +1047,7 @@ class _QuickAction extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: ProfileScreen._purple, size: 20),
-              const SizedBox(width: 8),
+              const SizedBox(width: Insets.sm),
               Text(
                 label,
                 style: TextStyle(
@@ -1374,19 +1395,26 @@ class _AccountRow extends StatelessWidget {
                 ),
               ),
               if (onCopy != null) ...[
-                const SizedBox(width: 8),
-                Material(
-                  color: ProfileScreen._purple.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    onTap: onCopy,
-                    borderRadius: BorderRadius.circular(8),
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.copy_rounded,
-                        size: 14,
-                        color: ProfileScreen._purple,
+                const SizedBox(width: Insets.sm),
+                Tooltip(
+                  message: 'Copy $label',
+                  child: Material(
+                    color: ProfileScreen._purple.withValues(alpha: 0.12),
+                    borderRadius: Radii.brSm,
+                    child: InkWell(
+                      onTap: onCopy,
+                      borderRadius: Radii.brSm,
+                      child: Semantics(
+                        button: true,
+                        label: 'Copy $label',
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.copy_rounded,
+                            size: 14,
+                            color: ProfileScreen._purple,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1505,12 +1533,12 @@ class _GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: label,
+      child: PressableScale(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Ink(
+        child: Container(
           height: height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
@@ -1527,7 +1555,7 @@ class _GradientButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
+              const SizedBox(width: Insets.sm),
               Text(
                 label,
                 style: const TextStyle(

@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/profile_details_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../utils/validators.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -168,7 +169,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: p.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: const RoundedRectangleBorder(borderRadius: Radii.brPanel),
         title: Text('Unsaved changes',
             style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w800)),
         content: Text('Save before leaving?',
@@ -266,7 +267,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   Widget _scroll(Widget child) => ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+        padding: const EdgeInsets.fromLTRB(Insets.md, Insets.md, Insets.md, 40),
         children: [child],
       );
 
@@ -356,16 +357,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   Widget _previewTab(AppPalette p) {
     final draft = _collect();
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Insets.gutter),
       decoration: BoxDecoration(
         color: p.surface.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: Radii.brSheet,
         border: Border.all(color: p.border),
       ),
       child: Column(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: Radii.brCard,
             child: SizedBox(
               height: 110,
               width: double.infinity,
@@ -437,15 +438,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           filled: true,
           fillColor: p.surface.withValues(alpha: 0.8),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: Radii.brButton,
             borderSide: BorderSide(color: p.border),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: Radii.brButton,
             borderSide: BorderSide(color: p.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: Radii.brButton,
             borderSide: BorderSide(color: p.accent, width: 1.5),
           ),
         ),
@@ -557,10 +558,10 @@ class _MediaPickers extends StatelessWidget {
               top: 10,
               child: Row(
                 children: [
-                  _miniBtn(Icons.photo_outlined, onPickCover),
+                  _miniBtn(Icons.photo_outlined, onPickCover, 'Change cover'),
                   if (coverUrl != null) ...[
                     const SizedBox(width: 6),
-                    _miniBtn(Icons.delete_outline, onRemoveCover),
+                    _miniBtn(Icons.delete_outline, onRemoveCover, 'Remove cover'),
                   ],
                 ],
               ),
@@ -606,16 +607,23 @@ class _MediaPickers extends StatelessWidget {
     );
   }
 
-  Widget _miniBtn(IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.black54,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(icon, size: 18, color: Colors.white),
+  Widget _miniBtn(IconData icon, VoidCallback onTap, String label) {
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Material(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.all(Insets.sm),
+              child: Icon(icon, size: 18, color: Colors.white),
+            ),
+          ),
         ),
       ),
     );

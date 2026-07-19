@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/design_tokens.dart';
+import 'animations.dart';
+import 'glass_surface.dart';
+
+// FadeSlideIn / PressableScale / AppPageRoute live in animations.dart; re-export
+// so existing importers of premium_kit keep resolving them unchanged.
+export 'animations.dart' show FadeSlideIn, PressableScale, AppPageRoute;
+export 'glass_surface.dart' show GlassPanel;
 
 /// ============================================================================
 /// FARVIXO PREMIUM UI KIT
@@ -104,60 +112,17 @@ class _GalaxyPainter extends CustomPainter {
       old.t != t || old.isDark != isDark || old.accent != accent;
 }
 
-/// Staggered fade + slide-up entrance. Drop around any widget; [index]
-/// controls the stagger delay. Self-contained (own controller) so it can be
-/// used anywhere without a shared ticker.
-class FadeSlideIn extends StatefulWidget {
-  const FadeSlideIn({super.key, this.index = 0, required this.child});
-
-  final int index;
-  final Widget child;
-
-  @override
-  State<FadeSlideIn> createState() => _FadeSlideInState();
-}
-
-class _FadeSlideInState extends State<FadeSlideIn>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 450));
-  late final Animation<double> _fade =
-      CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
-  late final Animation<Offset> _slide = Tween<Offset>(
-          begin: const Offset(0, .10), end: Offset.zero)
-      .animate(CurvedAnimation(parent: _c, curve: Curves.easeOutCubic));
-
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.delayed(
-        Duration(milliseconds: (widget.index * 70).clamp(0, 700)), () {
-      if (mounted) _c.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fade,
-      child: SlideTransition(position: _slide, child: widget.child),
-    );
-  }
-}
-
 /// Glassmorphism card — adaptive surface, subtle border and optional accent
 /// glow. Tapable when [onTap] is provided.
+///
+/// Backward-compatible wrapper: the same constructor as before, now backed by
+/// the token-driven [GlassPanel] (real backdrop blur, [Elevations] shadow,
+/// [RepaintBoundary]) with a [PressableScale] press response.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(Insets.md),
     this.radius = 18,
     this.onTap,
     this.glowColor,
@@ -173,29 +138,13 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = AppPalette.of(context);
-    final glow = glowColor ?? p.accent;
-    final card = Container(
+    return GlassPanel(
       padding: padding,
-      decoration: BoxDecoration(
-        color: p.surface.withValues(alpha: p.isDark ? .75 : 1),
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor ?? p.border),
-        boxShadow: [
-          BoxShadow(
-            color: glow.withValues(alpha: p.isDark ? .10 : .06),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: child,
-    );
-    if (onTap == null) return card;
-    return InkWell(
       borderRadius: BorderRadius.circular(radius),
       onTap: onTap,
-      child: card,
+      glowColor: glowColor,
+      borderColor: borderColor,
+      child: child,
     );
   }
 }

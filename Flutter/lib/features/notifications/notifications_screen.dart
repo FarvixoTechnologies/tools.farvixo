@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
+import '../../widgets/skeletons.dart';
 
 /// Notifications — Supabase feed with offline fallback list.
 class NotificationsScreen extends ConsumerWidget {
@@ -14,7 +16,6 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(notificationsListProvider);
-    final p = AppPalette.of(context);
 
     return Scaffold(
       body: PremiumBackground(
@@ -71,19 +72,28 @@ class NotificationsScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: async.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (_, _) => Center(
-                    child: Text('Could not load notifications',
-                        style: TextStyle(color: p.textSecondary)),
+                  loading: () => const _NotificationsSkeleton(),
+                  error: (_, _) => PremiumEmptyState(
+                    icon: Icons.cloud_off_rounded,
+                    emoji: '📡',
+                    accent: AppColors.error,
+                    title: 'Could not load notifications',
+                    message:
+                        'Check your connection and pull down to try again.',
+                    actionLabel: 'Retry',
+                    onAction: () =>
+                        ref.invalidate(notificationsListProvider),
                   ),
                   data: (items) {
                     if (items.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No notifications yet',
-                          style: TextStyle(color: p.textSecondary),
-                        ),
+                      return PremiumEmptyState(
+                        icon: Icons.notifications_off_rounded,
+                        emoji: '🔔',
+                        title: 'No notifications yet',
+                        message:
+                            'Updates about your tools, files and account will show up here.',
+                        actionLabel: 'Explore Tools',
+                        onAction: () => context.go('/tools'),
                       );
                     }
                     return ListView.separated(
@@ -126,12 +136,10 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
     final color = _colorFor(item.type);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: GlassCard(
+    return PressableScale(
+      onTap: onTap,
+      child: GlassCard(
+          glowColor: color,
           borderColor: item.isRead
               ? null
               : AppColors.brandPrimary.withValues(alpha: .35),
@@ -191,7 +199,6 @@ class _NotificationCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -232,5 +239,77 @@ class _NotificationCard extends StatelessWidget {
     if (d.inDays < 1) return 'Today';
     if (d.inDays < 2) return 'Yesterday';
     return '${d.inDays}d ago';
+  }
+}
+
+/// Loading placeholder list that mirrors the notification card layout so the
+/// switch from skeleton → real content causes no jump.
+class _NotificationsSkeleton extends StatelessWidget {
+  const _NotificationsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 7,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (_, _) => const _NotificationSkeletonCard(),
+    );
+  }
+}
+
+class _NotificationSkeletonCard extends StatelessWidget {
+  const _NotificationSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
+    Widget bar(double w, double h) => Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: p.surface2.withValues(alpha: p.isDark ? 0.7 : 0.95),
+            borderRadius: Radii.brXs,
+          ),
+        );
+    return ExcludeSemantics(
+      child: Shimmer(
+        child: Container(
+          padding: const EdgeInsets.all(Insets.md),
+          decoration: BoxDecoration(
+            color: p.surface.withValues(alpha: p.isDark ? 0.72 : 0.95),
+            borderRadius: Radii.brCard,
+            border: Border.all(color: p.border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: p.surface2.withValues(alpha: p.isDark ? 0.7 : 0.95),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    bar(double.infinity, 12),
+                    const SizedBox(height: 8),
+                    bar(double.infinity, 10),
+                    const SizedBox(height: 6),
+                    bar(80, 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

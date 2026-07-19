@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,12 +165,12 @@ class _HeaderIconButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: Radii.brButton,
         child: Ink(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: Radii.brButton,
             color: accent
                 ? AppColors.brandPrimary.withValues(alpha: 0.18)
                 : p.surface2.withValues(alpha: 0.7),
@@ -334,7 +335,7 @@ class SettingsProfileHero extends StatelessWidget {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: onCamera,
-                            borderRadius: BorderRadius.circular(99),
+                            borderRadius: Radii.brPill,
                             child: Ink(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
@@ -429,7 +430,7 @@ class SettingsProfileHero extends StatelessWidget {
                       vertical: 8,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(99),
+                      borderRadius: Radii.brPill,
                     ),
                   ),
                   icon: const Icon(Icons.edit_rounded, size: 16),
@@ -579,7 +580,7 @@ class _StatCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                     child: LinearProgressIndicator(
                       value: v,
                       minHeight: 4,
@@ -693,12 +694,9 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, i) {
               final (id, label, icon, color) = _items[i];
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => widget.onTap(id, label),
-                  borderRadius: BorderRadius.circular(22),
-                  child: Ink(
+              return PressableScale(
+                onTap: () => widget.onTap(id, label),
+                child: Container(
                     width: 90,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(22),
@@ -740,8 +738,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
                       ],
                     ),
                   ),
-                ),
-              );
+                );
             },
           ),
         ),
@@ -756,7 +753,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
               height: 6,
               margin: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(99),
+                borderRadius: Radii.brPill,
                 color: i == _page
                     ? AppColors.brandPrimaryHover
                     : p.textMuted.withValues(alpha: 0.4),
@@ -913,12 +910,9 @@ class SettingsPreferencesGrid extends StatelessWidget {
       itemBuilder: (context, i) {
         final c = cards[i];
         final p = AppPalette.of(context);
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: c.onTap,
-            borderRadius: BorderRadius.circular(22),
-            child: Ink(
+        return PressableScale(
+          onTap: c.onTap,
+          child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),
@@ -932,7 +926,7 @@ class SettingsPreferencesGrid extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: Radii.brButton,
                       color: c.color.withValues(alpha: 0.16),
                     ),
                     child: Text(c.emoji, style: const TextStyle(fontSize: 18)),
@@ -974,7 +968,6 @@ class SettingsPreferencesGrid extends StatelessWidget {
                 ],
               ),
             ),
-          ),
         );
       },
     );
@@ -1079,7 +1072,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: Radii.brPanel,
                       color: p.surface2.withValues(alpha: 0.65),
                       border: Border.all(color: p.border),
                     ),
@@ -1154,7 +1147,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                           width: double.infinity,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(99),
+                              borderRadius: Radii.brPill,
                               gradient: const LinearGradient(
                                 colors: [
                                   AppColors.brandPrimary,
@@ -1166,7 +1159,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: onImprove,
-                                borderRadius: BorderRadius.circular(99),
+                                borderRadius: Radii.brPill,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 9),
                                   child: Text(
@@ -1219,14 +1212,14 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
               ),
               InkWell(
                 onTap: onDevices,
-                borderRadius: BorderRadius.circular(99),
+                borderRadius: Radii.brPill,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                     color: AppColors.accentAi.withValues(alpha: 0.14),
                     border: Border.all(
                       color: AppColors.accentAi.withValues(alpha: 0.35),
@@ -1266,11 +1259,11 @@ class _VerifyChip extends StatelessWidget {
     final color = ok ? AppColors.success : AppColors.textMuted;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(99),
+      borderRadius: Radii.brPill,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: Radii.brPill,
           color: color.withValues(alpha: 0.12),
           border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
@@ -1318,7 +1311,7 @@ class _SecRow extends StatelessWidget {
     final p = AppPalette.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: Radii.brButton,
       child: Padding(
         padding: EdgeInsets.fromLTRB(4, 10, 4, isLast ? 4 : 10),
         child: Row(
@@ -1363,7 +1356,7 @@ class SettingsMenuList extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
-            InkWell(
+            PressableScale(
               onTap: () => onTap(items[i].$5),
               child: Padding(
                 padding: const EdgeInsets.symmetric(

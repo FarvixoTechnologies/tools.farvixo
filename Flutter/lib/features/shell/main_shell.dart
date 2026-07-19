@@ -44,7 +44,16 @@ class _MainShellState extends ConsumerState<MainShell>
     final cs = Theme.of(context).colorScheme;
     final isDark = cs.brightness == Brightness.dark;
     final accent = cs.primary;
-    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final mq = MediaQuery.of(context);
+    // Accessibility: honor the platform "reduce motion" setting — hold the
+    // decorative orb pulse steady instead of looping it forever.
+    final reduceMotion = mq.disableAnimations;
+    if (reduceMotion) {
+      if (_pulse.isAnimating) _pulse.stop();
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
+    final bottomInset = mq.viewPadding.bottom;
     final mutedColor =
         isDark ? AppColors.textMuted : cs.onSurface.withValues(alpha: .45);
     final accentGradient = LinearGradient(
@@ -128,7 +137,8 @@ class _MainShellState extends ConsumerState<MainShell>
                   label: 'AI Assistant',
                   child: GestureDetector(
                     onTap: () => _go(2),
-                    child: AnimatedBuilder(
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
                       animation: _pulse,
                       builder: (context, _) {
                         final t = _pulse.value;
@@ -190,6 +200,7 @@ class _MainShellState extends ConsumerState<MainShell>
                           ),
                         );
                       },
+                    ),
                     ),
                   ),
                 ),

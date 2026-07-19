@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/farvixo_logo.dart';
 
 /// FARVIXO — Onboarding v3.0 (3 pages, per LAUNCH/LOADING/ONBOARDING spec):
@@ -55,8 +56,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     }
     _controller.animateToPage(
       _index + 1,
-      duration: const Duration(milliseconds: 420),
-      curve: Curves.easeOutCubic,
+      duration: Motion.page,
+      curve: Motion.easeOut,
     );
   }
 
@@ -126,12 +127,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   children: [
                     for (var i = 0; i < _pageCount; i++)
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        duration: Motion.slow,
+                        curve: Motion.standard,
+                        margin: const EdgeInsets.symmetric(horizontal: Insets.xs),
                         width: i == _index ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(99),
+                          borderRadius: Radii.brPill,
                           gradient:
                               i == _index ? AppColors.brandGradient : null,
                           color: i == _index
@@ -161,7 +163,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                       ),
                       const Spacer(),
                       AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
+                        duration: Motion.slow,
                         transitionBuilder: (child, anim) => ScaleTransition(
                             scale: anim,
                             child:
@@ -658,13 +660,13 @@ class _GetStartedButton extends StatelessWidget {
       button: true,
       label: 'Get Started',
       child: InkWell(
-        borderRadius: BorderRadius.circular(99),
+        borderRadius: Radii.brPill,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: Insets.md),
           decoration: BoxDecoration(
             gradient: AppColors.brandGradient,
-            borderRadius: BorderRadius.circular(99),
+            borderRadius: Radii.brPill,
             boxShadow: [
               BoxShadow(
                 color: AppColors.brandPrimary.withValues(alpha: .5),

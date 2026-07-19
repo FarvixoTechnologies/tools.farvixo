@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'design_tokens.dart';
 
 class AppTheme {
   AppTheme._();
@@ -42,7 +43,7 @@ class AppTheme {
     bool highContrast = false,
   }) {
     final onSurface =
-        highContrast ? const Color(0xFF0A0A12) : const Color(0xFF1A1330);
+        highContrast ? AppColors.bgBase : AppColors.lightTextPrimary;
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -52,15 +53,15 @@ class AppTheme {
         secondary: AppColors.brandMagenta,
         onSecondary: Colors.white,
         tertiary: AppColors.goldPremium,
-        surface: Colors.white,
+        surface: AppColors.lightSurface,
         onSurface: onSurface,
-        surfaceContainerHighest: const Color(0xFFEFEFF7),
+        surfaceContainerHighest: AppColors.lightSurface2,
         outline: highContrast
-            ? const Color(0xFF1A1330)
-            : const Color(0xFFE3E3F0),
+            ? AppColors.lightTextPrimary
+            : AppColors.lightBorder,
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF6F6FB),
+      scaffoldBackgroundColor: AppColors.lightBg,
     );
     return _common(base, accent, boldText: boldText);
   }
@@ -73,7 +74,7 @@ class AppTheme {
     final cs = base.colorScheme;
     final isDark = base.brightness == Brightness.dark;
     final borderColor =
-        isDark ? AppColors.borderSubtle : const Color(0xFFE5E5EF);
+        isDark ? AppColors.borderSubtle : AppColors.lightBorder;
     final weight = boldText ? FontWeight.w700 : FontWeight.w400;
     return base.copyWith(
       textTheme: base.textTheme.apply(
@@ -100,7 +101,7 @@ class AppTheme {
         color: cs.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: Radii.brButton,
           side: BorderSide(color: borderColor),
         ),
         margin: EdgeInsets.zero,
@@ -110,8 +111,8 @@ class AppTheme {
           backgroundColor: accent,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+          shape: const RoundedRectangleBorder(
+            borderRadius: Radii.brSm,
           ),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
@@ -121,8 +122,8 @@ class AppTheme {
           foregroundColor: accent,
           minimumSize: const Size.fromHeight(52),
           side: BorderSide(color: accent),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+          shape: const RoundedRectangleBorder(
+            borderRadius: Radii.brSm,
           ),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
@@ -132,39 +133,39 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.bgSurface2 : Colors.white,
+        fillColor: isDark ? AppColors.bgSurface2 : AppColors.lightSurface,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: Insets.md, vertical: Insets.md),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: Radii.brSm,
           borderSide: BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: Radii.brSm,
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: Radii.brSm,
           borderSide: BorderSide(color: accent, width: 2),
         ),
         hintStyle: TextStyle(
-            color: isDark ? AppColors.textMuted : const Color(0xFF8A88A3)),
+            color: isDark ? AppColors.textMuted : AppColors.lightTextMuted),
       ),
       dividerTheme: DividerThemeData(color: borderColor, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         // Light mode must NOT fall back to Material's dark inverseSurface
         // (that showed up as a black bar with invisible text).
-        backgroundColor: isDark ? AppColors.bgSurface2 : Colors.white,
+        backgroundColor: isDark ? AppColors.bgSurface2 : AppColors.lightSurface,
         elevation: 6,
         contentTextStyle: TextStyle(color: cs.onSurface),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: Radii.brButton,
           side: BorderSide(color: borderColor),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: isDark ? AppColors.bgSurface : Colors.white,
+        backgroundColor: isDark ? AppColors.bgSurface : AppColors.lightSurface,
         indicatorColor: accent.withValues(alpha: 0.18),
         labelTextStyle: WidgetStatePropertyAll(
           TextStyle(fontSize: 12, color: cs.onSurface),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../utils/validators.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
@@ -81,7 +82,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 500),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                padding: const EdgeInsets.fromLTRB(
+                    Insets.md, 12, Insets.md, Insets.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -121,7 +123,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     FadeSlideIn(
                       index: 2,
                       child: GlassCard(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(Insets.gutter),
                         child: Form(
                           key: _formKey,
                           child: Column(
@@ -186,8 +188,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   children: [
                                     Expanded(
                                       child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(999),
+                                        borderRadius: Radii.brPill,
                                         child: LinearProgressIndicator(
                                           value: _strength,
                                           minHeight: 6,

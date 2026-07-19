@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,7 +11,9 @@ import '../../services/ai_chat_history_service.dart';
 import '../../services/ai_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
+import 'widgets/typing_indicator.dart';
 
 /// AI Assistant — streaming chat, multi-turn context, local history.
 class AiAssistantScreen extends ConsumerStatefulWidget {
@@ -48,8 +51,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
+          duration: Motion.base,
+          curve: Motion.easeOut,
         );
       }
     });
@@ -391,48 +394,59 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     ? _EmptyChat(onSuggestion: _send)
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(
+                            Insets.md, Insets.sm, Insets.md, Insets.sm),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: _messages.length,
                         itemBuilder: (context, i) {
-                          return _MessageBubble(message: _messages[i]);
+                          final msg = _messages[i];
+                          final prev = i > 0 ? _messages[i - 1] : null;
+                          return _MessageBubble(
+                            message: msg,
+                            groupedWithPrevious:
+                                prev != null && prev.role == msg.role,
+                          );
                         },
                       ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                padding: const EdgeInsets.fromLTRB(
+                    Insets.md, Insets.xs, Insets.md, 14),
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 50),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: p.surface.withValues(alpha: .82),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: p.border),
-                        ),
-                        child: TextField(
-                          controller: _controller,
-                          minLines: 1,
-                          maxLines: 4,
-                          enabled: !_sending,
-                          style: TextStyle(color: p.textPrimary),
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _send(),
-                          decoration: InputDecoration(
-                            isCollapsed: true,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 15),
-                            hintText: 'Ask me anything...',
-                            hintStyle: TextStyle(color: p.textMuted),
-                            border: InputBorder.none,
-                            filled: false,
+                      child: GlassPanel(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Insets.md),
+                        borderRadius: Radii.brPanel,
+                        borderColor: _controller.text.trim().isNotEmpty
+                            ? p.accent.withValues(alpha: .45)
+                            : null,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 50),
+                          child: TextField(
+                            controller: _controller,
+                            minLines: 1,
+                            maxLines: 4,
+                            enabled: !_sending,
+                            style: TextStyle(color: p.textPrimary),
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _send(),
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              isCollapsed: true,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 15),
+                              hintText: 'Ask me anything...',
+                              hintStyle: TextStyle(color: p.textMuted),
+                              border: InputBorder.none,
+                              filled: false,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    Gaps.w12,
                     _SendButton(
                       accent: p.accent,
                       sending: _sending,
@@ -461,8 +475,7 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      customBorder: const CircleBorder(),
+    return PressableScale(
       onTap: onTap,
       child: Container(
         width: 50,
@@ -477,10 +490,16 @@ class _SendButton extends StatelessWidget {
             BoxShadow(color: accent.withValues(alpha: .5), blurRadius: 16),
           ],
         ),
-        child: Icon(
-          sending ? Icons.stop_rounded : Icons.send_rounded,
-          color: Colors.white,
-          size: 22,
+        child: AnimatedSwitcher(
+          duration: Motion.fast,
+          transitionBuilder: (child, anim) =>
+              ScaleTransition(scale: anim, child: child),
+          child: Icon(
+            sending ? Icons.stop_rounded : Icons.send_rounded,
+            key: ValueKey(sending),
+            color: Colors.white,
+            size: 22,
+          ),
         ),
       ),
     );
@@ -547,23 +566,31 @@ class _EmptyChat extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 children: [
                   for (final s in suggestions)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(99),
+                    PressableScale(
                       onTap: () => onSuggestion(s),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                            horizontal: Insets.md, vertical: 10),
                         decoration: BoxDecoration(
                           color: p.surface.withValues(alpha: .8),
-                          borderRadius: BorderRadius.circular(99),
+                          borderRadius: Radii.brPill,
                           border: Border.all(
                               color: p.accent.withValues(alpha: .4)),
                         ),
-                        child: Text(s,
-                            style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: p.textPrimary)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.auto_awesome_rounded,
+                                size: 13,
+                                color: p.accent.withValues(alpha: .9)),
+                            const SizedBox(width: Insets.sm),
+                            Text(s,
+                                style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: p.textPrimary)),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -576,23 +603,47 @@ class _EmptyChat extends StatelessWidget {
   }
 }
 
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+class _MessageBubble extends StatefulWidget {
+  const _MessageBubble({
+    required this.message,
+    this.groupedWithPrevious = false,
+  });
 
   final ChatMessage message;
+  final bool groupedWithPrevious;
+
+  @override
+  State<_MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<_MessageBubble> {
+  bool _copied = false;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.message.text));
+    if (!mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() => _copied = true);
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final message = widget.message;
     final p = AppPalette.of(context);
     final isUser = message.role == ChatRole.user;
     final showCursor =
         !isUser && message.isLoading && message.text.isNotEmpty;
+    final isThinking = message.isLoading && message.text.isEmpty;
+    // Only assistant, finished, non-empty messages are copyable.
+    final canCopy = !isUser && !message.isLoading && message.text.isNotEmpty;
 
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+    final bubble = RepaintBoundary(
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+            horizontal: Insets.md, vertical: 12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
@@ -606,22 +657,24 @@ class _MessageBubble extends StatelessWidget {
           color: isUser ? null : p.surface.withValues(alpha: .85),
           border: isUser ? null : Border.all(color: p.border),
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
+            topLeft: const Radius.circular(Radii.card),
+            topRight: const Radius.circular(Radii.card),
+            bottomLeft: Radius.circular(isUser ? Radii.card : Radii.xs),
+            bottomRight: Radius.circular(isUser ? Radii.xs : Radii.card),
           ),
+          boxShadow: isUser
+              ? [
+                  BoxShadow(
+                    color: p.accent.withValues(alpha: .28),
+                    blurRadius: 16,
+                    spreadRadius: -6,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
         ),
-        child: message.isLoading && message.text.isEmpty
-            ? SizedBox(
-                width: 36,
-                height: 12,
-                child: LinearProgressIndicator(
-                  minHeight: 3,
-                  color: p.accent,
-                  backgroundColor: Colors.transparent,
-                ),
-              )
+        child: isThinking
+            ? const TypingIndicator()
             : SelectableText(
                 showCursor ? '${message.text}▋' : message.text,
                 style: TextStyle(
@@ -630,6 +683,115 @@ class _MessageBubble extends StatelessWidget {
                   color: isUser ? Colors.white : p.textPrimary,
                 ),
               ),
+      ),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: 12,
+        top: widget.groupedWithPrevious ? 0 : Insets.xs,
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment:
+                isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isUser) ...[
+                _AssistantAvatar(
+                  accent: p.accent,
+                  visible: !widget.groupedWithPrevious,
+                ),
+                Gaps.w8,
+              ],
+              Flexible(child: bubble),
+            ],
+          ),
+          if (canCopy)
+            Padding(
+              padding: const EdgeInsets.only(left: 40, top: Insets.xs),
+              child: _CopyChip(
+                copied: _copied,
+                accent: p.accent,
+                color: p.textMuted,
+                onTap: _copy,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssistantAvatar extends StatelessWidget {
+  const _AssistantAvatar({required this.accent, required this.visible});
+  final Color accent;
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!visible) return const SizedBox(width: 28);
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          accent,
+          Color.lerp(accent, AppColors.brandMagenta, .55)!,
+        ]),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(color: accent.withValues(alpha: .4), blurRadius: 10),
+        ],
+      ),
+      child: const Icon(Icons.auto_awesome_rounded,
+          color: Colors.white, size: 15),
+    );
+  }
+}
+
+class _CopyChip extends StatelessWidget {
+  const _CopyChip({
+    required this.copied,
+    required this.accent,
+    required this.color,
+    required this.onTap,
+  });
+
+  final bool copied;
+  final Color accent;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      onTap: onTap,
+      child: AnimatedSwitcher(
+        duration: Motion.fast,
+        child: Row(
+          key: ValueKey(copied),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              copied ? Icons.check_rounded : Icons.copy_rounded,
+              size: 13,
+              color: copied ? AppColors.success : color,
+            ),
+            const SizedBox(width: Insets.xs),
+            Text(
+              copied ? 'Copied' : 'Copy',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: copied ? AppColors.success : color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

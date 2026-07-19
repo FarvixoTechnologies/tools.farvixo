@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/settings_sync_service.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/design_tokens.dart';
 import 'settings_widgets.dart';
 
 /// Full accent palette sheet: presets + custom HSV picker + saved colors.
@@ -105,7 +106,7 @@ class _AccentColorPickerSheetState
                   height: 4,
                   decoration: BoxDecoration(
                     color: p.textMuted.withValues(alpha: .5),
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                   ),
                 ),
               ),
@@ -214,7 +215,7 @@ class _AccentColorPickerSheetState
                     height: 52,
                     decoration: BoxDecoration(
                       color: draft,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: Radii.brCard,
                       border: Border.all(color: p.border),
                       boxShadow: [
                         BoxShadow(
@@ -240,11 +241,11 @@ class _AccentColorPickerSheetState
                         filled: true,
                         fillColor: p.surface2,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: Radii.brButton,
                           borderSide: BorderSide(color: p.border),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: Radii.brButton,
                           borderSide: BorderSide(color: p.border),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -320,7 +321,7 @@ class _AccentColorPickerSheetState
                         side: BorderSide(color: p.border),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: Radii.brButton,
                         ),
                       ),
                     ),
@@ -337,7 +338,7 @@ class _AccentColorPickerSheetState
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: Radii.brButton,
                         ),
                       ),
                       child: const Text(
@@ -380,7 +381,7 @@ class _HueSlider extends StatelessWidget {
                 Container(
                   height: 12,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                     gradient: const LinearGradient(
                       colors: [
                         Color(0xFFFF0000),
