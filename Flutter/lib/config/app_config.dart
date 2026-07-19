@@ -31,35 +31,45 @@ class AppConfig {
     defaultValue: 'https://tools.farvixo.com/api',
   );
 
+  static String _env(String key) {
+    try {
+      return dotenv.maybeGet(key)?.trim() ?? '';
+    } catch (_) {
+      // Dotenv not loaded yet (tests / early boot).
+      return '';
+    }
+  }
+
   static String get supabaseUrl {
     if (_defineUrl.isNotEmpty) return _defineUrl;
-    return dotenv.maybeGet('SUPABASE_URL')?.trim() ?? '';
+    return _env('SUPABASE_URL');
   }
 
   static String get supabaseAnonKey {
     if (_defineAnonKey.isNotEmpty) return _defineAnonKey;
-    return dotenv.maybeGet('SUPABASE_ANON_KEY')?.trim() ?? '';
+    return _env('SUPABASE_ANON_KEY');
   }
 
   /// New-style publishable key (`sb_publishable_…`); falls back to anon JWT.
   static String get supabasePublishableKey {
     if (_definePublishableKey.isNotEmpty) return _definePublishableKey;
-    final fromEnv = dotenv.maybeGet('SUPABASE_PUBLISHABLE_KEY')?.trim() ?? '';
+    final fromEnv = _env('SUPABASE_PUBLISHABLE_KEY');
     if (fromEnv.isNotEmpty) return fromEnv;
     return supabaseAnonKey;
   }
 
   static String get geminiApiKey {
     if (_defineGemini.isNotEmpty) return _defineGemini;
-    return dotenv.maybeGet('GEMINI_API_KEY')?.trim() ?? '';
+    return _env('GEMINI_API_KEY');
   }
 
   static const String geminiModel = 'gemini-2.0-flash';
 
-  static String get apiBaseUrl => _defineApiBase.isNotEmpty
-      ? _defineApiBase
-      : (dotenv.maybeGet('API_BASE_URL')?.trim() ??
-          'https://tools.farvixo.com/api');
+  static String get apiBaseUrl {
+    if (_defineApiBase.isNotEmpty) return _defineApiBase;
+    final fromEnv = _env('API_BASE_URL');
+    return fromEnv.isNotEmpty ? fromEnv : 'https://tools.farvixo.com/api';
+  }
 
   static bool get supabaseEnabled =>
       supabaseUrl.isNotEmpty &&

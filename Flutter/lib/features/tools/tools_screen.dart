@@ -7,11 +7,22 @@ import '../../data/tools_data.dart';
 import '../../models/tool_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tool_activity_provider.dart';
+import '../../providers/tool_repository_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
+import '../../widgets/retry_view.dart';
 import '../../widgets/tool_card.dart';
+
+/// Resolve a tool id/slug against the live catalog, falling back to the bundled
+/// catalog so recents keep resolving offline.
+Tool? _resolveTool(List<Tool> catalog, String id) {
+  for (final t in catalog) {
+    if (t.id == id || t.remoteSlug == id) return t;
+  }
+  return ToolsData.toolById(id);
+}
 
 enum _SortMode { popular, newest, trending, recentlyUsed, aToZ }
 
@@ -51,10 +62,10 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
     }
   }
 
-  List<Tool> _visibleTools() {
-    var list = _selectedCategoryId == null
-        ? List<Tool>.from(ToolsData.tools)
-        : ToolsData.byCategory(_selectedCategoryId!);
+  /// Applies filter + sort to an already category-scoped list (the category
+  /// filter itself is done via the backend query — [remoteToolsProvider]).
+  List<Tool> _visibleTools(List<Tool> scoped) {
+    var list = List<Tool>.from(scoped);
 
     final favorites = ref.read(favoriteToolsProvider);
     final recents = ref.read(recentToolsProvider);
@@ -249,12 +260,24 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    final tools = _visibleTools();
-    final total = ToolsData.tools.length;
+    // Full catalog (for stats) + category-scoped catalog (backend category
+    // query) — both fall back to the bundled catalog when offline.
+    final allTools =
+        ref.watch(remoteToolsProvider(null)).valueOrNull ?? ToolsData.tools;
+    final scopedTools =
+        ref.watch(remoteToolsProvider(_selectedCategoryId)).valueOrNull ??
+            (_selectedCategoryId == null
+                ? ToolsData.tools
+                : ToolsData.byCategory(_selectedCategoryId!));
+    final categories =
+        ref.watch(remoteCategoriesProvider).valueOrNull ?? ToolsData.categories;
+    final offline = ref.watch(offlineStatusProvider);
+
+    final tools = _visibleTools(scopedTools);
+    final total = allTools.length;
     final popularCount =
-        ToolsData.tools.where((t) => t.badge == ToolBadge.popular).length;
-    final aiCount =
-        ToolsData.tools.where((t) => t.badge == ToolBadge.ai).length;
+        allTools.where((t) => t.badge == ToolBadge.popular).length;
+    final aiCount = allTools.where((t) => t.badge == ToolBadge.ai).length;
     final freeCount = total - aiCount;
     final user = ref.watch(authProvider);
     final recents = ref.watch(recentToolsProvider);
@@ -265,8 +288,8 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
         : nameSeed.characters.first.toUpperCase();
 
     final chipCategories = _showAllCategories
-        ? ToolsData.categories
-        : ToolsData.categories
+        ? categories
+        : categories
             .where((c) => _primaryChipIds.contains(c.id))
             .toList();
 
@@ -275,8 +298,12 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
       body: PremiumBackground(
         child: SafeArea(
           bottom: false,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
+          child: RefreshIndicator(
+            onRefresh: () async => refreshCatalog(ref),
+            child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             slivers: [
               SliverToBoxAdapter(
                 child: FadeSlideIn(
@@ -289,6 +316,12 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                   ),
                 ),
               ),
+              if (offline)
+                SliverToBoxAdapter(
+                  child: OfflineBanner(
+                    onRetry: () => refreshCatalog(ref),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: FadeSlideIn(
                   index: 1,
@@ -385,8 +418,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                             const SizedBox(width: 8),
                           ],
                           if (!_showAllCategories &&
-                              ToolsData.categories.length >
-                                  _primaryChipIds.length)
+                              categories.length > _primaryChipIds.length)
                             _CategoryChip(
                               label: 'More',
                               icon: Icons.expand_more_rounded,
@@ -408,7 +440,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                   index: 4,
                   title: 'Recently Used',
                   tools: recents
-                      .map(ToolsData.toolById)
+                      .map((id) => _resolveTool(allTools, id))
                       .whereType<Tool>()
                       .take(6)
                       .toList(),
@@ -431,9 +463,10 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                         Text(
                           _selectedCategoryId == null
                               ? 'Popular Tools'
-                              : ToolsData.categoryById(_selectedCategoryId!)
-                                      ?.name ??
-                                  'Tools',
+                              : ref
+                                  .watch(categoryResolverProvider)(
+                                      _selectedCategoryId!)
+                                  .name,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
@@ -535,6 +568,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 130)),
             ],
+            ),
           ),
         ),
       ),

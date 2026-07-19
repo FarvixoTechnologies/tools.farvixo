@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/user_model.dart';
+import '../providers/account_entitlements_provider.dart';
 import '../providers/app_providers.dart';
 import '../providers/auth_provider.dart';
+import '../providers/settings_capabilities_provider.dart';
 import '../providers/tool_activity_provider.dart';
 import 'device_service.dart';
+import 'settings_capability_services.dart';
 import 'settings_sync_service.dart';
 import 'supabase_service.dart';
 
@@ -25,6 +28,13 @@ class UserSyncCoordinator {
       await SettingsSyncService.instance.hydrate(ref);
     } catch (e) {
       debugPrint('UserSync settings hydrate: $e');
+    }
+    try {
+      await SettingsCapabilityServices.probe();
+      ref.invalidate(settingsCapabilitiesProvider);
+      ref.invalidate(accountEntitlementsRemoteProvider);
+    } catch (e) {
+      debugPrint('UserSync capability probe: $e');
     }
     try {
       await ref.read(favoriteToolsProvider.notifier).hydrateFromRemote();

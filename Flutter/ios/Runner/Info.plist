@@ -43,6 +43,14 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Farvixo uses Face ID to sign you in quickly and securely.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Farvixo needs camera access for profile photos and document tools.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Farvixo needs microphone access for voice and audio tools.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Farvixo needs photo library access to choose images for tools and your profile.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Farvixo needs permission to save processed images to your library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

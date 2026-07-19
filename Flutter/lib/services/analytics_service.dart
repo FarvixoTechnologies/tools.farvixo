@@ -12,11 +12,19 @@ class AnalyticsService {
 
   FirebaseAnalyticsObserver get observer => _repo.observer;
 
-  Future<void> setDefaults() async {
+  Future<void> setDefaults({bool enabled = true}) async {
     try {
-      await _repo.setAnalyticsCollectionEnabled(true);
+      await _repo.setAnalyticsCollectionEnabled(enabled);
     } catch (e) {
       debugPrint('AnalyticsService.setDefaults: $e');
+    }
+  }
+
+  Future<void> setCollectionEnabled(bool enabled) async {
+    try {
+      await _repo.setAnalyticsCollectionEnabled(enabled);
+    } catch (e) {
+      debugPrint('AnalyticsService.setCollectionEnabled: $e');
     }
   }
 

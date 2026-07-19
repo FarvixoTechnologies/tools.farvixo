@@ -1,25 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/tools_data.dart';
-import '../../models/tool_model.dart';
+import '../../providers/tool_repository_provider.dart';
 import '../../theme/app_palette.dart';
 import '../../widgets/premium_kit.dart';
+import '../../widgets/retry_view.dart';
+import '../../widgets/skeletons.dart';
 import '../../widgets/tool_card.dart';
 
 /// Search — premium galaxy backdrop, glass search field, animated empty /
-/// no-result states and a staggered results grid.
-class SearchScreen extends StatefulWidget {
+/// no-result states and a staggered results grid. Results come from the
+/// backend search endpoint (debounced), with an offline catalog fallback
+/// handled inside the repository.
+class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
   final _focus = FocusNode();
-  List<Tool> _results = const [];
+  Timer? _debounce;
+
+  /// Committed (debounced) query that actually drives the search provider.
+  String _query = '';
 
   @override
   void initState() {
@@ -29,13 +38,21 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     _focus.dispose();
     super.dispose();
   }
 
   void _onChanged(String query) {
-    setState(() => _results = ToolsData.search(query));
+    // Rebuild immediately so the clear button reflects the field, but defer the
+    // actual (backend) search until typing settles.
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      setState(() => _query = query.trim());
+    });
   }
 
   @override
@@ -101,7 +118,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                   customBorder: const CircleBorder(),
                                   onTap: () {
                                     _controller.clear();
-                                    _onChanged('');
+                                    _debounce?.cancel();
+                                    setState(() => _query = '');
                                   },
                                   child: Icon(Icons.close_rounded,
                                       size: 18, color: p.textMuted),
@@ -124,7 +142,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildBody(bool hasQuery) {
-    if (!hasQuery) {
+    if (!hasQuery || _query.isEmpty) {
       return const PremiumEmptyState(
         icon: Icons.search_rounded,
         title: 'Search across all tools',
@@ -132,25 +150,44 @@ class _SearchScreenState extends State<SearchScreen> {
             'Find any of Farvixo\'s 120+ tools by name, category or what it does.',
       );
     }
-    if (_results.isEmpty) {
-      return PremiumEmptyState(
-        icon: Icons.search_off_rounded,
-        title: 'No tools found',
-        message: 'Nothing matched "${_controller.text.trim()}". '
-            'Try a different keyword.',
-      );
-    }
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.35,
+
+    final resultsAsync = ref.watch(remoteToolSearchProvider(_query));
+    return resultsAsync.when(
+      loading: () => const SectionSkeleton(itemCount: 6),
+      error: (_, _) => ErrorRetryView(
+        title: 'Search unavailable',
+        message: 'Please check your connection and try again.',
+        onRetry: () => ref.invalidate(remoteToolSearchProvider(_query)),
       ),
-      itemCount: _results.length,
-      itemBuilder: (context, i) =>
-          FadeSlideIn(index: i, child: ToolCard(tool: _results[i])),
+      data: (results) {
+        if (results.isEmpty) {
+          return PremiumEmptyState(
+            icon: Icons.search_off_rounded,
+            title: 'No tools found',
+            message: 'Nothing matched "$_query". '
+                'Try a different keyword.',
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () async =>
+              ref.invalidate(remoteToolSearchProvider(_query)),
+          child: GridView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.35,
+            ),
+            itemCount: results.length,
+            itemBuilder: (context, i) =>
+                FadeSlideIn(index: i, child: ToolCard(tool: results[i])),
+          ),
+        );
+      },
     );
   }
 }

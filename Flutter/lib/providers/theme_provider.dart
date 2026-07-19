@@ -26,21 +26,70 @@ class AccentPresets {
   static const magenta = AppColors.brandMagenta;
   static const gold = AppColors.goldPremium;
   static const blue = Color(0xFF3B82F6);
+  static const indigo = Color(0xFF6366F1);
   static const cyan = Color(0xFF06B6D4);
+  static const teal = Color(0xFF14B8A6);
   static const green = Color(0xFF22C55E);
+  static const lime = Color(0xFF84CC16);
   static const orange = Color(0xFFF97316);
+  static const amber = Color(0xFFF59E0B);
   static const rose = Color(0xFFF43F5E);
+  static const pink = Color(0xFFEC4899);
+  static const red = Color(0xFFEF4444);
+  static const slate = Color(0xFF64748B);
+  static const white = Color(0xFFE2E8F0);
 
   static const all = <Color>[
     violet,
     magenta,
+    indigo,
     blue,
     cyan,
+    teal,
     green,
+    lime,
+    amber,
+    gold,
     orange,
     rose,
-    gold,
+    pink,
+    red,
+    slate,
+    white,
   ];
+}
+
+/// User-saved custom accent colors for the palette picker.
+final customAccentPaletteProvider =
+    StateNotifierProvider<CustomAccentPaletteNotifier, List<Color>>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return CustomAccentPaletteNotifier(
+    storage.customAccentColors,
+    storage.setCustomAccentColors,
+  );
+});
+
+class CustomAccentPaletteNotifier extends StateNotifier<List<Color>> {
+  CustomAccentPaletteNotifier(List<int> saved, this._persist)
+      : super([for (final c in saved) Color(c)]);
+
+  final Future<void> Function(List<int>) _persist;
+  static const _max = 16;
+
+  Future<void> add(Color color) async {
+    final argb = color.toARGB32();
+    if (state.any((c) => c.toARGB32() == argb)) return;
+    final next = [color, ...state].take(_max).toList();
+    state = next;
+    await _persist([for (final c in next) c.toARGB32()]);
+  }
+
+  Future<void> remove(Color color) async {
+    final argb = color.toARGB32();
+    final next = [for (final c in state) if (c.toARGB32() != argb) c];
+    state = next;
+    await _persist([for (final c in next) c.toARGB32()]);
+  }
 }
 
 class AccentColorNotifier extends StateNotifier<Color> {

@@ -66,6 +66,8 @@ create table if not exists public.user_settings (
   offline_enabled         boolean not null default true,
   cloud_sync_enabled      boolean not null default true,
   biometric_enabled       boolean not null default false,
+  email_notifications     boolean not null default true,
+  marketing_notifications boolean not null default false,
   updated_at              timestamptz not null default now()
 );
 
@@ -79,6 +81,10 @@ alter table public.user_settings add column if not exists ai_assistant_enabled b
 alter table public.user_settings add column if not exists offline_enabled boolean;
 alter table public.user_settings add column if not exists cloud_sync_enabled boolean;
 alter table public.user_settings add column if not exists biometric_enabled boolean;
+alter table public.user_settings add column if not exists email_notifications boolean;
+alter table public.user_settings alter column email_notifications set default true;
+alter table public.user_settings add column if not exists marketing_notifications boolean;
+alter table public.user_settings alter column marketing_notifications set default false;
 alter table public.user_settings add column if not exists updated_at timestamptz;
 
 drop trigger if exists trg_user_settings_updated_at on public.user_settings;
@@ -171,6 +177,7 @@ create index if not exists idx_user_devices_user
   on public.user_devices (user_id, last_active desc);
 
 drop index if exists uq_user_devices_user_key;
+alter table public.user_devices drop constraint if exists uq_user_devices_user_key;
 do $$
 begin
   alter table public.user_devices

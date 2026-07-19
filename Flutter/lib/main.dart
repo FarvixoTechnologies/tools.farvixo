@@ -28,6 +28,9 @@ Future<void> main() async {
     onNotificationOpen: PendingDeepLink.set,
   );
   final prefs = await SharedPreferences.getInstance();
+  // Respect analytics opt-out before any further product events.
+  final analyticsEnabled = prefs.getBool('pref_analytics') ?? true;
+  await FirebaseService.applyAnalyticsCollection(analyticsEnabled);
   await SupabaseService.init();
 
   runApp(

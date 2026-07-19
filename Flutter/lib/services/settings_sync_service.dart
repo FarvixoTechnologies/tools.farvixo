@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_settings_provider.dart';
 import '../providers/language_provider.dart';
 import '../providers/theme_provider.dart';
+import 'farvixo_api_client.dart';
 import 'supabase_service.dart';
 
 /// Two-way bridge between local preferences and Supabase `user_settings`.
@@ -84,6 +85,19 @@ class SettingsSyncService {
       if (anim is bool) {
         ref.read(animationsEnabledProvider.notifier).set(anim);
       }
+
+      final email = row['email_notifications'];
+      if (email is bool) {
+        ref.read(settingsPrefProvider(SettingsPrefKey.emailNotif).notifier).set(email);
+      }
+      final marketing = row['marketing_notifications'];
+      if (marketing is bool) {
+        ref.read(settingsPrefProvider(SettingsPrefKey.marketing).notifier).set(marketing);
+      }
+      final ai = row['ai_assistant_enabled'];
+      if (ai is bool) {
+        ref.read(settingsPrefProvider(SettingsPrefKey.featureAi).notifier).set(ai);
+      }
     } catch (e) {
       debugPrint('SettingsSync.hydrate failed: $e');
     } finally {
@@ -109,4 +123,30 @@ class SettingsSyncService {
   Future<void> setAnimationsEnabled(bool v) => push({'animations_enabled': v});
   Future<void> setNotificationsEnabled(bool v) =>
       push({'notifications_enabled': v});
+  Future<void> setEmailNotifications(bool v) async {
+    await push({'email_notifications': v});
+    await _mirrorEmailPrefsToApi(email: v);
+  }
+
+  Future<void> setMarketingNotifications(bool v) async {
+    await push({'marketing_notifications': v});
+    await _mirrorEmailPrefsToApi(marketing: v);
+  }
+
+  /// Mirrors toggles to web `settings` table via PATCH /account/settings.
+  Future<void> _mirrorEmailPrefsToApi({bool? email, bool? marketing}) async {
+    if (!_ready) return;
+    final patch = <String, dynamic>{};
+    if (email != null) patch['email_notifications'] = email;
+    if (marketing != null) patch['marketing_opt_in'] = marketing;
+    if (patch.isEmpty) return;
+    try {
+      await FarvixoApiClient().patch(
+        '/account/settings',
+        data: {'settings': patch},
+      );
+    } catch (e) {
+      debugPrint('SettingsSync PATCH email prefs: $e');
+    }
+  }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/appearance_layout_provider.dart';
 import '../../providers/tool_activity_provider.dart';
 import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
@@ -156,11 +157,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider);
+    final appearance = ref.watch(appearanceLayoutProvider);
     final p = HomePalette.of(context);
     final screenW = MediaQuery.of(context).size.width;
     // Trending cards are sized so ~4.3 fit across the viewport (the design
     // shows the 5th card peeking at the right edge → horizontal scroll).
     final trendW = ((screenW - 32) / 4.3).clamp(72.0, 96.0);
+    final compact = appearance.homeLayout == HomeLayoutMode.compact;
+    final sectionGap = compact ? 10.0 : 16.0;
 
     return PopScope(
       // Only the root home route handles app exit. Other routes keep normal
@@ -219,52 +223,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
 
                       // ================= hero banner =================
-                      SliverToBoxAdapter(
-                        child: _entrance(
-                          index: 1,
-                          child: _HeroCarousel(
-                            bg: _bgController,
-                            pulse: _pulseController,
-                            isDark: p.isDark,
-                          ),
-                        ),
-                      ),
-
-                      // ================= quick actions =================
-                      SliverToBoxAdapter(
-                        child: _entrance(
-                          index: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                            child: SizedBox(
-                              height: 58,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  for (var i = 0; i < 4; i++) ...[
-                                    if (i > 0) const SizedBox(width: 9),
-                                    Expanded(
-                                      child: _QuickActionCard(
-                                        action: _quickActions[i],
-                                        palette: p,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                      if (appearance.effectiveShowHero)
+                        SliverToBoxAdapter(
+                          child: _entrance(
+                            index: 1,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: compact ? 4 : 0,
+                              ),
+                              child: Transform.scale(
+                                alignment: Alignment.topCenter,
+                                scale: compact ? 0.92 : 1,
+                                child: _HeroCarousel(
+                                  bg: _bgController,
+                                  pulse: _pulseController,
+                                  isDark: p.isDark,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+
+                      // ================= quick actions =================
+                      if (appearance.homeShowQuickActions)
+                        SliverToBoxAdapter(
+                          child: _entrance(
+                            index: 2,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                16,
+                                sectionGap,
+                                16,
+                                0,
+                              ),
+                              child: SizedBox(
+                                height: compact ? 50 : 58,
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (var i = 0; i < 4; i++) ...[
+                                      if (i > 0) const SizedBox(width: 9),
+                                      Expanded(
+                                        child: _QuickActionCard(
+                                          action: _quickActions[i],
+                                          palette: p,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
 
                       // ================= explore categories =================
                       SliverToBoxAdapter(
                         child: _entrance(
                           index: 3,
-                          child: _SectionHead(
-                            palette: p,
-                            title: 'Explore Categories',
-                            onViewAll: () => context.go('/tools'),
+                          child: Padding(
+                            padding: EdgeInsets.only(top: sectionGap),
+                            child: _SectionHead(
+                              palette: p,
+                              title: 'Explore Categories',
+                              onViewAll: () => context.go('/tools'),
+                            ),
                           ),
                         ),
                       ),
@@ -1767,7 +1791,7 @@ const _popularItems = [
     'Ask Anything, Get Answers',
     Icons.chat_bubble_rounded,
     AppColors.accentText,
-    '/tool/ai-chat',
+    '/ai',
     'ai-chat',
   ),
 ];

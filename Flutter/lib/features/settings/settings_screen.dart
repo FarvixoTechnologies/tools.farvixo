@@ -1,22 +1,24 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../config/app_config.dart';
+import '../../providers/account_entitlements_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../services/notification_feed_service.dart';
-import '../../services/settings_sync_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
 import '../../utils/profile_actions.dart';
+import '../../widgets/premium_kit.dart';
+import 'settings_capability.dart';
+import 'settings_v5_widgets.dart';
 
-/// Settings — "Customize your experience ✨"
-/// Premium glass design: glowing profile card with stats, grouped sections
-/// (Preferences / Account & Security / Data & Storage / General), logout.
+/// Farvixo Settings — Enterprise Mobile UI v5.0
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -27,239 +29,189 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with TickerProviderStateMixin {
   late final AnimationController _intro = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1200))
-    ..forward();
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..forward();
+
   late final AnimationController _pulse = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 2200))
-    ..repeat(reverse: true);
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat(reverse: true);
+
+  late final AnimationController _wave = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 8000),
+  )..repeat();
 
   @override
   void dispose() {
     _intro.dispose();
     _pulse.dispose();
+    _wave.dispose();
     super.dispose();
   }
 
-  Widget _entrance(int index, Widget child) {
-    final start = (index * 0.09).clamp(0.0, 0.6);
+  Widget _enter(int i, Widget child) {
+    final start = (i * 0.045).clamp(0.0, 0.7);
     final curved = CurvedAnimation(
       parent: _intro,
-      curve: Interval(start, (start + 0.4).clamp(0.0, 1.0),
-          curve: Curves.easeOutCubic),
+      curve: Interval(
+        start,
+        (start + 0.28).clamp(0.0, 1.0),
+        curve: Curves.easeOutCubic,
+      ),
     );
     return FadeTransition(
       opacity: curved,
       child: SlideTransition(
-        position: Tween<Offset>(begin: const Offset(0, .1), end: Offset.zero)
-            .animate(curved),
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(curved),
         child: child,
       ),
     );
   }
 
-  void _soon(String feature) {
+  void _haptic() {
+    final on = ref.read(settingsPrefProvider(SettingsPrefKey.haptics));
+    if (on) HapticFeedback.selectionClick();
+  }
+
+  void _soon(String label, {String reason = 'Requires additional service setup'}) {
+    _haptic();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$feature — coming soon'),
+        content: Text('$label — $reason'),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  // ------------------------------------------------------------- sheets
+  void _openHubSection(String id) {
+    if (id == 'devices' || id == 'sessions_devices') {
+      context.push('/devices');
+      return;
+    }
+    if (id == 'downloads' || id == 'manage_downloads') {
+      context.push('/downloads');
+      return;
+    }
+    context.push('/settings/$id');
+  }
 
-  void _themeSheet() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sheetBg = isDark ? AppColors.bgSurface : Colors.white;
-    final textColor = isDark ? AppColors.textPrimary : const Color(0xFF1A1330);
-    final mutedColor =
-        isDark ? AppColors.textMuted : const Color(0xFF8A88A3);
+  List<(IconData, Color, String, String, String)> _hubRows(
+    SettingsHubGroup group, {
+    String? subscriptionSubtitle,
+  }) {
+    final rows = <(IconData, Color, String, String, String)>[];
+    for (final row in hubMenuRowsFor(group)) {
+      var subtitle = row.$4;
+      if (row.$5 == 'subscription' && subscriptionSubtitle != null) {
+        subtitle = subscriptionSubtitle;
+      }
+      rows.add((row.$1, row.$2, row.$3, subtitle, row.$5));
+    }
+    if (group.title == 'Account & Security') {
+      rows.add((
+        Icons.devices_outlined,
+        AppColors.accentAi,
+        'Devices & Sessions',
+        'Active sessions on your account',
+        'devices',
+      ));
+    }
+    return rows;
+  }
 
-    showModalBottomSheet<void>(
+  Future<bool?> _confirmSheet({
+    required String title,
+    required String body,
+    required String confirmLabel,
+    Color? confirmColor,
+  }) {
+    return showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: sheetBg,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => SafeArea(
-        // StatefulBuilder so swatch/mode selection updates the sheet live.
-        child: StatefulBuilder(
-          builder: (context, setSheet) {
-            final current = ref.read(themeModeProvider);
-            final accent = ref.read(accentColorProvider);
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final p = AppPalette.of(ctx);
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                decoration: BoxDecoration(
+                  color: p.surface.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: p.border),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: mutedColor.withValues(alpha: .5),
+                        color: p.border,
                         borderRadius: BorderRadius.circular(99),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('🎨 Appearance',
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
                       style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: textColor)),
-                  const SizedBox(height: 4),
-                  Text('Base mode',
-                      style: TextStyle(fontSize: 12.5, color: mutedColor)),
-                  const SizedBox(height: 10),
-                  // -------- base mode selector --------
-                  Row(
-                    children: [
-                      for (final mode in ThemeMode.values) ...[
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: p.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      body,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: p.textSecondary),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
                         Expanded(
-                          child: _ModeChip(
-                            selected: mode == current,
-                            accent: accent,
-                            textColor: textColor,
-                            mutedColor: mutedColor,
-                            isDark: isDark,
-                            icon: switch (mode) {
-                              ThemeMode.system => Icons.brightness_auto_rounded,
-                              ThemeMode.light => Icons.light_mode_rounded,
-                              ThemeMode.dark => Icons.dark_mode_rounded,
-                            },
-                            label: switch (mode) {
-                              ThemeMode.system => 'System',
-                              ThemeMode.light => 'Light',
-                              ThemeMode.dark => 'Dark',
-                            },
-                            onTap: () {
-                              ref.read(themeModeProvider.notifier).setMode(mode);
-                              SettingsSyncService.instance
-                                  .setThemeMode(mode.name);
-                              setSheet(() {});
-                            },
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
                           ),
                         ),
-                        if (mode != ThemeMode.values.last)
-                          const SizedBox(width: 10),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Accent color',
-                      style: TextStyle(fontSize: 12.5, color: mutedColor)),
-                  const SizedBox(height: 12),
-                  // -------- accent swatch grid --------
-                  Wrap(
-                    spacing: 14,
-                    runSpacing: 14,
-                    children: [
-                      for (final color in AccentPresets.all)
-                        _Swatch(
-                          color: color,
-                          selected: color.toARGB32() == accent.toARGB32(),
-                          onTap: () {
-                            ref
-                                .read(accentColorProvider.notifier)
-                                .setColor(color);
-                            SettingsSyncService.instance
-                                .setAccentColor(color.toARGB32());
-                            setSheet(() {});
-                          },
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  confirmColor ?? AppColors.brandPrimary,
+                            ),
+                            child: Text(confirmLabel),
+                          ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _languageSheet() {
-    final current = ref.read(languageProvider);
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppPalette.of(context).surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 14),
-            const Text('🌐 Language',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            for (final lang in supportedLanguages)
-              ListTile(
-                title: Text(lang.name),
-                subtitle: Text(lang.nativeName,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textMuted)),
-                trailing: lang.code == current
-                    ? const Icon(Icons.check_circle_rounded,
-                        color: AppColors.brandPrimaryHover)
-                    : null,
-                onTap: () {
-                  ref.read(languageProvider.notifier).setLanguage(lang.code);
-                  SettingsSyncService.instance.setLanguage(lang.code);
-                  Navigator.pop(context);
-                  setState(() {});
-                },
-              ),
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _clearCache() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear cache?'),
-        content: const Text('This will free up 256 MB of space.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Clear')),
-        ],
-      ),
-    );
-    if (ok == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('✅ Cache cleared — 256 MB freed'),
-        behavior: SnackBarBehavior.floating,
-      ));
-    }
-  }
-
-  Future<void> _logout() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Log out?'),
-        content: const Text('You will need to sign in again.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
+            ),
           ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmSignOut() async {
+    final ok = await _confirmSheet(
+      title: 'Sign Out?',
+      body: 'You will need to sign in again to sync cloud files and credits.',
+      confirmLabel: 'Sign Out',
+      confirmColor: const Color(0xFFF43F5E),
     );
     if (ok == true && mounted) {
       await ref.read(authProvider.notifier).signOut();
@@ -267,876 +219,226 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     }
   }
 
-  // --------------------------------------------------------------- build
+  void _toggleTheme() {
+    final mode = ref.read(themeModeProvider);
+    final next = switch (mode) {
+      ThemeMode.dark => ThemeMode.light,
+      ThemeMode.light => ThemeMode.system,
+      ThemeMode.system => ThemeMode.dark,
+    };
+    ref.read(themeModeProvider.notifier).setMode(next);
+    final hapticsOn = ref.read(settingsPrefProvider(SettingsPrefKey.haptics));
+    if (hapticsOn) HapticFeedback.lightImpact();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
     final user = ref.watch(authProvider);
+    final entitlements = ref.watch(accountEntitlementsProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final soundOn = ref.watch(soundEnabledProvider);
+    final lang = ref.watch(languageProvider);
     final animationsOn = ref.watch(animationsEnabledProvider);
-    final langCode = ref.watch(languageProvider);
-    final langName = supportedLanguages
-        .firstWhere((l) => l.code == langCode,
-            orElse: () => supportedLanguages.first)
-        .name;
+    final hapticsOn = ref.watch(settingsPrefProvider(SettingsPrefKey.haptics));
+    final accountGroup = kSettingsHubGroups[0];
+    final advancedGroup = kSettingsHubGroups[1];
+    final activityGroup = kSettingsHubGroups[2];
+
+    final name = user?.displayName ?? 'Guest';
+    final email = user?.email ?? 'guest@farvixo.com';
+    final username =
+        '@${(user?.isGuest ?? true) ? 'guest' : email.split('@').first}';
+    final isPro = user?.isPro ?? false;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'G';
+    final creditsUsed = entitlements.creditsUsed;
+    final creditsMax = entitlements.creditsMax;
+    final storageUsed = entitlements.storageUsedGb;
+    final storageMax = entitlements.storageMaxGb;
 
     return Scaffold(
-      backgroundColor: AppPalette.of(context).bg,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-              children: [
-                // ================= header =================
-                _entrance(
-                  0,
-                  Row(
-                    children: [
-                      _CircleBtn(
-                        icon: Icons.arrow_back_rounded,
-                        onTap: () => context.canPop()
+      backgroundColor: p.isDark
+          ? const Color(0xFF080B14)
+          : const Color(0xFFF8F9FF),
+      body: PremiumBackground(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _wave,
+                  builder: (context, _) =>
+                      CustomPaint(painter: SettingsMeshPainter(_wave.value)),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: _enter(
+                      0,
+                      SettingsV5Header(
+                        onBack: () => context.canPop()
                             ? context.pop()
                             : context.go('/home'),
+                        onSearch: () => _soon('Search settings'),
+                        onThemeToggle: _toggleTheme,
+                        themeMode: themeMode,
+                        wave: _wave,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Settings',
-                                style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800)),
-                            Text('Customize your experience ✨',
-                                style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: AppPalette.of(context).textSecondary)),
-                          ],
-                        ),
-                      ),
-                      _CircleBtn(
-                          icon: Icons.search_rounded,
-                          onTap: () => context.push('/search')),
-                      const SizedBox(width: 8),
-                      _CircleBtn(
-                        icon: Icons.notifications_outlined,
-                        badge: () {
-                          final n =
-                              ref.watch(unreadNotificationsCountProvider);
-                          return n > 0 ? '$n' : null;
-                        }(),
-                        onTap: () => context.push('/notifications'),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 18),
-
-                // ================= profile card =================
-                _entrance(
-                  1,
-                  _GlassCard(
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            // glowing avatar + camera badge
-                            AnimatedBuilder(
-                              animation: _pulse,
-                              builder: (context, child) => Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: AppColors.brandGradient,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.brandPrimary
-                                          .withValues(
-                                              alpha:
-                                                  .3 + _pulse.value * .3),
-                                      blurRadius: 18 + _pulse.value * 8,
-                                    ),
-                                  ],
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _enter(
+                          1,
+                          SettingsProfileHero(
+                            name: name,
+                            username: username,
+                            email: email,
+                            initial: initial,
+                            avatarUrl: user?.avatarUrl,
+                            isPro: isPro,
+                            isGuest: user?.isGuest ?? true,
+                            pulse: _pulse,
+                            onCamera: () => pickAndUploadAvatar(context, ref),
+                            onEdit: () => showEditProfileDialog(context, ref),
+                            onCopyEmail: () {
+                              Clipboard.setData(ClipboardData(text: email));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Email copied'),
+                                  behavior: SnackBarBehavior.floating,
                                 ),
-                                child: child,
-                              ),
-                              child: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 32,
-                                    backgroundColor:
-                                        AppPalette.of(context).surface2,
-                                    backgroundImage:
-                                        (user?.avatarUrl?.isNotEmpty ?? false)
-                                            ? NetworkImage(user!.avatarUrl!)
-                                            : null,
-                                    child: (user?.avatarUrl?.isNotEmpty ??
-                                            false)
-                                        ? null
-                                        : Text(
-                                            (user?.displayName.isNotEmpty ??
-                                                    false)
-                                                ? user!.displayName[0]
-                                                    .toUpperCase()
-                                                : '?',
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w800,
-                                              color:
-                                                  AppColors.brandPrimaryHover,
-                                            ),
-                                          ),
-                                  ),
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        customBorder: const CircleBorder(),
-                                        onTap: () =>
-                                            pickAndUploadAvatar(context, ref),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            color: AppPalette.of(context).surface2,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: AppPalette.of(context)
-                                                    .border),
-                                          ),
-                                          child: const Icon(
-                                              Icons.photo_camera_outlined,
-                                              size: 12),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          user?.displayName ?? 'Guest',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w800),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      const Icon(Icons.verified_rounded,
-                                          size: 17,
-                                          color:
-                                              AppColors.brandPrimaryHover),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 3),
-                                  InkWell(
-                                    onTap: () {
-                                      Clipboard.setData(ClipboardData(
-                                          text: user?.email ?? ''));
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                        content: Text('📋 Email copied'),
-                                        behavior: SnackBarBehavior.floating,
-                                      ));
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            user?.email ?? '—',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                fontSize: 12.5,
-                                                color: AppColors
-                                                    .textSecondary),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        const Icon(Icons.copy_rounded,
-                                            size: 12,
-                                            color: AppColors.textMuted),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 7),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: (user?.isPro ?? false)
-                                          ? AppColors.goldPremium
-                                              .withValues(alpha: .14)
-                                          : AppColors.brandPrimary
-                                              .withValues(alpha: .14),
-                                      borderRadius:
-                                          BorderRadius.circular(99),
-                                      border: Border.all(
-                                        color: (user?.isPro ?? false)
-                                            ? AppColors.goldPremium
-                                                .withValues(alpha: .4)
-                                            : AppColors.brandPrimaryHover
-                                                .withValues(alpha: .4),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      (user?.isPro ?? false)
-                                          ? '👑 Pro Member'
-                                          : '⭐ Free Plan',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: (user?.isPro ?? false)
-                                            ? AppColors.goldPremium
-                                            : AppColors.brandPrimaryHover,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  showEditProfileDialog(context, ref),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                    color: AppColors.brandPrimaryHover
-                                        .withValues(alpha: .5)),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
-                                minimumSize: Size.zero,
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text('Edit Profile',
-                                  style: TextStyle(fontSize: 12.5)),
-                            ),
-                          ],
+                              );
+                            },
+                            creditsUsed: creditsUsed,
+                            creditsMax: creditsMax,
+                            storageUsedGb: storageUsed,
+                            storageMaxGb: storageMax,
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        const Divider(height: 1),
-                        const SizedBox(height: 14),
-                        // stats row
-                        Row(
-                          children: [
-                            _ProfileStat(
-                              icon: Icons.calendar_month_rounded,
-                              color: AppColors.brandPrimaryHover,
-                              label: 'Member Since',
-                              value: 'Apr 2024',
-                            ),
-                            _ProfileStat(
-                              icon: Icons.workspace_premium_rounded,
-                              color: AppColors.goldPremium,
-                              label: 'Plan',
-                              value: (user?.isPro ?? false) ? 'Pro' : 'Free',
-                            ),
-                            _ProfileStat(
-                              icon: Icons.auto_awesome_rounded,
-                              color: AppColors.accentDev,
-                              label: 'AI Credits',
-                              value: '1,250',
-                            ),
-                            _ProfileStat(
-                              icon: Icons.cloud_outlined,
-                              color: AppColors.accentText,
-                              label: 'Cloud Storage',
-                              value: '100 GB',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ================= preferences =================
-                _entrance(2, const _SectionLabel('Preferences')),
-                _entrance(
-                  2,
-                  _GlassCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _SettingTile(
-                          icon: Icons.palette_outlined,
-                          color: AppColors.brandMagenta,
-                          title: 'Appearance',
-                          subtitle: 'Theme, colors, dark mode',
-                          trailingText: switch (themeMode) {
-                            ThemeMode.system => 'System',
-                            ThemeMode.light => 'Light',
-                            ThemeMode.dark => 'Dark',
-                          },
-                          onTap: _themeSheet,
-                        ),
-                        _SettingTile(
-                          icon: Icons.language_rounded,
-                          color: AppColors.accentDev,
-                          title: 'Language',
-                          subtitle: 'Change app language',
-                          trailingText: langName,
-                          onTap: _languageSheet,
-                        ),
-                        _SettingTile(
-                          icon: Icons.dashboard_customize_outlined,
-                          color: AppColors.accentImage,
-                          title: 'Home Customization',
-                          subtitle: 'Customize your home dashboard',
-                          onTap: () => _soon('Home Customization'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.volume_up_outlined,
-                          color: AppColors.accentAudio,
-                          title: 'Sound & Haptics',
-                          subtitle: 'Manage sounds and vibration',
-                          trailing: _GlowSwitch(
-                            value: soundOn,
-                            onChanged: (v) {
-                              ref.read(soundEnabledProvider.notifier).set(v);
-                              SettingsSyncService.instance.setSoundEnabled(v);
+                        const SizedBox(height: 18),
+                        _enter(
+                          2,
+                          SettingsQuickActions(
+                            onTap: (id, label) {
+                              switch (id) {
+                                case 'downloads':
+                                  context.push('/downloads');
+                                case 'activity':
+                                  context.push('/settings/activity');
+                                case 'favorites':
+                                  context.push('/favorites');
+                                case 'saved_ai':
+                                  context.push('/ai');
+                                default:
+                                  _soon(label);
+                              }
                             },
                           ),
                         ),
-                        _SettingTile(
-                          icon: Icons.auto_fix_high_rounded,
-                          color: AppColors.accentAi,
-                          title: 'Animations',
-                          subtitle: 'Enable or disable animations',
-                          trailing: _GlowSwitch(
-                            value: animationsOn,
-                            onChanged: (v) {
-                              ref
-                                  .read(animationsEnabledProvider.notifier)
-                                  .set(v);
-                              SettingsSyncService.instance
-                                  .setAnimationsEnabled(v);
+                        const SizedBox(height: 22),
+                        _enter(
+                          4,
+                          SettingsSectionLabel(
+                            title: 'Preferences',
+                            actionLabel: 'View All',
+                            onAction: () =>
+                                context.push('/settings/appearance'),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _enter(
+                          5,
+                          SettingsPreferencesGrid(
+                            themeLabel: switch (themeMode) {
+                              ThemeMode.system => 'System',
+                              ThemeMode.light => 'Light',
+                              ThemeMode.dark => 'Dark',
                             },
-                          ),
-                          isLast: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ================= account & security =================
-                _entrance(3, const _SectionLabel('Account & Security')),
-                _entrance(
-                  3,
-                  _GlassCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _SettingTile(
-                          icon: Icons.shield_outlined,
-                          color: AppColors.success,
-                          title: 'Security',
-                          subtitle: 'Password, 2FA, biometric & more',
-                          onTap: () => _soon('Security center'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.lock_outline_rounded,
-                          color: AppColors.accentText,
-                          title: 'Privacy',
-                          subtitle: 'Manage your privacy settings',
-                          onTap: () => _soon('Privacy'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.devices_rounded,
-                          color: AppColors.brandPrimaryHover,
-                          title: 'Devices',
-                          subtitle: 'Manage your connected devices',
-                          onTap: () => context.push('/devices'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.person_pin_circle_outlined,
-                          color: AppColors.accentDev,
-                          title: 'Active Sessions',
-                          subtitle: 'View and manage active sessions',
-                          onTap: () => context.push('/devices'),
-                          isLast: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ================= data & storage =================
-                _entrance(4, const _SectionLabel('Data & Storage')),
-                _entrance(
-                  4,
-                  _GlassCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _SettingTile(
-                          icon: Icons.cloud_upload_outlined,
-                          color: AppColors.accentText,
-                          title: 'Storage Management',
-                          subtitle: 'Manage cloud and local storage',
-                          trailingText: '100 GB Used',
-                          onTap: () => _soon('Storage Management'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.settings_backup_restore_rounded,
-                          color: AppColors.success,
-                          title: 'Backup & Restore',
-                          subtitle: 'Backup your data and restore',
-                          onTap: () => _soon('Backup & Restore'),
-                        ),
-                        _SettingTile(
-                          icon: Icons.cleaning_services_outlined,
-                          color: AppColors.error,
-                          title: 'Clear Cache',
-                          subtitle: 'Free up space by clearing cache',
-                          trailingText: '256 MB',
-                          trailingColor: AppColors.brandMagenta,
-                          onTap: _clearCache,
-                          isLast: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-
-                // ================= general (2-column) =================
-                _entrance(5, const _SectionLabel('General')),
-                _entrance(
-                  5,
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final twoCol = constraints.maxWidth > 430;
-                      final items = [
-                        _GeneralItem(
-                          icon: Icons.notifications_none_rounded,
-                          color: AppColors.accentAudio,
-                          title: 'Notifications',
-                          subtitle: 'Manage notification preferences',
-                          onTap: () => context.push('/notifications'),
-                        ),
-                        _GeneralItem(
-                          icon: Icons.star_border_rounded,
-                          color: AppColors.goldPremium,
-                          title: 'Rate Farvixo',
-                          subtitle: 'Rate us on Play Store',
-                          onTap: () => _soon('Rate Farvixo'),
-                        ),
-                        _GeneralItem(
-                          icon: Icons.system_update_alt_rounded,
-                          color: AppColors.accentText,
-                          title: 'App Updates',
-                          subtitle: 'Check for updates',
-                          trailingText: 'v${AppConfig.version}',
-                          onTap: () => _soon('App Updates'),
-                        ),
-                        _GeneralItem(
-                          icon: Icons.share_outlined,
-                          color: AppColors.accentImage,
-                          title: 'Share Farvixo',
-                          subtitle: 'Invite your friends',
-                          onTap: () => _soon('Share Farvixo'),
-                        ),
-                        _GeneralItem(
-                          icon: Icons.headset_mic_outlined,
-                          color: AppColors.brandPrimaryHover,
-                          title: 'Help & Support',
-                          subtitle: 'Get help and contact support',
-                          onTap: () => _soon('Help & Support'),
-                        ),
-                        _GeneralItem(
-                          icon: Icons.info_outline_rounded,
-                          color: AppColors.accentDev,
-                          title: 'About Farvixo',
-                          subtitle: 'App info, terms & policies',
-                          onTap: () => showAboutDialog(
-                            context: context,
-                            applicationName: 'Farvixo',
-                            applicationVersion: 'v${AppConfig.version}',
-                            applicationLegalese:
-                                'Smart Tools. AI Power. Limitless Possibilities.',
+                            languageLabel: languageLabel(lang),
+                            animationsOn: animationsOn,
+                            hapticsOn: hapticsOn,
+                            onOpen: (sectionId) =>
+                                context.push('/settings/$sectionId'),
+                            onToggleAnimations: (v) => ref
+                                .read(animationsEnabledProvider.notifier)
+                                .set(v),
+                            onToggleHaptics: (v) => ref
+                                .read(
+                                  settingsPrefProvider(
+                                    SettingsPrefKey.haptics,
+                                  ).notifier,
+                                )
+                                .set(v),
                           ),
                         ),
-                      ];
-                      if (!twoCol) {
-                        return Column(children: [
-                          for (final it in items)
-                            Padding(
-                                padding:
-                                    const EdgeInsets.only(bottom: 10),
-                                child: it),
-                        ]);
-                      }
-                      return Column(children: [
-                        for (var i = 0; i < items.length; i += 2)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(children: [
-                              Expanded(child: items[i]),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                  child: i + 1 < items.length
-                                      ? items[i + 1]
-                                      : const SizedBox()),
-                            ]),
+                        const SizedBox(height: 22),
+                        _enter(
+                          6,
+                          SettingsSectionLabel(
+                            title: accountGroup.title,
+                            actionLabel: accountGroup.actionLabel,
+                            onAction: accountGroup.actionSectionId == null
+                                ? null
+                                : () => context.push(
+                                      '/settings/${accountGroup.actionSectionId}',
+                                    ),
                           ),
-                      ]);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // ================= logout =================
-                _entrance(
-                  6,
-                  InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: _logout,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: .08),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: AppColors.error.withValues(alpha: .35)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: .14),
-                              borderRadius: BorderRadius.circular(11),
+                        ),
+                        const SizedBox(height: 10),
+                        _enter(
+                          7,
+                          SettingsMenuList(
+                            items: _hubRows(accountGroup),
+                            onTap: _openHubSection,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        _enter(
+                          8,
+                          SettingsSectionLabel(title: advancedGroup.title),
+                        ),
+                        const SizedBox(height: 10),
+                        _enter(
+                          9,
+                          SettingsMenuList(
+                            items: _hubRows(
+                              advancedGroup,
+                              subscriptionSubtitle:
+                                  entitlements.hubSubscriptionSubtitle,
                             ),
-                            child: const Icon(Icons.logout_rounded,
-                                color: AppColors.error, size: 20),
+                            onTap: _openHubSection,
                           ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Logout',
-                                    style: TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.error)),
-                                Text('Sign out from your account',
-                                    style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: AppColors.textMuted)),
-                              ],
-                            ),
+                        ),
+                        const SizedBox(height: 22),
+                        _enter(
+                          10,
+                          SettingsSectionLabel(title: activityGroup.title),
+                        ),
+                        const SizedBox(height: 10),
+                        _enter(
+                          11,
+                          SettingsMenuList(
+                            items: _hubRows(activityGroup),
+                            onTap: _openHubSection,
                           ),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: AppColors.error),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 18),
+                        _enter(
+                          12,
+                          SettingsGradientSignOut(onTap: _confirmSignOut),
+                        ),
+                      ]),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// =============================================================================
-// building blocks
-// =============================================================================
-
-class _CircleBtn extends StatelessWidget {
-  const _CircleBtn({required this.icon, required this.onTap, this.badge});
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? badge;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppPalette.of(context).surface.withValues(alpha: .8),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppPalette.of(context).border),
-            ),
-            child: Icon(icon, size: 20),
-          ),
-        ),
-        if (badge != null)
-          Positioned(
-            right: -2,
-            top: -2,
-            child: Container(
-              padding: const EdgeInsets.all(4.5),
-              decoration: const BoxDecoration(
-                gradient: AppColors.brandGradient,
-                shape: BoxShape.circle,
-              ),
-              child: Text(badge!,
-                  style: const TextStyle(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white)),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  const _GlassCard({required this.child, this.padding});
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppPalette.of(context).surface.withValues(alpha: .75),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppPalette.of(context).border),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _ProfileStat extends StatelessWidget {
-  const _ProfileStat({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: .14),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(height: 6),
-          Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  fontSize: 9.5, color: AppColors.textMuted)),
-          const SizedBox(height: 2),
-          Text(value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  fontSize: 12.5, fontWeight: FontWeight.w800)),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingTile extends StatelessWidget {
-  const _SettingTile({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-    this.trailingText,
-    this.trailingColor,
-    this.onTap,
-    this.isLast = false,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-  final String? trailingText;
-  final Color? trailingColor;
-  final VoidCallback? onTap;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                          color: color.withValues(alpha: .18),
-                          blurRadius: 10),
-                    ],
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 2),
-                      Text(subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 11.5,
-                              color: AppColors.textMuted)),
-                    ],
-                  ),
-                ),
-                if (trailing != null)
-                  trailing!
-                else ...[
-                  if (trailingText != null)
-                    Text(trailingText!,
-                        style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: trailingColor ??
-                                AppColors.brandPrimaryHover)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded,
-                      size: 20, color: AppColors.textMuted),
-                ],
-              ],
-            ),
-          ),
-        ),
-        if (!isLast)
-          const Divider(height: 1, indent: 68, endIndent: 14),
-      ],
-    );
-  }
-}
-
-class _GeneralItem extends StatelessWidget {
-  const _GeneralItem({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.trailingText,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final String? trailingText;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppPalette.of(context).surface.withValues(alpha: .75),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppPalette.of(context).border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: .14),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 18),
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 1),
-                  Text(subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 10.5, color: AppColors.textMuted)),
                 ],
               ),
             ),
-            if (trailingText != null)
-              Text(trailingText!,
-                  style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.accentText)),
-            const Icon(Icons.chevron_right_rounded,
-                size: 18, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -1144,177 +446,73 @@ class _GeneralItem extends StatelessWidget {
   }
 }
 
-/// Gradient animated switch (design: violet glow pill).
-class _GlowSwitch extends StatelessWidget {
-  const _GlowSwitch({required this.value, required this.onChanged});
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        width: 48,
-        height: 27,
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
-          gradient: value ? AppColors.brandGradient : null,
-          color: value ? null : AppColors.bgSurface2,
-          border: Border.all(
-              color: value
-                  ? Colors.transparent
-                  : AppColors.borderSubtle),
-          boxShadow: value
-              ? [
-                  BoxShadow(
-                      color:
-                          AppColors.brandPrimary.withValues(alpha: .45),
-                      blurRadius: 10),
-                ]
-              : null,
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutBack,
-          alignment:
-              value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 21,
-            height: 21,
-            decoration: BoxDecoration(
-              color: value ? Colors.white : AppColors.textMuted,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ),
-    );
+String languageLabel(String code) {
+  switch (code) {
+    case 'bn':
+      return 'বাংলা';
+    case 'hi':
+      return 'हिन्दी';
+    case 'es':
+      return 'Español';
+    case 'ar':
+      return 'العربية';
+    case 'zh':
+      return '中文';
+    default:
+      return 'English';
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
-  final String text;
+/// Soft mesh orbs + particles behind the Settings scroll.
+class SettingsMeshPainter extends CustomPainter {
+  SettingsMeshPainter(this.t);
+  final double t;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
-        ),
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
+    paint.color = AppColors.brandPrimary.withValues(alpha: 0.16);
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.18,
+        size.height * (0.08 + 0.02 * math.sin(t * math.pi * 2)),
       ),
+      90,
+      paint,
     );
+    paint.color = AppColors.brandMagenta.withValues(alpha: 0.12);
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.88,
+        size.height * (0.18 + 0.03 * math.cos(t * math.pi * 2)),
+      ),
+      70,
+      paint,
+    );
+    paint.color = const Color(0xFF3B82F6).withValues(alpha: 0.10);
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.55,
+        size.height * (0.42 + 0.02 * math.sin(t * math.pi * 2 + 1)),
+      ),
+      110,
+      paint,
+    );
+
+    final particle = Paint()..color = Colors.white.withValues(alpha: 0.08);
+    for (var i = 0; i < 18; i++) {
+      final x =
+          (size.width * ((i * 37) % 100) / 100) +
+          8 * math.sin(t * math.pi * 2 + i);
+      final y =
+          (size.height * ((i * 53) % 100) / 100) * 0.55 +
+          6 * math.cos(t * math.pi * 2 + i * 0.7);
+      canvas.drawCircle(Offset(x, y), 1.6 + (i % 3) * 0.4, particle);
+    }
   }
-}
-
-/// Base-mode chip (System / Light / Dark) in the appearance sheet.
-class _ModeChip extends StatelessWidget {
-  const _ModeChip({
-    required this.selected,
-    required this.accent,
-    required this.textColor,
-    required this.mutedColor,
-    required this.isDark,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final bool selected;
-  final Color accent;
-  final Color textColor;
-  final Color mutedColor;
-  final bool isDark;
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: selected
-              ? accent.withValues(alpha: .14)
-              : (isDark ? AppColors.bgSurface2 : const Color(0xFFF1F1F8)),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected
-                ? accent.withValues(alpha: .7)
-                : Colors.transparent,
-            width: 1.4,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon,
-                size: 22, color: selected ? accent : mutedColor),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? accent : textColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Circular accent swatch with a check when selected.
-class _Swatch extends StatelessWidget {
-  const _Swatch({
-    required this.color,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Color color;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: selected ? .55 : .3),
-              blurRadius: selected ? 14 : 8,
-            ),
-          ],
-          border: Border.all(
-            color: Colors.white.withValues(alpha: selected ? .9 : 0),
-            width: 2.5,
-          ),
-        ),
-        child: selected
-            ? const Icon(Icons.check_rounded, color: Colors.white, size: 22)
-            : null,
-      ),
-    );
-  }
+  bool shouldRepaint(covariant SettingsMeshPainter oldDelegate) =>
+      oldDelegate.t != t;
 }

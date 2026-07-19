@@ -70,4 +70,35 @@ class Validators {
     if (strength < 0.9) return 'Good';
     return 'Strong';
   }
+
+  static final _usernameRe = RegExp(r'^[a-zA-Z0-9_]{3,24}$');
+  static final _urlRe = RegExp(
+    r'^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-./?%&=]*)?$',
+    caseSensitive: false,
+  );
+
+  /// Optional username — empty allowed; otherwise 3–24 alphanumerics/underscore.
+  static String? username(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return null;
+    final cleaned = v.startsWith('@') ? v.substring(1) : v;
+    if (!_usernameRe.hasMatch(cleaned)) {
+      return '3–24 letters, numbers, or underscore';
+    }
+    return null;
+  }
+
+  /// Optional website / social URL.
+  static String? website(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return null;
+    if (!_urlRe.hasMatch(v)) return 'Enter a valid URL';
+    return null;
+  }
+
+  static String? optionalPhone(String? value) {
+    final v = value?.replaceAll(RegExp(r'[\s\-()]'), '') ?? '';
+    if (v.isEmpty) return null;
+    return phone(v);
+  }
 }

@@ -12,10 +12,12 @@ import '../features/favorites/favorites_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/profile/edit_profile_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/settings/devices_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/settings/settings_section_screen.dart';
 import '../features/shell/main_shell.dart';
 import '../ui/splash/splash_screen.dart';
 import '../features/tools/tool_detail_screen.dart';
@@ -105,11 +107,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: ':section',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => SettingsSectionScreen(
+              sectionId: state.pathParameters['section']!,
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/devices',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const DevicesScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
         path: '/tool/:id',

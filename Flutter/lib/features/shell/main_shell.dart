@@ -1,22 +1,26 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/appearance_layout_provider.dart';
 import '../../theme/app_colors.dart';
 
 /// Main shell — 5-tab floating bottom navigation with a center 72dp AI orb
-/// (docs/FARVIXO — HOME DASHBOARD.md §10: Home • Tools • AI • Favorites • Profile).
-class MainShell extends StatefulWidget {
+/// (Settings v5.0: Home • Tools • AI • History • Profile).
+/// Appearance prefs control style, labels, AI orb, and blur.
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell>
+class _MainShellState extends ConsumerState<MainShell>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
       vsync: this, duration: const Duration(milliseconds: 2000))
@@ -35,157 +39,219 @@ class _MainShellState extends State<MainShell>
 
   @override
   Widget build(BuildContext context) {
+    final layout = ref.watch(appearanceLayoutProvider);
     final index = widget.navigationShell.currentIndex;
     final cs = Theme.of(context).colorScheme;
     final isDark = cs.brightness == Brightness.dark;
     final accent = cs.primary;
-    // Raw system inset (gesture pill or 3-button nav bar). With edge-to-edge
-    // the body draws behind it, so the floating nav must be lifted above it —
-    // otherwise the Android nav buttons overlap the tab labels.
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     final mutedColor =
         isDark ? AppColors.textMuted : cs.onSurface.withValues(alpha: .45);
-    // Dual-tone gradient derived from the custom accent so the AI orb and
-    // selected state always follow the user's chosen colour.
     final accentGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [accent, Color.lerp(accent, AppColors.brandMagenta, .55)!],
     );
 
-    return Scaffold(
-      extendBody: true,
-      body: widget.navigationShell,
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(14, 0, 14, 12 + bottomInset),
-        child: Container(
-          height: 68,
-          decoration: BoxDecoration(
-            color: (isDark ? AppColors.bgSurface : Colors.white)
-                .withValues(alpha: isDark ? .92 : .97),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: cs.outline),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? .5 : .12),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
+    final barHeight = switch (layout.bottomStyle) {
+      BottomNavStyle.minimal => 56.0,
+      BottomNavStyle.docked => 64.0,
+      BottomNavStyle.floating => 68.0,
+    };
+    final radius = switch (layout.bottomStyle) {
+      BottomNavStyle.floating => 24.0,
+      BottomNavStyle.docked => 0.0,
+      BottomNavStyle.minimal => 18.0,
+    };
+    final horizontalPad = switch (layout.bottomStyle) {
+      BottomNavStyle.docked => 0.0,
+      BottomNavStyle.minimal => 10.0,
+      BottomNavStyle.floating => 14.0,
+    };
+    final bottomPad = switch (layout.bottomStyle) {
+      BottomNavStyle.docked => bottomInset,
+      _ => 12 + bottomInset,
+    };
+
+    final barFill = (isDark ? AppColors.bgSurface : Colors.white)
+        .withValues(alpha: layout.bottomBlur
+            ? (isDark ? .72 : .86)
+            : (isDark ? .97 : .99));
+
+    Widget bar = Container(
+      height: barHeight,
+      decoration: BoxDecoration(
+        color: barFill,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.7)),
+        boxShadow: layout.bottomStyle == BottomNavStyle.docked
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? .5 : .12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+      ),
+      child: Row(
+        children: [
+          _NavItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home_rounded,
+            label: 'Home',
+            selected: index == 0,
+            accent: accent,
+            accentGradient: accentGradient,
+            mutedColor: mutedColor,
+            showLabel: layout.bottomShowLabels &&
+                layout.bottomStyle != BottomNavStyle.minimal,
+            onTap: () => _go(0),
           ),
-          child: Row(
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                selected: index == 0,
-                accent: accent,
-                accentGradient: accentGradient,
-                mutedColor: mutedColor,
-                onTap: () => _go(0),
-              ),
-              _NavItem(
-                icon: Icons.grid_view_outlined,
-                activeIcon: Icons.grid_view_rounded,
-                label: 'Tools',
-                selected: index == 1,
-                accent: accent,
-                accentGradient: accentGradient,
-                mutedColor: mutedColor,
-                onTap: () => _go(1),
-              ),
-              // -------- center AI orb (72dp, breathing glow) --------
-              Expanded(
-                child: Center(
-                  child: Semantics(
-                    button: true,
-                    label: 'AI Assistant',
-                    child: GestureDetector(
-                      onTap: () => _go(2),
-                      child: AnimatedBuilder(
-                        animation: _pulse,
-                        builder: (context, _) {
-                          final t = _pulse.value;
-                          return SizedBox(
-                            width: 72,
-                            height: 72,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // rotating dashed ring
-                                Transform.rotate(
-                                  angle: t * math.pi,
-                                  child: CustomPaint(
-                                    size: const Size(66, 66),
-                                    painter: _OrbRingPainter(
-                                      color: index == 2
-                                          ? AppColors.brandMagenta
-                                          : accent,
-                                      opacity: .45 + t * .4,
+          _NavItem(
+            icon: Icons.grid_view_outlined,
+            activeIcon: Icons.grid_view_rounded,
+            label: 'Tools',
+            selected: index == 1,
+            accent: accent,
+            accentGradient: accentGradient,
+            mutedColor: mutedColor,
+            showLabel: layout.bottomShowLabels &&
+                layout.bottomStyle != BottomNavStyle.minimal,
+            onTap: () => _go(1),
+          ),
+          if (layout.bottomShowAiOrb)
+            Expanded(
+              child: Center(
+                child: Semantics(
+                  button: true,
+                  label: 'AI Assistant',
+                  child: GestureDetector(
+                    onTap: () => _go(2),
+                    child: AnimatedBuilder(
+                      animation: _pulse,
+                      builder: (context, _) {
+                        final t = _pulse.value;
+                        final size = layout.bottomStyle == BottomNavStyle.minimal
+                            ? 48.0
+                            : 72.0;
+                        final core = layout.bottomStyle == BottomNavStyle.minimal
+                            ? 36.0
+                            : 52.0;
+                        return SizedBox(
+                          width: size,
+                          height: size,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Transform.rotate(
+                                angle: t * math.pi,
+                                child: CustomPaint(
+                                  size: Size(size - 6, size - 6),
+                                  painter: _OrbRingPainter(
+                                    color: index == 2
+                                        ? AppColors.brandMagenta
+                                        : accent,
+                                    opacity: .45 + t * .4,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: core + t * 3,
+                                height: core + t * 3,
+                                decoration: BoxDecoration(
+                                  gradient: accentGradient,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          accent.withValues(alpha: .45 + t * .3),
+                                      blurRadius: 20 + t * 12,
+                                      spreadRadius: 1 + t * 2,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'AI',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: layout.bottomStyle ==
+                                              BottomNavStyle.minimal
+                                          ? 13
+                                          : 17,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: .5,
                                     ),
                                   ),
                                 ),
-                                // breathing core
-                                Container(
-                                  width: 52 + t * 3,
-                                  height: 52 + t * 3,
-                                  decoration: BoxDecoration(
-                                    gradient: accentGradient,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: accent.withValues(
-                                            alpha: .45 + t * .3),
-                                        blurRadius: 20 + t * 12,
-                                        spreadRadius: 1 + t * 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      'AI',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: .5,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
               ),
-              _NavItem(
-                icon: Icons.favorite_outline_rounded,
-                activeIcon: Icons.favorite_rounded,
-                label: 'Favorites',
-                selected: index == 3,
-                accent: accent,
-                accentGradient: accentGradient,
-                mutedColor: mutedColor,
-                onTap: () => _go(3),
-              ),
-              _NavItem(
-                icon: Icons.person_outline_rounded,
-                activeIcon: Icons.person_rounded,
-                label: 'Profile',
-                selected: index == 4,
-                accent: accent,
-                accentGradient: accentGradient,
-                mutedColor: mutedColor,
-                onTap: () => _go(4),
-              ),
-            ],
+            )
+          else
+            _NavItem(
+              icon: Icons.auto_awesome_outlined,
+              activeIcon: Icons.auto_awesome_rounded,
+              label: 'AI',
+              selected: index == 2,
+              accent: accent,
+              accentGradient: accentGradient,
+              mutedColor: mutedColor,
+              showLabel: layout.bottomShowLabels &&
+                  layout.bottomStyle != BottomNavStyle.minimal,
+              onTap: () => _go(2),
+            ),
+          _NavItem(
+            icon: Icons.history_rounded,
+            activeIcon: Icons.history_rounded,
+            label: 'History',
+            selected: index == 3,
+            accent: accent,
+            accentGradient: accentGradient,
+            mutedColor: mutedColor,
+            showLabel: layout.bottomShowLabels &&
+                layout.bottomStyle != BottomNavStyle.minimal,
+            onTap: () => _go(3),
           ),
+          _NavItem(
+            icon: Icons.person_outline_rounded,
+            activeIcon: Icons.person_rounded,
+            label: 'Profile',
+            selected: index == 4,
+            accent: accent,
+            accentGradient: accentGradient,
+            mutedColor: mutedColor,
+            showLabel: layout.bottomShowLabels &&
+                layout.bottomStyle != BottomNavStyle.minimal,
+            onTap: () => _go(4),
+          ),
+        ],
+      ),
+    );
+
+    if (layout.bottomBlur) {
+      bar = ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: bar,
         ),
+      );
+    }
+
+    return Scaffold(
+      extendBody: true,
+      body: widget.navigationShell,
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(horizontalPad, 0, horizontalPad, bottomPad),
+        child: bar,
       ),
     );
   }
@@ -200,6 +266,7 @@ class _NavItem extends StatelessWidget {
     required this.accent,
     required this.accentGradient,
     required this.mutedColor,
+    required this.showLabel,
     required this.onTap,
   });
 
@@ -210,6 +277,7 @@ class _NavItem extends StatelessWidget {
   final Color accent;
   final Gradient accentGradient;
   final Color mutedColor;
+  final bool showLabel;
   final VoidCallback onTap;
 
   @override
@@ -237,21 +305,23 @@ class _NavItem extends StatelessWidget {
                       .createShader(bounds),
                   child: Icon(
                     selected ? activeIcon : icon,
-                    size: 23,
+                    size: showLabel ? 23 : 26,
                     color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(height: 3),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 220),
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-                  color: selected ? accent : mutedColor,
+              if (showLabel) ...[
+                const SizedBox(height: 3),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 220),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                    color: selected ? accent : mutedColor,
+                  ),
+                  child: Text(label),
                 ),
-                child: Text(label),
-              ),
+              ],
             ],
           ),
         ),
@@ -274,7 +344,6 @@ class _OrbRingPainter extends CustomPainter {
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round
       ..color = color.withValues(alpha: opacity);
-    // dashed arcs
     const segments = 4;
     for (var i = 0; i < segments; i++) {
       final start = i * (2 * math.pi / segments);

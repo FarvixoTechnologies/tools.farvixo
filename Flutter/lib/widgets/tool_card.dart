@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/tools_data.dart';
 import '../models/tool_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/tool_activity_provider.dart';
+import '../providers/tool_repository_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 
@@ -24,6 +27,39 @@ class ToolCard extends ConsumerWidget {
     HapticFeedback.selectionClick();
     ref.read(recentToolsProvider.notifier).recordUse(tool.id);
     context.push('/tool/${tool.id}');
+  }
+
+  /// Optimistic local toggle + backend Favorites API write. Rolls back the
+  /// optimistic change (and notifies) if the signed-in write is rejected.
+  /// Offline / guest favorites stay local — nothing to roll back.
+  Future<void> _toggleFavorite(BuildContext context, WidgetRef ref) async {
+    final notifier = ref.read(favoriteToolsProvider.notifier);
+    final willFavorite = !ref.read(favoriteToolsProvider).contains(tool.id);
+
+    notifier.toggle(tool.id); // optimistic
+
+    final user = ref.read(authProvider);
+    final signedIn = user != null && !user.isGuest;
+    if (!signedIn) return; // local-only favorite
+
+    final ok = await ref
+        .read(toolRepositoryProvider)
+        .setFavorite(tool.remoteSlug, favorite: willFavorite);
+
+    if (ok) {
+      ref.invalidate(remoteFavoritesProvider);
+    } else {
+      notifier.toggle(tool.id); // rollback
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Couldn't update favorite. Please try again."),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _longPressMenu(BuildContext context, WidgetRef ref) async {
@@ -90,7 +126,7 @@ class ToolCard extends ConsumerWidget {
       case 'open':
         _open(context, ref);
       case 'favorite':
-        ref.read(favoriteToolsProvider.notifier).toggle(tool.id);
+        unawaited(_toggleFavorite(context, ref));
       case 'share':
       case 'copy':
         await Clipboard.setData(
@@ -110,9 +146,13 @@ class ToolCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final category = ToolsData.categoryOf(tool);
+    final category = ref.watch(categoryResolverProvider)(tool.categoryId);
     final p = AppPalette.of(context);
-    final isFavorite = ref.watch(favoriteToolsProvider).contains(tool.id);
+    // select() so a card rebuilds only when ITS own favorite bit flips, not on
+    // every favorites-list change.
+    final isFavorite = ref.watch(
+      favoriteToolsProvider.select((f) => f.contains(tool.id)),
+    );
     final shortCat = category.name.replaceAll(' Tools', '');
 
     return Material(
@@ -164,9 +204,7 @@ class ToolCard extends ConsumerWidget {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        ref
-                            .read(favoriteToolsProvider.notifier)
-                            .toggle(tool.id);
+                        unawaited(_toggleFavorite(context, ref));
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(2),

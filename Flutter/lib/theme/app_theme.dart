@@ -6,7 +6,13 @@ class AppTheme {
   AppTheme._();
 
   /// Dark theme built around a custom [accent] color.
-  static ThemeData dark(Color accent) {
+  static ThemeData dark(
+    Color accent, {
+    bool boldText = false,
+    bool highContrast = false,
+  }) {
+    final onSurface =
+        highContrast ? Colors.white : AppColors.textPrimary;
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -17,20 +23,26 @@ class AppTheme {
         onSecondary: Colors.white,
         tertiary: AppColors.goldPremium,
         surface: AppColors.bgSurface,
-        onSurface: AppColors.textPrimary,
+        onSurface: onSurface,
         surfaceContainerHighest: AppColors.bgSurface2,
-        outline: AppColors.borderSubtle,
+        outline: highContrast ? Colors.white54 : AppColors.borderSubtle,
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: AppColors.bgBase,
     );
-    return _common(base, accent);
+    return _common(base, accent, boldText: boldText);
   }
 
   /// Light theme built around a custom [accent] color. Uses explicit,
   /// hand-tuned surfaces (white cards on a soft lilac-grey background)
   /// rather than fromSeed tints so it matches the design in light mode.
-  static ThemeData light(Color accent) {
+  static ThemeData light(
+    Color accent, {
+    bool boldText = false,
+    bool highContrast = false,
+  }) {
+    final onSurface =
+        highContrast ? const Color(0xFF0A0A12) : const Color(0xFF1A1330);
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -41,22 +53,39 @@ class AppTheme {
         onSecondary: Colors.white,
         tertiary: AppColors.goldPremium,
         surface: Colors.white,
-        onSurface: const Color(0xFF1A1330),
+        onSurface: onSurface,
         surfaceContainerHighest: const Color(0xFFEFEFF7),
-        outline: const Color(0xFFE3E3F0),
+        outline: highContrast
+            ? const Color(0xFF1A1330)
+            : const Color(0xFFE3E3F0),
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: const Color(0xFFF6F6FB),
     );
-    return _common(base, accent);
+    return _common(base, accent, boldText: boldText);
   }
 
-  static ThemeData _common(ThemeData base, Color accent) {
+  static ThemeData _common(
+    ThemeData base,
+    Color accent, {
+    bool boldText = false,
+  }) {
     final cs = base.colorScheme;
     final isDark = base.brightness == Brightness.dark;
     final borderColor =
         isDark ? AppColors.borderSubtle : const Color(0xFFE5E5EF);
+    final weight = boldText ? FontWeight.w700 : FontWeight.w400;
     return base.copyWith(
+      textTheme: base.textTheme.apply(
+        bodyColor: cs.onSurface,
+        displayColor: cs.onSurface,
+      ).copyWith(
+        bodyLarge: base.textTheme.bodyLarge?.copyWith(fontWeight: weight),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(fontWeight: weight),
+        bodySmall: base.textTheme.bodySmall?.copyWith(fontWeight: weight),
+        titleMedium:
+            base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: base.scaffoldBackgroundColor,
         elevation: 0,
