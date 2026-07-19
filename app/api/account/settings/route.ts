@@ -1,5 +1,5 @@
 import { apiErr, apiOk } from '@/lib/api-response';
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
+import { requireSession } from '@/lib/api-v1';
 import { getSupabaseEnv } from '@/lib/supabase/env';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
@@ -73,12 +73,12 @@ function cleanUrl(v: unknown): string | null | undefined {
 /* GET — load everything the settings page needs                       */
 /* ------------------------------------------------------------------ */
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!getSupabaseEnv()) return apiErr('Auth not configured', 503);
 
-  const { supabase } = await createRouteHandlerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiErr('Unauthorized', 401);
+  const gate = await requireSession(req);
+  if (!gate.ok) return gate.response;
+  const { supabase, user } = gate.ctx;
 
   const [profileRes, settingsRes, socialsRes, historyRes] = await Promise.all([
     supabase.from('profiles').select('full_name, avatar_url, plan, role, created_at').eq('id', user.id).maybeSingle(),
@@ -130,9 +130,9 @@ export async function PATCH(req: Request) {
 
   if (!getSupabaseEnv()) return apiErr('Auth not configured', 503);
 
-  const { supabase } = await createRouteHandlerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiErr('Unauthorized', 401);
+  const gate = await requireSession(req);
+  if (!gate.ok) return gate.response;
+  const { supabase, user } = gate.ctx;
 
   let body: Record<string, unknown>;
   try {

@@ -57,9 +57,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   if (new Date(share.expires_at).getTime() < Date.now()) {
     return apiErr('This share link has expired', 410);
   }
-  if (share.max_downloads !== null && share.downloads >= share.max_downloads) {
-    return apiErr('This share link has reached its download limit', 410);
-  }
 
   const metaOnly = req.nextUrl.searchParams.get('meta') === '1';
   if (metaOnly) {
@@ -80,15 +77,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     }
   }
 
+  // Atomically claim a download slot before issuing the signed URL. Prevents
+  // the TOCTOU race that let one-time / limited links be over-downloaded under
+  // concurrency. The RPC also re-checks expiry and the download limit.
+  const { data: claimed, error: claimErr } = await admin.rpc('claim_share_download', { p_token: token });
+  if (claimErr) return apiErr('Could not prepare the download', 500);
+  if (!claimed) return apiErr('This share link has reached its download limit', 410);
+
   const { data: signed, error: signError } = await admin.storage
     .from('shares')
     .createSignedUrl(share.storage_path, 60, { download: share.file_name });
   if (signError || !signed?.signedUrl) {
     console.error('[share] sign failed:', signError?.message);
+    // Compensate: never permanently consume a slot on an internal failure.
+    await admin.rpc('release_share_download', { p_token: token });
     return apiErr('Could not prepare the download', 500);
   }
 
-  await admin.from('shares').update({ downloads: share.downloads + 1 }).eq('id', share.id);
   await appendShareEvent(admin, share.id, share.share_events, 'share_downloaded', req);
 
   return NextResponse.redirect(signed.signedUrl, 302);

@@ -30,6 +30,14 @@ drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = id) with check (auth.uid() = id);
 
+-- Privilege-escalation guard: the RLS row check above does NOT restrict WHICH
+-- columns change, so an authenticated user could otherwise rewrite role / plan
+-- on their own row. role / plan / stripe_* / tools_used_today are managed only
+-- server-side via the service_role client (which bypasses these grants).
+-- Restrict the authenticated role to updating safe, user-owned columns only.
+revoke update on public.profiles from anon, authenticated;
+grant update (full_name, avatar_url, updated_at) on public.profiles to authenticated;
+
 -- Auto-create a profile row when a user signs up
 create or replace function public.handle_new_user()
 returns trigger

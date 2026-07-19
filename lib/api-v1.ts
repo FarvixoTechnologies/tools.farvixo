@@ -82,10 +82,37 @@ export async function requireApiKey(req: Request, limitPerMin = 60): Promise<Req
   return { ok: true, ctx: { admin, auth } };
 }
 
-/** Cookie session (Supabase Auth JWT) for user-facing /api/v1 routes. */
+/**
+ * Cookie session OR `Authorization: Bearer <supabase_access_token>` for
+ * user-facing routes (web cookies + Flutter/mobile bearer).
+ */
 export async function requireSession(req: Request, limitPerMin = 60): Promise<RequireSessionResult> {
   const rl = rateLimit(`v1sess:${clientIp(req)}`, limitPerMin, 60_000);
   if (!rl.allowed) return { ok: false, response: rateLimitResponse(rl.retryAfterSeconds) };
+
+  const bearer = req.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  if (bearer && !bearer.startsWith('fx_')) {
+    const env = (await import('@/lib/supabase/env')).getSupabaseEnv();
+    if (!env) {
+      return { ok: false, response: apiErr('Auth is not configured', 503, { code: 'SERVICE_UNAVAILABLE' }) };
+    }
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(env.url, env.anonKey, {
+      global: { headers: { Authorization: `Bearer ${bearer}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(bearer);
+    if (error || !user) {
+      return { ok: false, response: apiErr('Unauthorized — sign in required', 401, { code: 'UNAUTHORIZED' }) };
+    }
+    return {
+      ok: true,
+      ctx: { supabase, admin: createAdminClient(), user },
+    };
+  }
 
   const { supabase } = await createRouteHandlerClient();
   const {

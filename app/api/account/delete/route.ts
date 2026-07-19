@@ -1,12 +1,14 @@
+import { createHash } from 'crypto';
 import { apiErr, apiOk } from '@/lib/api-response';
+import { requireSession } from '@/lib/api-v1';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 import { getSupabaseEnv } from '@/lib/supabase/env';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 /**
  * POST /api/account/delete — permanently delete the signed-in user's account.
- * Profile, jobs and all owned rows are removed via ON DELETE CASCADE.
+ * Records into deleted_accounts, then admin-deletes the auth user (CASCADE).
+ * Accepts cookie session or Authorization Bearer (Flutter).
  */
 export async function POST(req: Request) {
   const rl = rateLimit(`account-delete:${clientIp(req)}`, 3, 60_000);
@@ -14,13 +16,29 @@ export async function POST(req: Request) {
 
   if (!getSupabaseEnv()) return apiErr('Auth is not configured', 503);
 
-  const { supabase } = await createRouteHandlerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiErr('Sign in to delete your account', 401);
+  const gate = await requireSession(req);
+  if (!gate.ok) return gate.response;
+  const { user } = gate.ctx;
 
   const admin = createAdminClient();
   if (!admin) {
     return apiErr('Account deletion is not available — contact support@farvixo.com', 503);
+  }
+
+  const now = new Date().toISOString();
+  const emailHash = user.email
+    ? createHash('sha256').update(user.email.toLowerCase()).digest('hex')
+    : null;
+  const { error: logErr } = await admin.from('deleted_accounts').insert({
+    former_user_id: user.id,
+    email_hash: emailHash,
+    reason: 'user_requested',
+    snapshot: { source: 'api/account/delete' },
+    deleted_at: now,
+  });
+  if (logErr) {
+    // Table may not exist in older envs — log and continue with delete.
+    console.warn('[account] deleted_accounts insert:', logErr.message);
   }
 
   const { error } = await admin.auth.admin.deleteUser(user.id);

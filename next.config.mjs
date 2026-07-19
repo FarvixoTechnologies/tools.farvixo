@@ -8,6 +8,23 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // Flutter web (localhost) + mobile clients calling Tools APIs.
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Authorization, Content-Type, Accept',
+          },
+          { key: 'Access-Control-Max-Age', value: '86400' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [

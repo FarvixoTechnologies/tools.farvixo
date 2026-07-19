@@ -12,6 +12,8 @@ dist/
 # Env & secrets
 .env
 .env*.local
+.env.production
+.env.production.*
 
 # Debug
 npm-debug.log*
@@ -34,6 +36,9 @@ next-env.d.ts
 
 # Claude
 .claude/
+
+# Codex (contains access token)
+.codex/
 
 # Vercel
 .vercel

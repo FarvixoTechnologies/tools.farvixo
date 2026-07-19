@@ -102,20 +102,43 @@ export async function POST(req: Request) {
         }
       }
     } else {
+      const userId = obj.client_reference_id;
+      const now = new Date().toISOString();
+      const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
       const { error } = await supabase
         .from('profiles')
         .update({
           plan: 'PRO',
           stripe_customer_id: obj.customer ?? null,
           stripe_subscription_id: obj.subscription ?? null,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
         })
-        .eq('id', obj.client_reference_id);
+        .eq('id', userId);
       if (error) {
         console.error('[billing] upgrade failed:', error.message);
         return Response.json({ error: 'Update failed' }, { status: 500 });
       }
-      void createNotification(supabase, obj.client_reference_id, {
+
+      const { error: subErr } = await supabase.from('subscriptions').upsert(
+        {
+          user_id: userId,
+          plan: 'PRO',
+          status: 'active',
+          stripe_customer_id: obj.customer ?? null,
+          stripe_subscription_id: obj.subscription ?? null,
+          current_period_start: now,
+          current_period_end: periodEnd,
+          cancel_at_period_end: false,
+          updated_at: now,
+        },
+        { onConflict: 'user_id' },
+      );
+      if (subErr) {
+        console.error('[billing] subscriptions upsert failed:', subErr.message);
+      }
+
+      void createNotification(supabase, userId, {
         type: 'billing',
         title: 'Welcome to Farvixo Pro 👑',
         body: 'Your Pro subscription is active. Enjoy unlimited tools and premium features.',
@@ -131,9 +154,10 @@ export async function POST(req: Request) {
       .eq('stripe_customer_id', obj.customer)
       .maybeSingle();
 
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from('profiles')
-      .update({ plan: 'FREE', stripe_subscription_id: null, updated_at: new Date().toISOString() })
+      .update({ plan: 'FREE', stripe_subscription_id: null, updated_at: now })
       .eq('stripe_customer_id', obj.customer);
     if (error) {
       console.error('[billing] downgrade failed:', error.message);
@@ -141,6 +165,22 @@ export async function POST(req: Request) {
     }
 
     if (profile?.id) {
+      const { error: subErr } = await supabase.from('subscriptions').upsert(
+        {
+          user_id: profile.id,
+          plan: 'FREE',
+          status: 'canceled',
+          stripe_customer_id: obj.customer,
+          stripe_subscription_id: null,
+          cancel_at_period_end: false,
+          updated_at: now,
+        },
+        { onConflict: 'user_id' },
+      );
+      if (subErr) {
+        console.error('[billing] subscriptions cancel upsert failed:', subErr.message);
+      }
+
       void createNotification(supabase, profile.id, {
         type: 'billing',
         title: 'Pro subscription ended',

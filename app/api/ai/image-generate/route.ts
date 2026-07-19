@@ -1,4 +1,5 @@
 import { apiErr } from '@/lib/api-response';
+import { createHash } from 'crypto';
 import { clientIp, rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
@@ -18,7 +19,6 @@ async function caller(): Promise<{ userId: string | null; plan: string }> {
 
 const BURST_LIMIT = 10;
 const DAILY_LIMIT = 200;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface ImageGenBody {
   prompt?: string;
@@ -65,15 +65,26 @@ export async function POST(req: Request) {
   const burst = rateLimit(`img:burst:${ip}`, BURST_LIMIT, 60_000);
   if (!burst.allowed) return rateLimitResponse(burst.retryAfterSeconds);
 
-  const daily = rateLimit(`img:daily:${ip}`, DAILY_LIMIT, DAY_MS);
-  if (!daily.allowed) {
-    return apiErr('Daily free limit reached — try again in a few hours.', 429);
-  }
-
-  // AI Management quota enforcement.
   const { userId, plan } = await caller();
   const admin = createAdminClient();
-  if (admin) {
+  if (!admin) return apiErr('Service unavailable', 503);
+
+  if (!userId) {
+    // Anonymous: durable, distributed daily cap via Supabase (works across all
+    // Cloudflare Pages isolates — the in-memory limiter did not).
+    const secret = process.env.RATE_LIMIT_SECRET;
+    if (!secret) return apiErr('Rate limiting is not configured', 500);
+    const ipHash = createHash('sha256').update(`${ip}${secret}`).digest('hex').slice(0, 32);
+    const { data: count, error } = await admin.rpc('incr_rate_counter', {
+      p_bucket: 'img:daily',
+      p_identity: ipHash,
+    });
+    if (error) return apiErr('Rate check failed — try again', 500);
+    if ((count ?? 0) > DAILY_LIMIT) {
+      return apiErr('Daily free limit reached — try again tomorrow.', 429);
+    }
+  } else {
+    // Signed-in: authoritative per-user daily/monthly quota (durable).
     const q = await checkQuota(admin, userId, plan);
     if (!q.allowed) return apiErr(`AI ${q.reason} quota reached (${q.used}/${q.limit}).`, 429);
   }

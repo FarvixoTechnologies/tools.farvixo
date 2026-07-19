@@ -1,3 +1,60 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+> **Two parts.** This top section (**Operating Guide**) describes the code that actually exists and how to work in it. Everything below the `═══` divider is the original **product/build specification** — the design/scope source of truth, aspirational in places. When the spec and the code disagree, the code wins; treat the spec as intent, not current state. `AGENTS.md` is a copy of the spec only (no operating guide).
+
+---
+
+## Operating Guide
+
+### Commands
+```bash
+npm run dev            # Next.js dev server (localhost:3000)
+npm run dev:clean      # wipe .next + node_modules/.cache, then dev
+npm run build          # production build (also the typecheck gate — tsc strict runs here)
+npm run start          # serve production build
+npm run lint           # next lint (eslint-config-next)
+npm run test           # vitest run (all tests once)
+npx vitest run tests/ai-runtime.test.ts     # run a single test file
+npx vitest watch                            # watch mode
+npm run admin:bootstrap                     # scripts/bootstrap-admin.mjs — seed first SUPER_ADMIN
+```
+There is no standalone `typecheck` script — `tsc` (strict) runs as part of `next build`. Tests live in `tests/` and use Vitest with `vite-tsconfig-paths` (so `@/` aliases resolve).
+
+### Stack (as built)
+Next.js 15 App Router + React 19 + TypeScript (strict). **Supabase** (Postgres + Auth + RLS) is the backend — not the Stripe/BullMQ/Redis/Python-worker stack described in the spec. Firebase is used for web analytics/App Check only. AI runs through free/self-hosted providers (Gemini, OpenRouter, Groq, Pollinations, Puter) via a DB-driven router, not a single paid Gemini integration. Most tool processing is **client-side in the browser** (pdf-lib, pdfjs, ffmpeg.wasm, jsquash, tesseract.js, xlsx, docx) — not server jobs.
+
+### Architecture that spans files
+
+**Tool catalog is data-driven — one source, zero manual wiring.** `data/tools.ts` defines every tool with a `runner: RunnerKind` field. Routes `app/tools/[category]/[tool]/page.tsx` look the tool up and hand it to `components/tool/ToolRunner.tsx`, which is a big `switch (runner)` dispatching to a per-kind runner component. To add a tool: add an entry in `data/tools.ts` (and `data/categories.ts` if new category); if it needs new processing, add a `RunnerKind` + a `case` in `ToolRunner.tsx` + an engine in `lib/engines/`. It then appears in search, sitemap, and its category grid automatically. `data/collections.ts` groups tools; `scripts/generate-tools-seed.mjs` emits the SQL catalog seed.
+
+**Engines = the actual processing logic.** `lib/engines/*` holds framework-free processing modules (image compression, pdf compress/merge/to-word, ocr, ffmpeg-core, gov-photo presets, ai-chat, ai-image, etc.). Runner components are thin UI wrappers over these engines.
+
+**API response envelope is mandatory.** Every route handler returns the `lib/api-response.ts` shape: `{ success, message, data, error, errorDetail, meta:{requestId,timestamp} }`. Use `apiOk(...)` / `apiErr(...)` helpers — `error` is a flat string kept for backward-compat, `errorDetail` is the structured `{code,message}`. `lib/api-v1.ts` backs the public `/api/v1` surface.
+
+**Supabase client selection matters (three flavors).** `lib/supabase/`: `client.ts` (browser, anon key), `server.ts` / `route-handler.ts` (SSR/route handlers, respects the user's session + RLS), and `admin.ts` (`createAdminClient()` — service-role, bypasses RLS; **server-only**, never import into client code). Choosing the wrong one either leaks privileges or silently returns nothing under RLS.
+
+**Admin/RBAC gate.** Admin API routes call `requireAdmin()` from `lib/admin-auth.ts` first; it verifies the session user's `profiles.role` is `ADMIN`/`SUPER_ADMIN` and returns `{ok:false, response}` (a ready 401/403/503) to return early otherwise. Fine-grained permissions layer on top (see `app/admin/*`, `docs/ADMIN_SYSTEM_V3.md`). The `app/admin` area is a full RBAC console (users, AI management, billing, audit, etc.).
+
+**AI runtime is database-driven.** `lib/ai/router.ts` resolves the provider chain entirely from DB tables (`ai_providers.is_active`, `ai_models.priority`, health sweeps, and Vault-stored keys) — env vars (`GEMINI_API_KEY`, etc.) are only a key fallback. `lib/ai/engine.ts` enforces quota (caller must honor a false result with HTTP 429), computes cost from `ai_models` pricing, and best-effort records usage/logs (never throws into the request path). See `docs/AI_RUNTIME_ARCHITECTURE.md`, `AI_ROUTING.md`, `AI_PROVIDER_SYSTEM.md`.
+
+**Database is migration-file driven.** `supabase/*.sql` are numbered, ordered migrations (`09_architecture_v3_foundation.sql` … `20_ai_health_sweep.sql`); `schema.sql` is the consolidated schema and `FULL_BOOTSTRAP.generated.sql` is the merged bootstrap (see `supabase/BOOTSTRAP.md`). RLS is enabled on tables — the anon/SSR clients are subject to it. Apply changes as a new numbered migration, not by editing old ones. Architecture notes in `docs/DATABASE_ARCHITECTURE_V3.md`, `API_ARCHITECTURE_V3.md`.
+
+### Companion docs & references
+- `docs/` — the authoritative, up-to-date architecture notes (Admin v3, AI system/routing/runtime, API v3, Database v3, Firebase). Prefer these over the spec below.
+- `AUDIT_PROGRESS.md`, `docs/DONE_VS_REMAINING.md` — current build status / what's actually implemented vs pending.
+- `Flutter/` — a separate Flutter mobile client (its own `pubspec`, has `Flutter/docs/`); unrelated to the Next.js build commands above.
+
+### Conventions
+- Server Components by default; add `"use client"` only where interactivity requires it. Tool runners are client components (browser processing).
+- No hardcoded hex in components — use the design tokens from the spec (`app/globals.css`). Path alias `@/*` → repo root.
+- Validate mutating route input before touching the DB; keep the api-response envelope on every route.
+
+---
+
+═══════════════════════════════════════════════════════════════════════════════
+
 # Farvixo Tools — Homepage Master Build Specification
 ### (Matches uploaded mockup 100% — Full Detail Edition)
 

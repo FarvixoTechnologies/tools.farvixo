@@ -937,19 +937,6 @@ canvas.preview-canvas { max-width: 100%; border-radius: var(--radius-md); border
   .admin-table-cards td:empty { display: none; }
   .admin-inline-actions { justify-content: flex-end; }
 }
-
-/* RBAC permission matrix ------------------------------------------------- */
-.rbac-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.rbac-group { border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; background: var(--bg-surface-2); }
-.rbac-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
-.rbac-perm { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; cursor: pointer; }
-.rbac-perm:hover { background: rgba(255,255,255,0.03); }
-.rbac-perm.inherited { background: rgba(124,58,237,0.08); }
-.rbac-perm input { width: 16px; height: 16px; accent-color: var(--brand-primary); flex-shrink: 0; }
-.rbac-perm-text { display: flex; flex-direction: column; line-height: 1.25; flex: 1; }
-.rbac-perm-text b { font-size: 13px; font-weight: 500; }
-.rbac-perm-text .mono { font-size: 10px; }
-.admin-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; }
 .admin-toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 16px; align-items: center; }
 .admin-input, .admin-select { background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 13px; min-width: 160px; }
 .admin-select-sm { min-width: 100px; padding: 4px 8px; font-size: 12px; }
