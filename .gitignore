@@ -43,3 +43,6 @@ next-env.d.ts
 
 # JVM heap dumps
 *.hprof
+
+# JVM crash logs
+hs_err_pid*.log
