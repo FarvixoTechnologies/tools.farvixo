@@ -40,3 +40,6 @@ next-env.d.ts
 
 # MCP config (contains access token)
 .mcp.json
+
+# JVM heap dumps
+*.hprof
