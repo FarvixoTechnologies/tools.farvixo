@@ -188,6 +188,29 @@ void main() {
     });
   });
 
+  group('retention + clear (privacy)', () {
+    test('purgeOlderThan removes live + trashed rows past the window', () async {
+      await repo.add(make(id: 'old-live', type: QrType.text,
+          at: DateTime.now().subtract(const Duration(days: 40))));
+      await repo.add(make(id: 'old-trash', type: QrType.text,
+          at: DateTime.now().subtract(const Duration(days: 40)),
+          deletedAt: DateTime.now()));
+      await repo.add(make(id: 'fresh', type: QrType.text));
+      final purged = await repo.purgeOlderThan(const Duration(days: 30));
+      expect(purged, 2);
+      expect(repo.byId('fresh'), isNotNull);
+    });
+
+    test('clearAll wipes everything', () async {
+      for (final id in ['a', 'b', 'c']) {
+        await repo.add(make(id: id, type: QrType.text));
+      }
+      await repo.clearAll();
+      expect(repo.count, 0);
+      expect(box.isEmpty, isTrue);
+    });
+  });
+
   test('countsByType ignores deleted', () async {
     await repo.add(make(id: '1', type: QrType.url));
     await repo.add(make(id: '2', type: QrType.url));

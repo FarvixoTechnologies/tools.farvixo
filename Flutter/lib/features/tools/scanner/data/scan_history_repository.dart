@@ -208,6 +208,21 @@ class ScanHistoryRepository {
     return expired.length;
   }
 
+  /// Auto-delete ALL records (live or trashed) created before [age] ago — the
+  /// privacy "auto-delete history" retention setting. Returns how many went.
+  Future<int> purgeOlderThan(Duration age) async {
+    final cutoff = DateTime.now().subtract(age);
+    final old = _box.values
+        .where((e) => e.createdAt.isBefore(cutoff))
+        .map((e) => e.id)
+        .toList();
+    if (old.isNotEmpty) await _box.deleteAll(old);
+    return old.length;
+  }
+
+  /// Wipe the entire history ("clear all data").
+  Future<void> clearAll() => _box.clear();
+
   // ─────────────────────────────────────────────────────────────── reads
 
   /// All live (non-deleted) entries, unfiltered.

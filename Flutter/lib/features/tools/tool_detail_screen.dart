@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/tools_data.dart';
 import '../../providers/tool_repository_provider.dart';
@@ -18,10 +19,13 @@ import 'engine/tool_engine.dart';
 import 'engine/tool_execution.dart';
 import 'engine/tool_io_service.dart';
 import 'engine/engines/scan_engines.dart' show describeQrPayload;
+import 'scanner/models/qr_type.dart';
+import 'scanner/providers/qr_settings_provider.dart';
 import 'scanner/providers/scan_history_providers.dart';
 import 'scanner/qr_live_scanner_screen.dart';
 import 'scanner/scan_result_screen.dart';
 import 'scanner/services/qr_parser.dart';
+import 'scanner/services/qr_security.dart';
 import 'converter/models/target_format.dart';
 import 'converter/screens/pdf_converter_screen.dart';
 
@@ -136,9 +140,27 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     ref.read(toolExecutionProvider(widget.toolId).notifier).complete(
           ToolResult.text(value, summary: describeQrPayload(value)),
         );
-    // Persist to the encrypted scan history (best-effort — never blocks the UI).
-    unawaited(_recordScan(value, 'camera'));
+    final settings = ref.read(qrSettingsProvider);
+    // Private mode → scan without saving to history.
+    if (!settings.privateMode) unawaited(_recordScan(value, 'camera'));
+
+    // Auto-open safe links, when enabled, instead of the result screen.
+    if (settings.autoOpenLinks) {
+      final parsed = QrParser.parse(value);
+      final verdict = QrSecurity.assess(parsed);
+      final uri = parsed.actionUri;
+      if (verdict.level == RiskLevel.safe &&
+          (parsed.type == QrType.url || parsed.type == QrType.appLink) &&
+          uri != null) {
+        final launched = await launchUrl(Uri.parse(uri),
+                mode: LaunchMode.externalApplication)
+            .catchError((_) => false);
+        if (launched) return;
+      }
+    }
+
     // Rich, typed result with security assessment + smart actions.
+    if (!mounted) return;
     await Navigator.of(context).push(
       AppPageRoute(
         builder: (_) => ScanResultScreen(raw: value, source: 'camera'),

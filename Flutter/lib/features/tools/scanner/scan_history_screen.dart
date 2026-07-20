@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../providers/auth_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
 import '../../../theme/design_tokens.dart';
@@ -13,6 +14,7 @@ import '../../../widgets/skeletons.dart';
 import 'data/scan_history_repository.dart';
 import 'models/qr_type.dart';
 import 'models/scan_history_entry.dart';
+import 'providers/qr_settings_provider.dart';
 import 'providers/scan_history_providers.dart';
 import 'qr_analytics_screen.dart';
 import 'scan_result_screen.dart';
@@ -24,27 +26,127 @@ enum HistoryMode { history, favorites, trash }
 /// sorting, date-grouped lazy list, swipe-to-delete + undo, multi-select bulk
 /// actions, favorites and a recently-deleted bin. Reuses the Farvixo premium
 /// kit + design tokens — no new architecture.
-class ScanHistoryScreen extends ConsumerWidget {
+///
+/// When the privacy "Lock history" setting is on, the contents are gated behind
+/// a device-auth prompt.
+class ScanHistoryScreen extends ConsumerStatefulWidget {
   const ScanHistoryScreen({super.key, this.initialMode = HistoryMode.history});
 
   final HistoryMode initialMode;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ScanHistoryScreen> createState() => _ScanHistoryScreenState();
+}
+
+class _ScanHistoryScreenState extends ConsumerState<ScanHistoryScreen> {
+  bool _unlocked = false;
+  bool _authInFlight = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defer to first frame so we can read providers safely.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeUnlock());
+  }
+
+  Future<void> _maybeUnlock() async {
+    final locked = ref.read(qrSettingsProvider).biometricLock;
+    if (!locked) {
+      setState(() => _unlocked = true);
+      return;
+    }
+    if (_authInFlight) return;
+    setState(() => _authInFlight = true);
+    final ok = await ref
+        .read(biometricServiceProvider)
+        .authenticate(reason: 'Unlock your scan history');
+    if (!mounted) return;
+    setState(() {
+      _unlocked = ok;
+      _authInFlight = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final repoAsync = ref.watch(scanHistoryRepositoryProvider);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: PremiumBackground(
         child: SafeArea(
-          child: repoAsync.when(
-            loading: () => const _HistorySkeleton(),
-            error: (e, _) => _HistoryError(
-              onRetry: () => ref.invalidate(scanHistoryRepositoryProvider),
-            ),
-            data: (repo) => _HistoryBody(repo: repo, initialMode: initialMode),
-          ),
+          child: !_unlocked
+              ? _LockedView(
+                  busy: _authInFlight,
+                  onUnlock: _maybeUnlock,
+                  onBack: () => Navigator.of(context).maybePop(),
+                )
+              : repoAsync.when(
+                  loading: () => const _HistorySkeleton(),
+                  error: (e, _) => _HistoryError(
+                    onRetry: () =>
+                        ref.invalidate(scanHistoryRepositoryProvider),
+                  ),
+                  data: (repo) =>
+                      _HistoryBody(repo: repo, initialMode: widget.initialMode),
+                ),
         ),
       ),
+    );
+  }
+}
+
+class _LockedView extends StatelessWidget {
+  const _LockedView({
+    required this.busy,
+    required this.onUnlock,
+    required this.onBack,
+  });
+  final bool busy;
+  final VoidCallback onUnlock;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.fromLTRB(Insets.md, Insets.sm, Insets.md, 0),
+          child: PremiumHeader(title: 'Scan History', onBack: onBack),
+        ),
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GlowIcon(
+                    icon: Icons.lock_rounded, color: p.accent, size: 72, iconSize: 34),
+                const SizedBox(height: Insets.lg),
+                Text('History locked',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: p.textPrimary)),
+                const SizedBox(height: Insets.sm),
+                Text('Authenticate to view your saved scans.',
+                    style: TextStyle(color: p.textSecondary)),
+                const SizedBox(height: Insets.lg),
+                FilledButton.icon(
+                  onPressed: busy ? null : onUnlock,
+                  icon: busy
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.fingerprint_rounded),
+                  label: const Text('Unlock'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

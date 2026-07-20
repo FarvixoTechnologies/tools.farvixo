@@ -22,6 +22,7 @@ import '../features/settings/settings_section_screen.dart';
 import '../features/shell/main_shell.dart';
 import '../ui/splash/splash_screen.dart';
 import '../features/tools/scanner/qr_analytics_screen.dart';
+import '../features/tools/scanner/qr_settings_screen.dart';
 import '../features/tools/scanner/scan_history_screen.dart';
 import '../features/tools/tool_detail_screen.dart';
 import '../features/tools/tools_screen.dart';
@@ -158,6 +159,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/qr-analytics',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const QrAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/qr-settings',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const QrSettingsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

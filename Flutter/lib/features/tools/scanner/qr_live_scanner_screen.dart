@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/design_tokens.dart';
+import 'providers/qr_settings_provider.dart';
 
 /// Live QR scanner — full-bleed camera viewfinder with a glass scan frame,
 /// animated scan line, torch toggle and haptic feedback on detection.
 ///
 /// Pushed with `Navigator.push` (no router change); pops with the decoded
 /// string, or `null` when the user backs out.
-class QrLiveScannerScreen extends StatefulWidget {
+class QrLiveScannerScreen extends ConsumerStatefulWidget {
   const QrLiveScannerScreen({super.key});
 
   @override
-  State<QrLiveScannerScreen> createState() => _QrLiveScannerScreenState();
+  ConsumerState<QrLiveScannerScreen> createState() =>
+      _QrLiveScannerScreenState();
 }
 
-class _QrLiveScannerScreenState extends State<QrLiveScannerScreen>
+class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
     with SingleTickerProviderStateMixin {
   late final MobileScannerController _controller = MobileScannerController(
     formats: const [BarcodeFormat.qrCode],
@@ -50,7 +53,9 @@ class _QrLiveScannerScreenState extends State<QrLiveScannerScreen>
     }
     if (value == null) return;
     _handled = true;
-    HapticFeedback.mediumImpact();
+    final settings = ref.read(qrSettingsProvider);
+    if (settings.vibration) HapticFeedback.mediumImpact();
+    if (settings.sound) SystemSound.play(SystemSoundType.click);
     Navigator.of(context).pop(value);
   }
 
@@ -161,6 +166,12 @@ class _QrLiveScannerScreenState extends State<QrLiveScannerScreen>
                     icon: Icons.history_rounded,
                     label: 'Scan history',
                     onTap: () => context.push('/qr-history'),
+                  ),
+                  const SizedBox(width: Insets.sm),
+                  _RoundButton(
+                    icon: Icons.tune_rounded,
+                    label: 'Scanner settings',
+                    onTap: () => context.push('/qr-settings'),
                   ),
                   const SizedBox(width: Insets.sm),
                   _RoundButton(
