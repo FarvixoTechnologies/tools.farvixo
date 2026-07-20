@@ -55,6 +55,18 @@ dependencies:
   share_plus: ^10.1.3            # export / share tool results
   crypto: ^3.0.6                 # local MD5 / SHA hashing
   qr_flutter: ^4.1.0             # local QR-code PNG generation
+  zxing2: ^0.2.3                 # pure-Dart QR decoding (QR Scanner tool)
+  mobile_scanner: ^7.0.1         # live camera QR scanning (viewfinder)
+  hive: ^2.2.3                   # local scan-history store (encrypted box)
+  hive_flutter: ^1.1.0           # Hive init + Flutter integration
+  flutter_local_notifications: ^18.0.1 # display foreground FCM + local pushes
+
+  # PDF Converter (OOXML writers + page rasterization)
+  archive: ^4.0.2                # ZIP for DOCX / XLSX / PPTX / multi-page image packs
+  xml: ^6.5.0                    # Office Open XML part builders
+  pdfrx: ^2.1.3                  # PDFium page → bitmap (JPG/PNG/WebP/PPTX)
+  desktop_drop: ^0.5.0           # desktop / window file drag-and-drop
+  swipelab_webp: ^1.0.0          # native libwebp encode (RGBA → WebP)
 
 dev_dependencies:
   flutter_test:

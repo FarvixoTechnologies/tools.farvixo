@@ -13,6 +13,7 @@ import '../features/home/home_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/edit_profile_screen.dart';
+import '../features/profile/my_qr_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/settings/devices_screen.dart';
@@ -20,6 +21,7 @@ import '../features/settings/settings_screen.dart';
 import '../features/settings/settings_section_screen.dart';
 import '../features/shell/main_shell.dart';
 import '../ui/splash/splash_screen.dart';
+import '../features/tools/scanner/scan_history_screen.dart';
 import '../features/tools/tool_detail_screen.dart';
 import '../features/tools/tools_screen.dart';
 
@@ -91,7 +93,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/search',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const SearchScreen(),
+        builder: (context, state) => SearchScreen(
+          initialQuery: state.uri.queryParameters['q'],
+        ),
       ),
       GoRoute(
         path: '/notifications',
@@ -128,10 +132,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
+        path: '/profile/qr',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const MyQrScreen(),
+      ),
+      GoRoute(
         path: '/tool/:id',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) =>
             ToolDetailScreen(toolId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/qr-history',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ScanHistoryScreen(
+          initialMode: switch (state.uri.queryParameters['tab']) {
+            'favorites' => HistoryMode.favorites,
+            'trash' => HistoryMode.trash,
+            _ => HistoryMode.history,
+          },
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

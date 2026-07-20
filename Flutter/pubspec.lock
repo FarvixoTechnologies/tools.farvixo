@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "1.0.4"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
@@ -78,6 +78,14 @@ packages:
     description:
       name: characters
       sha256: f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  charcode:
+    dependency: transitive
+    description:
+      name: charcode
+      sha256: fb0f1107cac15a5ea6ef0a6ef71a807b9e4267c713bb93e00e92d737cc8dbd8a
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
@@ -117,10 +125,10 @@ packages:
     dependency: transitive
     description:
       name: code_assets
-      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      sha256: "83ccdaa064c980b5596c35dd64a8d3ecc68620174ab9b90b6343b753aa721687"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "1.0.0"
   collection:
     dependency: transitive
     description:
@@ -169,6 +177,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: "0ce9b0a839e6dee59a37a623d2fc26a35bbbe6404213e419b0d6411023d62645"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.14"
+  desktop_drop:
+    dependency: "direct main"
+    description:
+      name: desktop_drop
+      sha256: "03abf1c0443afdd1d65cf8fa589a2f01c67a11da56bbb06f6ea1de79d5628e94"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -454,6 +478,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_local_notifications:
+    dependency: "direct main"
+    description:
+      name: flutter_local_notifications
+      sha256: ef41ae901e7529e52934feba19ed82827b11baa67336829564aeab3129460610
+      url: "https://pub.dev"
+    source: hosted
+    version: "18.0.1"
+  flutter_local_notifications_linux:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_linux
+      sha256: "8f685642876742c941b29c32030f6f4f6dacd0e4eaecb3efbb187d6a3812ca01"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
+  flutter_local_notifications_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_platform_interface
+      sha256: "6c5b83c86bf819cdb177a9247a3722067dd8cc6313827ce7c77a4b238a26fd52"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.0.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -536,6 +584,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.4"
+  glob:
+    dependency: transitive
+    description:
+      name: glob
+      sha256: c3f1ee72c96f8f78935e18aa8cecced9ab132419e8625dc187e1c2408efc20de
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.3"
   go_router:
     dependency: "direct main"
     description:
@@ -560,14 +616,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  hive:
+    dependency: "direct main"
+    description:
+      name: hive
+      sha256: "8dcf6db979d7933da8217edcec84e9df1bdb4e4edc7fc77dbd5aa74356d6d941"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
+  hive_flutter:
+    dependency: "direct main"
+    description:
+      name: hive_flutter
+      sha256: dca1da446b1d808a51689fb5d0c6c9510c0a2ba01e22805d492c73b68e33eecc
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   hooks:
     dependency: transitive
     description:
       name: hooks
-      sha256: "9a62a50b50b769a737bc0a8ff381f333529df3ab746b2f6b02e83760231455ba"
+      sha256: "025f060e86d2d4c3c47b56e33caf7f93bf9283340f26d23424ebcfccf34f621e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "1.0.3"
   http:
     dependency: transitive
     description:
@@ -816,14 +888,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: ce3f059ebd6dbfab7292bba0e893e354b46730636820d3c9ef69005ce2d55bce
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.4.0"
+  native_toolchain_c:
+    dependency: transitive
+    description:
+      name: native_toolchain_c
+      sha256: "6ba77bb18063eebe9de401f5e6437e95e1438af0a87a3a39084fbd37c90df572"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.17.6"
   objective_c:
     dependency: transitive
     description:
       name: objective_c
-      sha256: "6cb691c686fa2838c6deb34980d426145c2a5d537491cb83d463c33cdbc726ed"
+      sha256: "100a1c87616ab6ed41ec263b083c0ef3261ee6cd1dc3b0f35f8ddfa4f996fe52"
       url: "https://pub.dev"
     source: hosted
-    version: "9.4.1"
+    version: "9.3.0"
   package_config:
     dependency: transitive
     description:
@@ -912,6 +1000,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pdfium_dart:
+    dependency: transitive
+    description:
+      name: pdfium_dart
+      sha256: f1683b9070ddc5c9189c6ee008c285791da66328ce1b882c7162d3393f3a4a74
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.3"
+  pdfium_flutter:
+    dependency: transitive
+    description:
+      name: pdfium_flutter
+      sha256: "0c8b7d5d11d20a1486eade599648e907067568955bd14a1b06de076a968b60a1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.9"
+  pdfrx:
+    dependency: "direct main"
+    description:
+      name: pdfrx
+      sha256: e32e0c786528eec2b3c56b43f59ef1debce3a27c7accd862b95413f949afcfa9
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.24"
+  pdfrx_engine:
+    dependency: transitive
+    description:
+      name: pdfrx_engine
+      sha256: a8914433d1f6188b903c53d36b9d7dc908bfa89131591a9db22f1a22470d3a48
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.9"
   petitparser:
     dependency: transitive
     description:
@@ -1165,6 +1285,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.16.0"
+  swipelab_webp:
+    dependency: "direct main"
+    description:
+      name: swipelab_webp
+      sha256: c5e9aa236bff713ef0d35a61c34bceb335c839ba83dfb39aed8e4dddd2540a08
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   syncfusion_flutter_core:
     dependency: transitive
     description:
@@ -1181,6 +1309,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "27.2.5"
+  synchronized:
+    dependency: transitive
+    description:
+      name: synchronized
+      sha256: c254ade258ec8282947a0acbbc90b9575b4f19673533ee46f2f6e9b3aeefd7c0
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.0"
   term_glyph:
     dependency: transitive
     description:
@@ -1197,6 +1333,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
+  timezone:
+    dependency: transitive
+    description:
+      name: timezone
+      sha256: dd14a3b83cfd7cb19e7888f1cbc20f258b8d71b54c06f79ac585f14093a287d1
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.1"
   typed_data:
     dependency: transitive
     description:
@@ -1342,7 +1486,7 @@ packages:
     source: hosted
     version: "1.1.0"
   xml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: xml
       sha256: "971043b3a0d3da28727e40ed3e0b5d18b742fa5a68665cca88e74b7876d5e025"
@@ -1365,6 +1509,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  zxing2:
+    dependency: "direct main"
+    description:
+      name: zxing2
+      sha256: "2677c49a3b9ca9457cb1d294fd4bd5041cac6aab8cdb07b216ba4e98945c684f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.4"
 sdks:
   dart: ">=3.10.4 <4.0.0"
   flutter: ">=3.38.4"

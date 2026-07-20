@@ -17,6 +17,13 @@ import '../../widgets/tool_card.dart';
 import 'engine/tool_engine.dart';
 import 'engine/tool_execution.dart';
 import 'engine/tool_io_service.dart';
+import 'engine/engines/scan_engines.dart' show describeQrPayload;
+import 'scanner/providers/scan_history_providers.dart';
+import 'scanner/qr_live_scanner_screen.dart';
+import 'scanner/scan_result_screen.dart';
+import 'scanner/services/qr_parser.dart';
+import 'converter/models/target_format.dart';
+import 'converter/screens/pdf_converter_screen.dart';
 
 /// Universal tool page — premium galaxy backdrop, glowing tool header, glass
 /// workspace (pick → process → share) and related tools. Processing runs on
@@ -34,6 +41,35 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
   final List<ToolFile> _files = [];
   final TextEditingController _textController = TextEditingController();
   String? _choiceValue;
+
+  static bool _isPdfConverterTool(String id) => switch (id) {
+        'pdf-converter' ||
+        'pdf-to-word' ||
+        'word-to-pdf' ||
+        'pdf-to-excel' ||
+        'excel-to-pdf' ||
+        'pdf-to-image' =>
+          true,
+        _ => false,
+      };
+
+  static TargetFormat? _converterLock(String id) => switch (id) {
+        'pdf-to-word' => TargetFormat.docx,
+        'word-to-pdf' => TargetFormat.pdf,
+        'pdf-to-excel' => TargetFormat.xlsx,
+        'excel-to-pdf' => TargetFormat.pdf,
+        'pdf-to-image' => TargetFormat.png,
+        _ => null,
+      };
+
+  static String _converterTitle(String id) => switch (id) {
+        'pdf-to-word' => 'PDF to Word',
+        'word-to-pdf' => 'Word to PDF',
+        'pdf-to-excel' => 'PDF to Excel',
+        'excel-to-pdf' => 'Excel to PDF',
+        'pdf-to-image' => 'PDF to Image',
+        _ => 'PDF Converter',
+      };
 
   @override
   void initState() {
@@ -90,6 +126,43 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
   void _cancel() =>
       ref.read(toolExecutionProvider(widget.toolId).notifier).cancel();
 
+  /// Live camera scan (QR Scanner tool only) — pushes the viewfinder and
+  /// publishes the decoded value through the standard result card.
+  Future<void> _liveScan() async {
+    final value = await Navigator.of(context).push<String>(
+      AppPageRoute(builder: (_) => const QrLiveScannerScreen()),
+    );
+    if (value == null || !mounted) return;
+    ref.read(toolExecutionProvider(widget.toolId).notifier).complete(
+          ToolResult.text(value, summary: describeQrPayload(value)),
+        );
+    // Persist to the encrypted scan history (best-effort — never blocks the UI).
+    unawaited(_recordScan(value, 'camera'));
+    // Rich, typed result with security assessment + smart actions.
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => ScanResultScreen(raw: value, source: 'camera'),
+      ),
+    );
+  }
+
+  /// Save a decoded value to the secure history store, tolerating any failure.
+  Future<void> _recordScan(String value, String source) async {
+    try {
+      final repo = await ref.read(scanHistoryRepositoryProvider.future);
+      final parsed = QrParser.parse(value);
+      await repo.record(
+        raw: value,
+        type: parsed.type,
+        title: parsed.title,
+        subtitle: parsed.subtitle,
+        source: source,
+      );
+    } catch (_) {
+      // History is a convenience layer — a storage hiccup must not break scanning.
+    }
+  }
+
   void _reset() {
     ref.read(toolExecutionProvider(widget.toolId).notifier).reset();
     _textController.clear();
@@ -109,6 +182,13 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isPdfConverterTool(widget.toolId)) {
+      return PdfConverterScreen(
+        lockedTarget: _converterLock(widget.toolId),
+        title: _converterTitle(widget.toolId),
+      );
+    }
+
     final p = AppPalette.of(context);
     // Fire analytics when a run finishes (replaces the old simulated toolFinish).
     ref.listen(toolExecutionProvider(widget.toolId), (prev, next) {
@@ -326,9 +406,55 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     final fileOk = !spec.needsFile || hasFiles;
     final canRun = fileOk && textOk;
 
+    final isQrScanner = widget.toolId == 'qr-scanner';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (isQrScanner) ...[
+          PressableScale(
+            onTap: _liveScan,
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: AppColors.brandGradient,
+                borderRadius: Radii.brTile,
+                boxShadow: Elevations.accentGlow(accent),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.qr_code_scanner_rounded,
+                      color: Colors.white, size: 22),
+                  SizedBox(width: 10),
+                  Text(
+                    'Scan Live with Camera',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(child: Divider(color: p.border)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  'or scan from a photo',
+                  style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                ),
+              ),
+              Expanded(child: Divider(color: p.border)),
+            ],
+          ),
+          const SizedBox(height: 14),
+        ],
         if (spec.needsFile)
           PressableScale(
             onTap: _pick,

@@ -35,8 +35,20 @@ class PremiumBackground extends StatefulWidget {
 class _PremiumBackgroundState extends State<PremiumBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _bg =
-      AnimationController(vsync: this, duration: const Duration(seconds: 30))
-        ..repeat();
+      AnimationController(vsync: this, duration: const Duration(seconds: 30));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Respect reduce-motion (and keep widget tests from spinning on an
+    // always-repeating ticker): only loop the ambient drift when motion is on.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) == true;
+    if (reduceMotion) {
+      if (_bg.isAnimating) _bg.stop();
+    } else if (!_bg.isAnimating) {
+      _bg.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -158,6 +170,9 @@ class GlowIcon extends StatelessWidget {
     this.size = 46,
     this.iconSize = 22,
     this.radius = 13,
+    this.glow = true,
+    this.glowAlpha = .3,
+    this.glowBlur = 12,
   });
 
   final IconData icon;
@@ -165,6 +180,11 @@ class GlowIcon extends StatelessWidget {
   final double size;
   final double iconSize;
   final double radius;
+
+  /// Set false for a flat tinted tile with no shadow.
+  final bool glow;
+  final double glowAlpha;
+  final double glowBlur;
 
   @override
   Widget build(BuildContext context) {
@@ -174,9 +194,14 @@ class GlowIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: [
-          BoxShadow(color: color.withValues(alpha: .3), blurRadius: 12),
-        ],
+        boxShadow: glow
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: glowAlpha),
+                  blurRadius: glowBlur,
+                ),
+              ]
+            : null,
       ),
       child: Icon(icon, color: color, size: iconSize),
     );
