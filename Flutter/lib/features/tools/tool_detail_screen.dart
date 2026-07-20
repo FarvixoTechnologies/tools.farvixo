@@ -22,6 +22,7 @@ import 'engine/engines/scan_engines.dart' show describeQrPayload;
 import 'scanner/models/qr_type.dart';
 import 'scanner/providers/qr_settings_provider.dart';
 import 'scanner/providers/scan_history_providers.dart';
+import 'scanner/qr_generator_screen.dart';
 import 'scanner/qr_live_scanner_screen.dart';
 import 'scanner/scan_result_screen.dart';
 import 'scanner/services/qr_parser.dart';
@@ -209,6 +210,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         lockedTarget: _converterLock(widget.toolId),
         title: _converterTitle(widget.toolId),
       );
+    }
+
+    if (widget.toolId == 'qr-generator') {
+      return const QrGeneratorScreen();
     }
 
     final p = AppPalette.of(context);
