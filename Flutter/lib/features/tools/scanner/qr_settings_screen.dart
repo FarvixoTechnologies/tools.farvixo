@@ -6,8 +6,10 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
+import 'data/scan_history_repository.dart';
 import 'providers/qr_settings_provider.dart';
 import 'providers/scan_history_providers.dart';
+import 'services/qr_export_io.dart';
 
 /// Scanner & privacy settings for the QR module. Persists to SharedPreferences
 /// via [qrSettingsProvider]; privacy actions (retention / clear) act on the
@@ -120,6 +122,26 @@ class QrSettingsScreen extends ConsumerWidget {
                               }
                             },
                           ),
+                          _ActionTile(
+                            icon: Icons.table_chart_rounded,
+                            title: 'Export as CSV',
+                            subtitle: 'Share a spreadsheet of your scans',
+                            onTap: () => _run(context, ref,
+                                (repo) => QrExportIo.exportCsv(repo)),
+                          ),
+                          _ActionTile(
+                            icon: Icons.backup_rounded,
+                            title: 'Export backup (JSON)',
+                            subtitle: 'Full backup incl. favorites & trash',
+                            onTap: () => _run(context, ref,
+                                (repo) => QrExportIo.exportJsonBackup(repo)),
+                          ),
+                          _ActionTile(
+                            icon: Icons.restore_rounded,
+                            title: 'Import backup',
+                            subtitle: 'Merge scans from a JSON backup',
+                            onTap: () => _import(context, ref),
+                          ),
                           _DangerTile(
                             icon: Icons.delete_forever_rounded,
                             title: 'Clear all history',
@@ -143,6 +165,50 @@ class QrSettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _run(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function(ScanHistoryRepository repo) action,
+  ) async {
+    try {
+      final repo = await ref.read(scanHistoryRepositoryProvider.future);
+      await action(repo);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Export failed: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _import(BuildContext context, WidgetRef ref) async {
+    try {
+      final repo = await ref.read(scanHistoryRepositoryProvider.future);
+      final count = await QrExportIo.importJsonBackup(repo);
+      if (count != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Imported $count scan${count == 1 ? '' : 's'}'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Import failed: $e'),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
@@ -303,6 +369,34 @@ class _RetentionTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
+    return ListTile(
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: Insets.sm),
+      leading: Icon(icon, color: p.accent),
+      title: Text(title,
+          style: TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w700, color: p.textPrimary)),
+      subtitle: Text(subtitle,
+          style: TextStyle(fontSize: 12, color: p.textMuted)),
     );
   }
 }

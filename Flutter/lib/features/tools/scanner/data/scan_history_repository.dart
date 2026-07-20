@@ -223,6 +223,15 @@ class ScanHistoryRepository {
   /// Wipe the entire history ("clear all data").
   Future<void> clearAll() => _box.clear();
 
+  /// Merge imported entries into the store (keyed by id, so re-importing the
+  /// same backup is idempotent). Returns how many were added or updated.
+  Future<int> importEntries(Iterable<ScanHistoryEntry> entries) async {
+    final map = {for (final e in entries) e.id: e};
+    if (map.isEmpty) return 0;
+    await _box.putAll(map);
+    return map.length;
+  }
+
   // ─────────────────────────────────────────────────────────────── reads
 
   /// All live (non-deleted) entries, unfiltered.
