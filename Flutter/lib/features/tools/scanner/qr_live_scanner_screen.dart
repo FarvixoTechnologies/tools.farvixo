@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../theme/app_colors.dart';
@@ -33,6 +34,7 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
 
   bool _handled = false;
   bool _torchOn = false;
+  bool _success = false;
 
   @override
   void dispose() {
@@ -42,7 +44,6 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (_handled || !mounted) return;
     String? value;
     for (final b in capture.barcodes) {
       final raw = b.rawValue;
@@ -51,12 +52,47 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
         break;
       }
     }
-    if (value == null) return;
+    _handleValue(value);
+  }
+
+  /// Shared success path for both live detection and gallery decode: give
+  /// feedback, flash the frame green, then return the value.
+  Future<void> _handleValue(String? value) async {
+    if (_handled || !mounted || value == null || value.isEmpty) return;
     _handled = true;
     final settings = ref.read(qrSettingsProvider);
     if (settings.vibration) HapticFeedback.mediumImpact();
     if (settings.sound) SystemSound.play(SystemSoundType.click);
-    Navigator.of(context).pop(value);
+    setState(() => _success = true);
+    // Brief green-frame confirmation before returning.
+    await Future<void>.delayed(const Duration(milliseconds: 240));
+    if (mounted) Navigator.of(context).pop(value);
+  }
+
+  Future<void> _scanFromGallery() async {
+    try {
+      final file =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (file == null) return;
+      final capture = await _controller.analyzeImage(file.path);
+      final value = capture?.barcodes
+          .map((b) => b.rawValue)
+          .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
+      if (value == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text('No QR code found in that image.'),
+            ),
+          );
+        }
+        return;
+      }
+      await _handleValue(value);
+    } catch (_) {
+      // Picker cancelled or decode failed — ignore.
+    }
   }
 
   Future<void> _toggleTorch() async {
@@ -100,7 +136,13 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: CustomPaint(painter: _CornersPainter()),
+                    child: CustomPaint(
+                      painter: _CornersPainter(
+                        color: _success
+                            ? AppColors.success
+                            : AppColors.brandPrimaryHover,
+                      ),
+                    ),
                   ),
                   if (!reduceMotion)
                     AnimatedBuilder(
@@ -201,6 +243,8 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    _GalleryButton(onTap: _scanFromGallery),
+                    const SizedBox(height: Insets.md),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: Insets.md, vertical: Insets.sm),
@@ -211,12 +255,17 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
                           color: Colors.white.withValues(alpha: .15),
                         ),
                       ),
-                      child: const Text(
-                        'Point your camera at a QR code',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          _success
+                              ? 'QR code detected'
+                              : 'Point your camera at a QR code',
+                          style: TextStyle(
+                            color: _success ? AppColors.success : Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -234,6 +283,48 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Pill button to decode a QR from a gallery image.
+class _GalleryButton extends StatelessWidget {
+  const _GalleryButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Scan from a photo',
+      child: InkWell(
+        borderRadius: Radii.brPill,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Insets.lg, vertical: Insets.sm + 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .12),
+            borderRadius: Radii.brPill,
+            border: Border.all(color: Colors.white.withValues(alpha: .3)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.image_rounded, size: 18, color: Colors.white),
+              SizedBox(width: Insets.sm),
+              Text(
+                'Scan from photo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -317,11 +408,14 @@ class _ScrimPainter extends CustomPainter {
 
 /// Accent corner brackets around the scan window.
 class _CornersPainter extends CustomPainter {
+  _CornersPainter({required this.color});
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     const len = 30.0;
     final paint = Paint()
-      ..color = AppColors.brandPrimaryHover
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.4
       ..strokeCap = StrokeCap.round;
@@ -364,7 +458,7 @@ class _CornersPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CornersPainter old) => false;
+  bool shouldRepaint(_CornersPainter old) => old.color != color;
 }
 
 /// Friendly camera error / permission state.
