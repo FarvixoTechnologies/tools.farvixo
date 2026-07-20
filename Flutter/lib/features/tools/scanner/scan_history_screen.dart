@@ -14,6 +14,7 @@ import 'data/scan_history_repository.dart';
 import 'models/qr_type.dart';
 import 'models/scan_history_entry.dart';
 import 'providers/scan_history_providers.dart';
+import 'qr_analytics_screen.dart';
 import 'scan_result_screen.dart';
 
 /// Which slice of history is shown.
@@ -153,6 +154,15 @@ class _HistoryBodyState extends ConsumerState<_HistoryBody> {
                       subtitle: '$total item${total == 1 ? '' : 's'}',
                       onBack: () => Navigator.of(context).maybePop(),
                       actions: [
+                        IconButton(
+                          tooltip: 'Analytics',
+                          icon: Icon(Icons.insights_rounded,
+                              color: AppPalette.of(context).textPrimary),
+                          onPressed: () => Navigator.of(context).push(
+                            AppPageRoute(
+                                builder: (_) => const QrAnalyticsScreen()),
+                          ),
+                        ),
                         if (_mode != HistoryMode.trash)
                           _SortButton(
                             sort: query.sort,
