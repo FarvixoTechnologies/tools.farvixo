@@ -14,6 +14,7 @@ import '../theme/app_palette.dart';
 import '../theme/app_typography.dart';
 import '../theme/category_colors.dart';
 import '../theme/design_tokens.dart';
+import '../theme/tool_identity.dart';
 import 'animations.dart';
 
 /// Compact glass tool card — 3-col mobile grid (TOOLS_PAGE.md 2026).
@@ -152,10 +153,11 @@ class ToolCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final category = ref.watch(categoryResolverProvider)(tool.categoryId);
     final p = AppPalette.of(context);
-    // Per-category identity: brightness-aware accent, gradient, tint and glow
-    // so every category reads as a distinct visual family in both themes.
+    // Category family + per-tool signature: the category sets the color
+    // family, the tool id nudges the hue so no two cards read identically.
     final id = CategoryColors.of(tool.categoryId);
-    final accent = id.accentOf(context);
+    final identity = ToolIdentity.of(tool.id, categoryId: tool.categoryId);
+    final accent = identity.accent(context);
     // select() so a card rebuilds only when ITS own favorite bit flips, not on
     // every favorites-list change.
     final isFavorite = ref.watch(
@@ -193,9 +195,9 @@ class ToolCard extends ConsumerWidget {
                       width: compact ? 36 : 40,
                       height: compact ? 36 : 40,
                       decoration: BoxDecoration(
-                        gradient: id.surfaceGradient(context),
+                        gradient: identity.surfaceGradient(context),
                         borderRadius: Radii.brButton,
-                        border: Border.all(color: id.border(context)),
+                        border: Border.all(color: identity.border(context)),
                       ),
                       child: Icon(
                         tool.icon,

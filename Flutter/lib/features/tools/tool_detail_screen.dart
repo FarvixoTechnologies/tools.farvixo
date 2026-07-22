@@ -13,6 +13,10 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
 import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
+import '../../theme/tool_identity.dart';
+import '../../widgets/premium/app_haptics.dart';
+import '../../widgets/premium/confetti_burst.dart';
+import '../../widgets/premium/progress_ring.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/tool_card.dart';
@@ -49,6 +53,7 @@ class ToolDetailScreen extends ConsumerStatefulWidget {
 class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
   final List<ToolFile> _files = [];
   final TextEditingController _textController = TextEditingController();
+  final _confetti = ConfettiController();
   String? _choiceValue;
 
   static bool _isPdfConverterTool(String id) => switch (id) {
@@ -237,9 +242,14 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
       if (next is ToolSuccess) {
         unawaited(
             AnalyticsService.instance.toolFinish(widget.toolId, success: true));
+        if (prev is! ToolSuccess) {
+          _confetti.fire();
+          unawaited(AppHaptics.success());
+        }
       } else if (next is ToolFailed) {
         unawaited(AnalyticsService.instance
             .toolFinish(widget.toolId, success: false));
+        if (prev is! ToolFailed) unawaited(AppHaptics.error());
       }
     });
     final toolAsync = ref.watch(remoteToolProvider(widget.toolId));
@@ -303,7 +313,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         ),
       );
     }
-    final category = ref.watch(categoryResolverProvider)(tool.categoryId);
+    // Per-tool visual signature: a stable hue nudge inside the category
+    // family, so no two tools read as identical.
+    final identity = ToolIdentity.of(tool.id, categoryId: tool.categoryId);
+    final accent = identity.accent(context);
     final relatedSource =
         ref.watch(remoteToolsProvider(tool.categoryId)).valueOrNull ??
             ToolsData.byCategory(tool.categoryId);
@@ -314,7 +327,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
 
     return Scaffold(
       body: PremiumBackground(
-        child: SafeArea(
+        child: ConfettiBurst(
+          controller: _confetti,
+          colors: identity.confettiColors(context),
+          child: SafeArea(
           child: Column(
             children: [
               Padding(
@@ -344,12 +360,12 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                       FadeSlideIn(
                         index: 1,
                         child: GlassCard(
-                          glowColor: category.color,
+                          glowColor: accent,
                           child: Row(
                             children: [
                               GlowIcon(
                                 icon: tool.icon,
-                                color: category.color,
+                                color: accent,
                                 size: 58,
                                 iconSize: 30,
                                 radius: 16,
@@ -375,7 +391,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                       const SizedBox(height: 18),
                       // ---------- workspace ----------
                       FadeSlideIn(
-                          index: 2, child: _buildWorkspace(category.color, p)),
+                          index: 2, child: _buildWorkspace(accent, p)),
                       const SizedBox(height: 26),
                       // ---------- how it works ----------
                       FadeSlideIn(
@@ -383,7 +399,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                         child: const PremiumSectionHead(title: 'How it works'),
                       ),
                       FadeSlideIn(
-                          index: 3, child: _HowItWorksRow(accent: p.accent)),
+                          index: 3, child: _HowItWorksRow(accent: accent)),
                       const SizedBox(height: 8),
                       // ---------- related ----------
                       if (related.isNotEmpty) ...[
@@ -414,6 +430,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),
@@ -591,26 +608,21 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           if (fraction == null)
             CircularProgressIndicator(color: accent)
           else
-            ClipRRect(
-              borderRadius: Radii.brPill,
-              child: LinearProgressIndicator(
-                value: fraction,
-                minHeight: 8,
-                backgroundColor: p.surface2,
-                color: accent,
-              ),
+            PremiumProgressRing(
+              progress: fraction,
+              size: 104,
+              color: accent,
             ),
           const SizedBox(height: 16),
-          Text(
-            stage ?? 'Processing…',
-            style:
-                AppTypography.bodyLarge(context, color: p.textPrimary, weight: FontWeights.bold),
+          AnimatedSwitcher(
+            duration: Motion.base,
+            child: Text(
+              stage ?? 'Processing…',
+              key: ValueKey(stage),
+              style: AppTypography.bodyLarge(context,
+                  color: p.textPrimary, weight: FontWeights.bold),
+            ),
           ),
-          if (fraction != null) ...[
-            const SizedBox(height: 4),
-            Text('${(fraction * 100).round()}%',
-                style: AppTypography.labelMedium(context, color: p.textMuted)),
-          ],
           const SizedBox(height: 16),
           OutlinedButton(
             onPressed: _cancel,
@@ -685,46 +697,56 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        resultZone,
+        FadeSlideIn(index: 0, child: resultZone),
         if (result.summary != null) ...[
           const SizedBox(height: 8),
-          Text(result.summary!,
-              textAlign: TextAlign.center,
-              style: AppTypography.labelMedium(context, color: p.textMuted)),
+          FadeSlideIn(
+            index: 1,
+            child: Text(result.summary!,
+                textAlign: TextAlign.center,
+                style: AppTypography.labelMedium(context, color: p.textMuted)),
+          ),
         ],
         const SizedBox(height: 16),
-        Row(
-          children: [
-            if (copyable != null) ...[
+        FadeSlideIn(
+          index: 2,
+          child: Row(
+            children: [
+              if (copyable != null) ...[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _copy(copyable),
+                    icon: const Icon(Icons.copy_rounded, size: 18),
+                    label: Text(
+                        result.kind == ToolResultKind.text ? 'Copy' : 'Copy text'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _copy(copyable),
-                  icon: const Icon(Icons.copy_rounded, size: 18),
-                  label: Text(
-                      result.kind == ToolResultKind.text ? 'Copy' : 'Copy text'),
+                child: PrimaryButton(
+                  label: 'Share / Save',
+                  icon: Icons.ios_share_rounded,
+                  onPressed: () => _share(result),
                 ),
               ),
-              const SizedBox(width: 10),
             ],
-            Expanded(
-              child: PrimaryButton(
-                label: 'Share / Save',
-                icon: Icons.ios_share_rounded,
-                onPressed: () => _share(result),
-              ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 8),
-        OutlinedButton(
-          onPressed: canRegenerate ? _run : _reset,
-          child: Text(canRegenerate ? 'Regenerate' : 'Process Another'),
+        FadeSlideIn(
+          index: 3,
+          child: OutlinedButton(
+            onPressed: canRegenerate ? _run : _reset,
+            child: Text(canRegenerate ? 'Regenerate' : 'Process Another'),
+          ),
         ),
       ],
     );
   }
 
   Future<void> _copy(String text) async {
+    AppHaptics.tick();
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

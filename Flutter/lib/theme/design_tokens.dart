@@ -15,6 +15,8 @@ import 'app_palette.dart';
 
 /// The complete 4px-based spacing ladder, addressed by value.
 ///
+/// See also [Gap], [Insets], [Radii], [Motion], [Elevations] below.
+///
 /// Use this when you want an exact step (`Space.s20`). Use [Insets] when you
 /// want the semantic name (`Insets.md`). They are the same numbers — [Insets]
 /// is a semantic alias layer over this ladder.
