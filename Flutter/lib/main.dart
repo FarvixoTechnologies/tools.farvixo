@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,14 +26,23 @@ Future<void> main() async {
   );
 
   await AppConfig.loadEnv();
-  await FirebaseService.init(
-    onNotificationOpen: PendingDeepLink.set,
-  );
   final prefs = await SharedPreferences.getInstance();
   // Respect analytics opt-out before any further product events.
   final analyticsEnabled = prefs.getBool('pref_analytics') ?? true;
-  await FirebaseService.applyAnalyticsCollection(analyticsEnabled);
   await SupabaseService.init();
+
+  // Firebase (Crashlytics, Remote Config, FCM/notifications) boots in the
+  // BACKGROUND. The app must open instantly even when notifications are
+  // disabled, Google Play Services is unavailable, or the network is slow —
+  // push simply attaches once this completes. Notifications need no login:
+  // the 'all_users' topic + token are set up here, before any sign-in.
+  unawaited(
+    FirebaseService.init(onNotificationOpen: PendingDeepLink.set)
+        .then((_) => FirebaseService.applyAnalyticsCollection(analyticsEnabled))
+        .catchError(
+          (Object e) => debugPrint('Firebase background init failed: $e'),
+        ),
+  );
 
   runApp(
     ProviderScope(

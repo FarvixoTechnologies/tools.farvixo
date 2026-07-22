@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_typography.dart';
 import '../../../theme/design_tokens.dart';
 import 'providers/qr_settings_provider.dart';
 
@@ -29,7 +30,7 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
   );
   late final AnimationController _scanLine = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 2000),
+    duration: Motion.breathe,
   )..repeat(reverse: true);
 
   bool _handled = false;
@@ -65,7 +66,7 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
     if (settings.sound) SystemSound.play(SystemSoundType.click);
     setState(() => _success = true);
     // Brief green-frame confirmation before returning.
-    await Future<void>.delayed(const Duration(milliseconds: 240));
+    await Future<void>.delayed(Motion.medium);
     if (mounted) Navigator.of(context).pop(value);
   }
 
@@ -111,7 +112,7 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) == true;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.scrim,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -194,14 +195,13 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   const Spacer(),
-                  const Text(
+                  Text(
                     'Scan QR Code',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: .3,
-                    ),
+                    style: AppTypography.titleMedium(
+                      context,
+                      color: AppColors.onAccent,
+                      weight: FontWeights.extrabold,
+                    ).copyWith(letterSpacing: .3),
                   ),
                   const Spacer(),
                   _RoundButton(
@@ -249,10 +249,10 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: Insets.md, vertical: Insets.sm),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: .45),
+                        color: AppColors.scrim.withValues(alpha: .45),
                         borderRadius: Radii.brPill,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: .15),
+                          color: AppColors.onAccent.withValues(alpha: .15),
                         ),
                       ),
                       child: Semantics(
@@ -261,21 +261,14 @@ class _QrLiveScannerScreenState extends ConsumerState<QrLiveScannerScreen>
                           _success
                               ? 'QR code detected'
                               : 'Point your camera at a QR code',
-                          style: TextStyle(
-                            color: _success ? AppColors.success : Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppTypography.bodyMedium(context, color: _success ? AppColors.success : AppColors.onAccent, weight: FontWeights.semibold),
                         ),
                       ),
                     ),
                     const SizedBox(height: Insets.sm),
                     Text(
                       'Decoded on-device • nothing leaves your phone',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: .55),
-                        fontSize: 11,
-                      ),
+                      style: AppTypography.labelSmall(context, color: AppColors.onAccent.withValues(alpha: .55)),
                     ),
                   ],
                 ),
@@ -305,21 +298,22 @@ class _GalleryButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
               horizontal: Insets.lg, vertical: Insets.sm + 2),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .12),
+            color: AppColors.onAccent.withValues(alpha: .12),
             borderRadius: Radii.brPill,
-            border: Border.all(color: Colors.white.withValues(alpha: .3)),
+            border: Border.all(color: AppColors.onAccent.withValues(alpha: .3)),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.image_rounded, size: 18, color: Colors.white),
-              SizedBox(width: Insets.sm),
+              const Icon(Icons.image_rounded,
+                  size: 18, color: AppColors.onAccent),
+              const SizedBox(width: Insets.sm),
               Text(
                 'Scan from photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                style: AppTypography.bodyMedium(
+                  context,
+                  color: AppColors.onAccent,
+                  weight: FontWeights.bold,
                 ),
               ),
             ],
@@ -359,17 +353,17 @@ class _RoundButton extends StatelessWidget {
             shape: BoxShape.circle,
             color: active
                 ? AppColors.goldPremium.withValues(alpha: .25)
-                : Colors.black.withValues(alpha: .45),
+                : AppColors.scrim.withValues(alpha: .45),
             border: Border.all(
               color: active
                   ? AppColors.goldPremium
-                  : Colors.white.withValues(alpha: .2),
+                  : AppColors.onAccent.withValues(alpha: .2),
             ),
           ),
           child: Icon(
             icon,
             size: 21,
-            color: active ? AppColors.goldPremium : Colors.white,
+            color: active ? AppColors.goldPremium : AppColors.onAccent,
           ),
         ),
       ),
@@ -398,7 +392,7 @@ class _ScrimPainter extends CustomPainter {
     final scrim = Path.combine(PathOperation.difference, full, hole);
     canvas.drawPath(
       scrim,
-      Paint()..color = Colors.black.withValues(alpha: .55),
+      Paint()..color = AppColors.scrim.withValues(alpha: .55),
     );
   }
 
@@ -472,7 +466,7 @@ class _CameraError extends StatelessWidget {
     final denied =
         error.errorCode == MobileScannerErrorCode.permissionDenied;
     return Container(
-      color: Colors.black,
+      color: AppColors.scrim,
       alignment: Alignment.center,
       padding: const EdgeInsets.all(Insets.xl),
       child: Column(
@@ -488,11 +482,7 @@ class _CameraError extends StatelessWidget {
           const SizedBox(height: Insets.md),
           Text(
             denied ? 'Camera permission needed' : 'Camera unavailable',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
+            style: AppTypography.titleLarge(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
           ),
           const SizedBox(height: Insets.sm),
           Text(
@@ -502,11 +492,7 @@ class _CameraError extends StatelessWidget {
                 : 'Could not start the camera. You can still scan from a '
                     'photo instead.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: .7),
-              fontSize: 13,
-              height: 1.5,
-            ),
+            style: AppTypography.bodyMedium(context, color: AppColors.onAccent.withValues(alpha: .7)).copyWith(height: 1.5),
           ),
           const SizedBox(height: Insets.lg),
           OutlinedButton.icon(
@@ -514,8 +500,8 @@ class _CameraError extends StatelessWidget {
             icon: const Icon(Icons.image_rounded, size: 18),
             label: const Text('Scan from photo instead'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: BorderSide(color: Colors.white.withValues(alpha: .4)),
+              foregroundColor: AppColors.onAccent,
+              side: BorderSide(color: AppColors.onAccent.withValues(alpha: .4)),
             ),
           ),
         ],

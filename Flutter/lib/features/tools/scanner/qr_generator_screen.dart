@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
+import '../../../theme/app_typography.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
 import 'services/qr_payload_builder.dart';
@@ -209,7 +210,7 @@ class _QrGeneratorScreenState extends State<QrGeneratorScreen> {
         child: Container(
           padding: const EdgeInsets.all(Insets.md),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.onAccent,
             borderRadius: Radii.brCard,
           ),
           child: _hasContent
@@ -217,7 +218,7 @@ class _QrGeneratorScreenState extends State<QrGeneratorScreen> {
                   data: payload,
                   version: QrVersions.auto,
                   size: 220,
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.onAccent,
                   eyeStyle: QrEyeStyle(
                     eyeShape: QrEyeShape.square,
                     color: _fg,
@@ -235,7 +236,7 @@ class _QrGeneratorScreenState extends State<QrGeneratorScreen> {
                   height: 220,
                   child: Center(
                     child: Icon(Icons.qr_code_2_rounded,
-                        size: 96, color: Color(0xFFBBBBBB)),
+                        size: 96, color: AppColors.lightTextMuted),
                   ),
                 ),
         ),
@@ -269,20 +270,13 @@ class _QrGeneratorScreenState extends State<QrGeneratorScreen> {
   }
 
   Widget _styleRow(AppPalette p) {
-    const swatches = [
-      AppColors.bgBase,
-      AppColors.brandPrimary,
-      AppColors.accentDev,
-      AppColors.accentImage,
-      AppColors.error,
-    ];
+    const swatches = AppColors.qrSwatches;
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Style',
-              style: TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: p.textPrimary)),
+              style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           const SizedBox(height: Insets.sm),
           Row(
             children: [
@@ -391,13 +385,10 @@ class _KindChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(kind.icon,
-                  size: 15, color: active ? Colors.white : p.textSecondary),
+                  size: 15, color: active ? AppColors.onAccent : p.textSecondary),
               const SizedBox(width: 6),
               Text(kind.label,
-                  style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: active ? Colors.white : p.textSecondary)),
+                  style: AppTypography.bodySmall(context, color: active ? AppColors.onAccent : p.textSecondary, weight: FontWeights.bold)),
             ],
           ),
         ),

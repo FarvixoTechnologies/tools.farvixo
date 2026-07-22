@@ -71,20 +71,35 @@ class Validators {
     return 'Strong';
   }
 
-  static final _usernameRe = RegExp(r'^[a-zA-Z0-9_]{3,24}$');
+  static final _usernameRe = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
   static final _urlRe = RegExp(
     r'^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-./?%&=]*)?$',
     caseSensitive: false,
   );
 
-  /// Optional username — empty allowed; otherwise 3–24 alphanumerics/underscore.
+  /// Required display name — max 50 characters.
+  static String? fullName(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Full name is required';
+    if (v.length > 50) return 'Maximum 50 characters';
+    return null;
+  }
+
+  /// Optional username — empty allowed; otherwise 3–20 letters/numbers/underscore.
   static String? username(String? value) {
     final v = value?.trim() ?? '';
     if (v.isEmpty) return null;
     final cleaned = v.startsWith('@') ? v.substring(1) : v;
     if (!_usernameRe.hasMatch(cleaned)) {
-      return '3–24 letters, numbers, or underscore';
+      return '3–20 letters, numbers, or underscore';
     }
+    return null;
+  }
+
+  /// Optional bio — max 160 characters.
+  static String? bio(String? value) {
+    final v = value ?? '';
+    if (v.length > 160) return 'Maximum 160 characters';
     return null;
   }
 

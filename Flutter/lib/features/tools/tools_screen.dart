@@ -10,6 +10,7 @@ import '../../providers/tool_activity_provider.dart';
 import '../../providers/tool_repository_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
@@ -162,20 +163,12 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                   ),
                   Text(
                     'Sort & Filter',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Sort by',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: p.textSecondary,
-                    ),
+                    style: AppTypography.bodyMedium(context, color: p.textSecondary, weight: FontWeights.bold),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -199,11 +192,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                   const SizedBox(height: 18),
                   Text(
                     'Filter',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: p.textSecondary,
-                    ),
+                    style: AppTypography.bodyMedium(context, color: p.textSecondary, weight: FontWeights.bold),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -237,15 +226,15 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                       },
                       style: FilledButton.styleFrom(
                         backgroundColor: p.accent,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.onAccent,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: const RoundedRectangleBorder(
                           borderRadius: Radii.brButton,
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Apply',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: AppTypography.labelLarge(context, weight: FontWeights.extrabold),
                       ),
                     ),
                   ),
@@ -337,17 +326,12 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                             children: [
                               Text.rich(
                                 TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
-                                    color: p.textPrimary,
-                                  ),
+                                  style: AppTypography.headlineLarge(context, color: p.textPrimary, weight: FontWeights.black).copyWith(height: 1.1),
                                   children: [
                                     const TextSpan(text: 'All '),
                                     TextSpan(
                                       text: 'Tools',
-                                      style: TextStyle(color: p.accent),
+                                      style: AppTypography.bodyMedium(context, color: p.accent),
                                     ),
                                     const TextSpan(text: ' ✨'),
                                   ],
@@ -356,11 +340,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 '$total powerful tools to boost your productivity',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  height: 1.35,
-                                  color: p.textSecondary,
-                                ),
+                                style: AppTypography.bodyMedium(context, color: p.textSecondary).copyWith(height: 1.35),
                               ),
                             ],
                           ),
@@ -468,20 +448,12 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                                   .watch(categoryResolverProvider)(
                                       _selectedCategoryId!)
                                   .name,
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                         const Spacer(),
                         Text(
                           '${tools.length}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: p.textMuted,
-                          ),
+                          style: AppTypography.bodyMedium(context, color: p.textMuted, weight: FontWeights.bold),
                         ),
                       ],
                     ),
@@ -502,17 +474,13 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'No tools found',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           'Try another category or clear filters.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: p.textSecondary),
+                          style: AppTypography.bodyMedium(context, color: p.textSecondary),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
@@ -521,7 +489,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                             _filter = _FilterMode.all;
                             _sort = _SortMode.popular;
                           }),
-                          child: const Text('Reset filters'),
+                          child: Text('Reset filters'),
                         ),
                       ],
                     ),
@@ -590,11 +558,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
             child: Text(
               title,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppPalette.of(context).textPrimary,
-              ),
+              style: AppTypography.titleLarge(context, color: AppPalette.of(context).textPrimary, weight: FontWeights.extrabold),
             ),
           ),
         ),
@@ -651,32 +615,24 @@ class _ToolsAppBar extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Farvixo',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: p.textPrimary,
-              ),
+              style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 gradient: AppColors.goldGradient,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: Radii.brPill,
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.workspace_premium_rounded,
-                      size: 12, color: Color(0xFF1A1330)),
+                      size: 12, color: AppColors.lightTextPrimary),
                   SizedBox(width: 3),
                   Text(
                     'Premium',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1330),
-                    ),
+                    style: AppTypography.caption(context, color: AppColors.lightTextPrimary, weight: FontWeights.extrabold),
                   ),
                 ],
               ),
@@ -699,13 +655,9 @@ class _ToolsAppBar extends StatelessWidget {
                       color: AppColors.error,
                       shape: BoxShape.circle,
                     ),
-                    child: const Text(
+                    child: Text(
                       '3',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppTypography.badge(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
                     ),
                   ),
                 ),
@@ -719,11 +671,7 @@ class _ToolsAppBar extends StatelessWidget {
                 backgroundColor: p.accent.withValues(alpha: 0.25),
                 child: Text(
                   userInitial,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: p.accent,
-                  ),
+                  style: AppTypography.labelMedium(context, color: p.accent, weight: FontWeights.extrabold),
                 ),
               ),
             ),
@@ -782,11 +730,7 @@ class _FiltersButton extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               'Filters',
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: p.textPrimary,
-              ),
+              style: AppTypography.bodySmall(context, color: p.textPrimary, weight: FontWeights.bold),
             ),
           ],
         ),
@@ -899,17 +843,20 @@ class _StatCard extends StatelessWidget {
             icon,
             size: 16,
             color: gradient
-                ? Colors.white.withValues(alpha: 0.9)
+                ? AppColors.onAccent.withValues(alpha: 0.9)
                 : (accent ?? p.accent),
           ),
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              fontSize: gradient ? 22 : 16,
-              fontWeight: FontWeight.w900,
+            // The featured (gradient) stat card gets a larger numeral.
+            style: (gradient
+                    ? AppTypography.headlineSmall(context)
+                    : AppTypography.titleMedium(context))
+                .copyWith(
+              fontWeight: FontWeights.black,
               height: 1,
-              color: gradient ? Colors.white : p.textPrimary,
+              color: gradient ? AppColors.onAccent : p.textPrimary,
             ),
           ),
           const SizedBox(height: 2),
@@ -917,13 +864,9 @@ class _StatCard extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-              color: gradient
-                  ? Colors.white.withValues(alpha: 0.85)
-                  : p.textMuted,
-            ),
+            style: AppTypography.caption(context, color: gradient
+                  ? AppColors.onAccent.withValues(alpha: 0.85)
+                  : p.textMuted, weight: FontWeights.semibold),
           ),
         ],
       ),
@@ -977,16 +920,12 @@ class _CategoryChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 15,
-                color: selected ? Colors.white : color,
+                color: selected ? AppColors.onAccent : color,
               ),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : p.textSecondary,
-                ),
+                style: AppTypography.bodySmall(context, color: selected ? AppColors.onAccent : p.textSecondary, weight: FontWeights.bold),
               ),
             ],
           ),
@@ -1014,11 +953,7 @@ class _SheetChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onTap(),
       selectedColor: p.accent.withValues(alpha: 0.25),
-      labelStyle: TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 12.5,
-        color: selected ? p.accent : p.textSecondary,
-      ),
+      labelStyle: AppTypography.bodySmall(context, color: selected ? p.accent : p.textSecondary, weight: FontWeights.bold),
       side: BorderSide(color: selected ? p.accent : p.border),
       backgroundColor: p.surface2,
       shape: const RoundedRectangleBorder(borderRadius: Radii.brPill),
@@ -1038,7 +973,7 @@ class _PremiumUpgradeBanner extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [Color(0xFF3B1D6E), Color(0xFF5B21B6), Color(0xFF7C3AED)],
+          colors: [AppColors.violet900, AppColors.violet800, AppColors.brandPrimary],
         ),
         borderRadius: Radii.brPanel,
         boxShadow: [
@@ -1066,25 +1001,18 @@ class _PremiumUpgradeBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Upgrade to Farvixo Premium',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: AppTypography.titleSmall(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
                 ),
                 SizedBox(height: 2),
                 Text(
                   'Unlock all tools & remove limits',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Color(0xFFD4C4F7),
-                  ),
+                  style: AppTypography.labelSmall(context, color: AppColors.violet200),
                 ),
               ],
             ),
@@ -1097,24 +1025,20 @@ class _PremiumUpgradeBanner extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                  colors: [AppColors.brandPrimaryHover, AppColors.indigo],
                 ),
                 borderRadius: Radii.brPill,
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Upgrade Now',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
+                    style: AppTypography.labelMedium(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
                   ),
                   SizedBox(width: 4),
                   Icon(Icons.chevron_right_rounded,
-                      size: 16, color: Colors.white),
+                      size: 16, color: AppColors.onAccent),
                 ],
               ),
             ),

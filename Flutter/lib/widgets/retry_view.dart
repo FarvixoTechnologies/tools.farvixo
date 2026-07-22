@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
 
 /// Reusable full-area error state with a Retry action. Used wherever an
 /// [AsyncValue.error] would otherwise leave the screen blank.
@@ -34,38 +36,47 @@ class ErrorRetryView extends StatelessWidget {
     final p = AppPalette.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.s32,
+          vertical: Space.s24,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 48, color: p.textMuted),
-            const SizedBox(height: 14),
+            const SizedBox(height: Space.s16),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+              style: AppTypography.titleMedium(
+                context,
                 color: p.textPrimary,
+                weight: FontWeights.extrabold,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: Space.s6),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, height: 1.35, color: p.textSecondary),
+              style: AppTypography.bodyMedium(
+                context,
+                color: p.textSecondary,
+              ).copyWith(height: 1.35),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: Space.s20),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Retry'),
               style: FilledButton.styleFrom(
                 backgroundColor: p.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                foregroundColor: AppColors.onAccent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Space.s20,
+                  vertical: Space.s12,
+                ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: Radii.brButton,
                 ),
               ),
             ),
@@ -86,44 +97,52 @@ class OfflineBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
+    // Offline is a warning state, not an Audio-category surface — this used to
+    // borrow `accentAudio` purely because it was orange.
+    const warn = AppColors.warning;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(
+        Space.s16,
+        Space.s8,
+        Space.s16,
+        Space.s0,
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: Radii.brPill,
           onTap: onRetry,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Space.s12,
+              vertical: Space.s8,
+            ),
             decoration: BoxDecoration(
-              color: AppColors.accentAudio.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: AppColors.accentAudio.withValues(alpha: 0.4),
-              ),
+              color: warn.withValues(alpha: 0.12),
+              borderRadius: Radii.brPill,
+              border: Border.all(color: warn.withValues(alpha: 0.4)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.wifi_off_rounded,
-                    size: 14, color: AppColors.accentAudio),
-                const SizedBox(width: 6),
+                const Icon(Icons.wifi_off_rounded, size: 14, color: warn),
+                const SizedBox(width: Space.s6),
                 Text(
                   'Offline mode',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
+                  style: AppTypography.labelSmall(
+                    context,
                     color: p.textPrimary,
+                    weight: FontWeights.bold,
                   ),
                 ),
                 if (onRetry != null) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: Space.s6),
                   Text(
                     '· Retry',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentAudio,
+                    style: AppTypography.labelSmall(
+                      context,
+                      color: warn,
+                      weight: FontWeights.bold,
                     ),
                   ),
                 ],

@@ -32,7 +32,7 @@ class FadeSlideIn extends StatefulWidget {
     this.index = 0,
     this.delay = Duration.zero,
     this.duration = Motion.page,
-    this.stagger = const Duration(milliseconds: 70),
+    this.stagger = Motion.staggerStep,
     this.offset = 0.10,
     this.enabled = true,
     required this.child,
@@ -80,8 +80,8 @@ class _FadeSlideInState extends State<FadeSlideIn>
     _started = true;
     final total = widget.delay +
         Duration(
-          milliseconds:
-              (widget.index * widget.stagger.inMilliseconds).clamp(0, 700),
+          milliseconds: (widget.index * widget.stagger.inMilliseconds)
+              .clamp(0, Motion.staggerCap.inMilliseconds),
         );
     Future<void>.delayed(total, () {
       if (mounted) _c.forward();

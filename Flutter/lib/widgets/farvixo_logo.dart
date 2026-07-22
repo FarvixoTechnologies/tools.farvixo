@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
 
 /// Farvixo brand mark — single final logo for dark & light.
 class FarvixoLogo extends StatelessWidget {
@@ -32,7 +34,7 @@ class FarvixoLogo extends StatelessWidget {
                   spreadRadius: size * 0.015,
                 ),
                 BoxShadow(
-                  color: const Color(0xFFFDE68A).withValues(alpha: 0.18),
+                  color: AppColors.goldSoft.withValues(alpha: 0.18),
                   blurRadius: size * 0.25,
                 ),
               ],
@@ -55,25 +57,29 @@ class FarvixoLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         mark,
-        const SizedBox(width: 12),
+        const SizedBox(width: Gap.item),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Lockup type scales with the mark, so the size is proportional
+            // rather than a fixed role — weight and family still come from
+            // the type scale.
             Text(
               'Farvixo',
-              style: TextStyle(
+              style: AppTypography.wordmarkStyle.copyWith(
                 fontSize: size * 0.42,
-                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+                fontWeight: FontWeights.extrabold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
               'BUILD BEYOND.',
-              style: TextStyle(
+              style: AppTypography.overlineStyle.copyWith(
                 fontSize: size * 0.18,
                 letterSpacing: 2,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeights.semibold,
                 color: AppColors.textMuted,
               ),
             ),
@@ -105,10 +111,11 @@ class _FallbackMark extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         'F',
-        style: TextStyle(
-          color: Colors.white,
+        style: AppTypography.wordmarkStyle.copyWith(
+          color: AppColors.onAccent,
           fontSize: size * 0.48,
-          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+          fontWeight: FontWeights.black,
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_typography.dart';
 import '../theme/design_tokens.dart';
 import 'animations.dart';
 import 'glass_surface.dart';
@@ -35,7 +36,7 @@ class PremiumBackground extends StatefulWidget {
 class _PremiumBackgroundState extends State<PremiumBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _bg =
-      AnimationController(vsync: this, duration: const Duration(seconds: 30));
+      AnimationController(vsync: this, duration: Motion.ambient);
 
   @override
   void didChangeDependencies() {
@@ -252,10 +253,8 @@ class CircleGlassButton extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Text(badge!,
-                  style: const TextStyle(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white)),
+                  style: AppTypography.overline(context,
+                      color: AppColors.onAccent)),
             ),
           ),
       ],
@@ -298,7 +297,7 @@ class PremiumHeader extends StatelessWidget {
               Row(
                 children: [
                   if (emoji != null) ...[
-                    Text(emoji!, style: const TextStyle(fontSize: 22)),
+                    Text(emoji!, style: AppTypography.headlineSmallStyle),
                     const SizedBox(width: 8),
                   ],
                   Flexible(
@@ -311,10 +310,9 @@ class PremiumHeader extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white),
+                        style: AppTypography.headlineMedium(context,
+                            color: AppColors.onAccent,
+                            weight: FontWeights.extrabold),
                       ),
                     ),
                   ),
@@ -324,7 +322,7 @@ class PremiumHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(subtitle!,
                     style:
-                        TextStyle(fontSize: 12.5, color: p.textSecondary)),
+                        AppTypography.bodySmall(context, color: p.textSecondary)),
               ],
             ],
           ),
@@ -385,20 +383,19 @@ class PremiumEmptyState extends StatelessWidget {
                 child: emoji != null
                     ? Center(
                         child: Text(emoji!,
-                            style: const TextStyle(fontSize: 44)))
+                            style: AppTypography.displayMediumStyle))
                     : Icon(icon, size: 46, color: color),
               ),
               const SizedBox(height: 20),
               Text(title,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                  style: AppTypography.titleLarge(context,
+                      weight: FontWeights.extrabold).copyWith(
                       color: p.textPrimary)),
               const SizedBox(height: 8),
               Text(message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 13.5, height: 1.5, color: p.textSecondary)),
+                  style: AppTypography.bodyMedium(context,
+                      color: p.textSecondary).copyWith(height: 1.5)),
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: 22),
                 _GradientButton(label: actionLabel!, onTap: onAction!),
@@ -421,7 +418,7 @@ class _GradientButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     return InkWell(
-      borderRadius: BorderRadius.circular(99),
+      borderRadius: Radii.brPill,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -430,17 +427,16 @@ class _GradientButton extends StatelessWidget {
             accent,
             Color.lerp(accent, AppColors.brandMagenta, .55)!,
           ]),
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: Radii.brPill,
           boxShadow: [
             BoxShadow(
                 color: accent.withValues(alpha: .5), blurRadius: 16),
           ],
         ),
         child: Text(label,
-            style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w800,
-                color: Colors.white)),
+            style: AppTypography.bodyMedium(context,
+                color: AppColors.onAccent,
+                weight: FontWeights.extrabold)),
       ),
     );
   }
@@ -468,15 +464,14 @@ class PremiumSectionHead extends StatelessWidget {
         children: [
           Expanded(
             child: Text(title,
-                style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
+                style: AppTypography.titleLarge(context,
+                    weight: FontWeights.extrabold).copyWith(
                     color: p.textPrimary)),
           ),
           if (onViewAll != null)
             InkWell(
               onTap: onViewAll,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: Radii.brSm,
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -485,7 +480,7 @@ class PremiumSectionHead extends StatelessWidget {
                   children: [
                     Text('View All',
                         style:
-                            TextStyle(fontSize: 12.5, color: p.accent)),
+                            AppTypography.bodySmall(context, color: p.accent)),
                     const SizedBox(width: 4),
                     Icon(Icons.arrow_forward_rounded,
                         size: 14, color: p.accent),

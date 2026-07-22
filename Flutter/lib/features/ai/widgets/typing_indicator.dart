@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/app_palette.dart';
+import '../../../theme/design_tokens.dart';
 
 /// Three-dot "AI is thinking" indicator with a soft staggered bounce.
 /// Collapses to a static row of dots when reduce-motion is enabled.
@@ -15,7 +16,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: Motion.verySlow,
   )..repeat();
 
   @override

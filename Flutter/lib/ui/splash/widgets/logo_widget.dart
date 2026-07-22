@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/launch/models/splash_config.dart';
 import '../../../widgets/farvixo_logo.dart';
+import '../../../theme/design_tokens.dart';
 
 /// Splash brand mark — logo with 'scale_fade_rotate' reveal inside a
 /// rotating AI orbit ring with neon glow (LAUNCH & SPLASH SYSTEM v2.0.0,
@@ -37,8 +38,8 @@ class LogoWidget extends StatelessWidget {
     return AnimatedBuilder(
       animation: Listenable.merge([reveal, orbit]),
       builder: (context, _) {
-        final t = Curves.easeOutBack.transform(reveal.value.clamp(0.0, 1.0));
-        final fade = Curves.easeOut.transform(reveal.value.clamp(0.0, 1.0));
+        final t = Motion.emphasized.transform(reveal.value.clamp(0.0, 1.0));
+        final fade = Motion.easeOut.transform(reveal.value.clamp(0.0, 1.0));
         final rotate =
             config.logoAnimation == 'scale_fade_rotate' ? (1 - t) * 0.35 : 0.0;
 

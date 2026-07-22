@@ -6,15 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../models/profile_details.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_details_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../utils/profile_actions.dart';
+import '../../utils/profile_link.dart';
 import '../../widgets/premium_kit.dart';
+import 'my_qr_screen.dart';
 
 /// Farvixo Profile — Enterprise Mobile UI v4.0
 /// Ultra Premium · Glassmorphism · AI OS · Mobile First
@@ -24,13 +29,13 @@ class ProfileScreen extends ConsumerWidget {
   // Bespoke, vibrant profile palette (matches the approved hero design).
   // Status hues route through AppColors tokens; the gradient accents below are
   // intentionally distinct from the category tokens for the hero look.
-  static const _purple = Color(0xFF7B3FF2);
-  static const _blue = Color(0xFF4D8DFF);
-  static const _pink = Color(0xFFFF4FD8);
+  static const _purple = AppColors.vividPurple;
+  static const _blue = AppColors.vividBlue;
+  static const _pink = AppColors.vividPink;
   static const _success = AppColors.success;
-  static const _warning = Color(0xFFF59E0B);
+  static const _warning = AppColors.warning;
   static const _danger = AppColors.error;
-  static const _orange = Color(0xFFFF7A3D);
+  static const _orange = AppColors.vividOrange;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,8 +94,13 @@ class ProfileScreen extends ConsumerWidget {
                   planLabel: planLabel,
                   onEdit: () => context.push('/profile/edit'),
                   onEditPhoto: () => pickAndUploadAvatar(context, ref),
-                  onQr: () => _snack(context, 'Profile QR coming soon'),
-                  onShare: () => _shareProfile(context, displayName),
+                  onQr: () => openMyQr(context),
+                  onShare: () => _shareProfile(
+                    context,
+                    displayName: displayName,
+                    user: user,
+                    details: details,
+                  ),
                 ),
               ),
             ),
@@ -223,11 +233,12 @@ class ProfileScreen extends ConsumerWidget {
                     accent: _success,
                     trailing: TextButton(
                       onPressed: () => context.push('/settings'),
-                      child: const Text(
+                      child: Text(
                         'View All',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
+                        style: AppTypography.bodyLarge(
+                          context,
                           color: _purple,
+                          weight: FontWeights.extrabold,
                         ),
                       ),
                     ),
@@ -330,7 +341,7 @@ class ProfileScreen extends ConsumerWidget {
       SnackBar(
         content: Text(msg),
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+        duration: Motion.snackbar,
       ),
     );
   }
@@ -344,13 +355,16 @@ class ProfileScreen extends ConsumerWidget {
     if (context.mounted) _snack(context, msg);
   }
 
-  static Future<void> _shareProfile(BuildContext context, String name) async {
-    await Clipboard.setData(
-      ClipboardData(
-        text: 'Check out $name on Farvixo — https://tools.farvixo.com',
-      ),
-    );
-    if (context.mounted) _snack(context, 'Profile link copied');
+  static Future<void> _shareProfile(
+    BuildContext context, {
+    required String displayName,
+    required AppUser? user,
+    required ProfileDetails details,
+  }) async {
+    final url = ProfileLink.forUser(user: user, details: details);
+    final text =
+        ProfileLink.shareText(displayName: displayName, url: url);
+    await Share.share(text, subject: '$displayName · Farvixo');
   }
 
   static Future<void> _confirmLogout(
@@ -387,17 +401,13 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 18),
                 Text(
                   'Sign out?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: p.textPrimary,
-                  ),
+                  style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.black),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'You can sign back in anytime with the same account.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: p.textSecondary),
+                  style: AppTypography.bodyLarge(context, color: p.textSecondary),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -414,10 +424,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         child: Text(
                           'Cancel',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: p.textSecondary,
-                          ),
+                          style: AppTypography.bodyLarge(context, color: p.textSecondary, weight: FontWeights.extrabold),
                         ),
                       ),
                     ),
@@ -489,7 +496,7 @@ class _HeroHeader extends StatefulWidget {
 class _HeroHeaderState extends State<_HeroHeader>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 10))
+      AnimationController(vsync: this, duration: Motion.ambient)
         ..repeat();
 
   @override
@@ -550,7 +557,7 @@ class _HeroHeaderState extends State<_HeroHeader>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withValues(alpha: p.isDark ? 0.15 : 0.05),
+                        AppColors.scrim.withValues(alpha: p.isDark ? 0.15 : 0.05),
                         p.bg.withValues(alpha: 0.15),
                         p.bg.withValues(alpha: 0.92),
                       ],
@@ -600,12 +607,7 @@ class _HeroHeaderState extends State<_HeroHeader>
                       children: [
                         Text(
                           widget.displayName,
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: p.textPrimary,
-                            letterSpacing: -0.4,
-                          ),
+                          style: AppTypography.metric(context, color: p.textPrimary, weight: FontWeights.black).copyWith(letterSpacing: -0.4),
                         ),
                         if (widget.isVerified) ...[
                           const SizedBox(width: 6),
@@ -621,11 +623,7 @@ class _HeroHeaderState extends State<_HeroHeader>
                     Text(
                       '${widget.username}  ·  ${widget.email}',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: p.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.bodyMedium(context, color: p.textSecondary, weight: FontWeights.semibold),
                     ),
                   ],
                 ),
@@ -693,13 +691,13 @@ class _MeshPainter extends CustomPainter {
       final px = (math.sin(t + i * 0.7) * 0.35 + 0.5) * size.width;
       final py = (math.cos(t * 0.8 + i) * 0.3 + 0.4) * size.height;
       final r = 1.2 + (i % 4) * 0.7;
-      paint.color = Colors.white.withValues(alpha: isDark ? 0.18 : 0.28);
+      paint.color = AppColors.onAccent.withValues(alpha: isDark ? 0.18 : 0.28);
       canvas.drawCircle(Offset(px, py), r, paint);
     }
     final wave = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2
-      ..color = Colors.white.withValues(alpha: 0.12);
+      ..color = AppColors.onAccent.withValues(alpha: 0.12);
     final path = Path();
     path.moveTo(0, size.height * 0.72);
     for (var x = 0.0; x <= size.width; x += 8) {
@@ -736,11 +734,11 @@ class _GlassIconButton extends StatelessWidget {
               onTap: onTap,
               child: DecoratedBox(
                 decoration:
-                    BoxDecoration(color: Colors.white.withValues(alpha: 0.14)),
+                    BoxDecoration(color: AppColors.onAccent.withValues(alpha: 0.14)),
                 child: SizedBox(
                   width: 42,
                   height: 42,
-                  child: Icon(icon, size: 18, color: Colors.white),
+                  child: Icon(icon, size: 18, color: AppColors.onAccent),
                 ),
               ),
             ),
@@ -768,12 +766,12 @@ class _EditPill extends StatelessWidget {
             borderRadius: Radii.brPill,
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.22),
-                Colors.white.withValues(alpha: 0.08),
+                AppColors.onAccent.withValues(alpha: 0.22),
+                AppColors.onAccent.withValues(alpha: 0.08),
               ],
             ),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.45),
+              color: AppColors.onAccent.withValues(alpha: 0.45),
             ),
             boxShadow: [
               BoxShadow(
@@ -782,18 +780,14 @@ class _EditPill extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.edit_rounded, size: 15, color: Colors.white),
+              Icon(Icons.edit_rounded, size: 15, color: AppColors.onAccent),
               SizedBox(width: 6),
               Text(
                 'Edit Profile',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                ),
+                style: AppTypography.bodyMedium(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
               ),
             ],
           ),
@@ -827,7 +821,7 @@ class _AvatarRing extends StatefulWidget {
 class _AvatarRingState extends State<_AvatarRing>
     with SingleTickerProviderStateMixin {
   late final AnimationController _spin =
-      AnimationController(vsync: this, duration: const Duration(seconds: 6))
+      AnimationController(vsync: this, duration: Motion.ambientFast)
         ..repeat();
 
   @override
@@ -917,7 +911,7 @@ class _AvatarRingState extends State<_AvatarRing>
                       child: Icon(
                         Icons.photo_camera_rounded,
                         size: 16,
-                        color: Colors.white,
+                        color: AppColors.onAccent,
                       ),
                     ),
                   ),
@@ -952,11 +946,7 @@ class _AvatarRingState extends State<_AvatarRing>
   Widget _initial(AppPalette p) => Center(
         child: Text(
           widget.initial,
-          style: const TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.w900,
-            color: ProfileScreen._purple,
-          ),
+          style: AppTypography.displayLarge(context, color: ProfileScreen._purple, weight: FontWeights.black),
         ),
       );
 }
@@ -977,14 +967,14 @@ class _InfoChip extends StatelessWidget {
     final p = AppPalette.of(context);
     final color = accent ?? p.textSecondary;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: Radii.brPill,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: p.surface.withValues(alpha: p.isDark ? 0.55 : 0.75),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: Radii.brPill,
             border: Border.all(
               color: (accent ?? p.border).withValues(alpha: 0.45),
             ),
@@ -996,11 +986,7 @@ class _InfoChip extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: accent ?? p.textSecondary,
-                ),
+                style: AppTypography.labelMedium(context, color: accent ?? p.textSecondary, weight: FontWeights.bold),
               ),
             ],
           ),
@@ -1050,10 +1036,7 @@ class _QuickAction extends StatelessWidget {
               const SizedBox(width: Insets.sm),
               Text(
                 label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: p.textPrimary,
-                ),
+                style: AppTypography.bodyLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
               ),
             ],
           ),
@@ -1157,7 +1140,7 @@ class _StatCard extends StatelessWidget {
       width: 148,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: Radii.brBanner,
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1185,18 +1168,14 @@ class _StatCard extends StatelessWidget {
                 height: 30,
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: Radii.brSm,
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
               ),
               const Spacer(),
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: p.textMuted,
-                ),
+                style: AppTypography.labelSmall(context, color: p.textMuted, weight: FontWeights.bold),
               ),
             ],
           ),
@@ -1205,21 +1184,17 @@ class _StatCard extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              color: p.textPrimary,
-            ),
+            style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.black),
           ),
           if (subtitle != null)
             Text(
               subtitle!,
-              style: TextStyle(fontSize: 11, color: p.textMuted),
+              style: AppTypography.labelSmall(context, color: p.textMuted),
             ),
           if (progress != null) ...[
             const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: Radii.brPill,
               child: LinearProgressIndicator(
                 value: progress!.clamp(0.0, 1.0),
                 minHeight: 5,
@@ -1257,14 +1232,14 @@ class _GlassPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: Radii.brSheet,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: Radii.brSheet,
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -1299,7 +1274,7 @@ class _GlassPanel extends StatelessWidget {
                           Color.lerp(accent, ProfileScreen._pink, 0.4)!,
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: Radii.brButton,
                       boxShadow: [
                         BoxShadow(
                           color: accent.withValues(alpha: 0.35),
@@ -1307,17 +1282,13 @@ class _GlassPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Icon(icon, size: 18, color: Colors.white),
+                    child: Icon(icon, size: 18, color: AppColors.onAccent),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: p.textPrimary,
-                      ),
+                      style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.black),
                     ),
                   ),
                   ?trailing,
@@ -1366,7 +1337,7 @@ class _AccountRow extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: Radii.brSm,
                 ),
                 child: Icon(icon, size: 17, color: iconColor),
               ),
@@ -1374,11 +1345,7 @@ class _AccountRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: p.textMuted,
-                  ),
+                  style: AppTypography.bodyMedium(context, color: p.textMuted, weight: FontWeights.semibold),
                 ),
               ),
               Flexible(
@@ -1387,11 +1354,7 @@ class _AccountRow extends StatelessWidget {
                   textAlign: TextAlign.right,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: valueColor ?? p.textPrimary,
-                  ),
+                  style: AppTypography.bodyMedium(context, color: valueColor ?? p.textPrimary, weight: FontWeights.extrabold),
                 ),
               ),
               if (onCopy != null) ...[
@@ -1470,7 +1433,7 @@ class _SecurityTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: Radii.brPanel,
         color: p.surface.withValues(alpha: p.isDark ? 0.45 : 0.7),
         border: Border.all(color: iconColor.withValues(alpha: 0.28)),
       ),
@@ -1484,7 +1447,7 @@ class _SecurityTile extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: Radii.brSm,
                 ),
                 child: Icon(icon, size: 17, color: iconColor),
               ),
@@ -1495,20 +1458,12 @@ class _SecurityTile extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: p.textPrimary,
-            ),
+            style: AppTypography.bodySmall(context, color: p.textPrimary, weight: FontWeights.bold),
           ),
           const SizedBox(height: 4),
           Text(
             status,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: statusColor,
-            ),
+            style: AppTypography.labelMedium(context, color: statusColor, weight: FontWeights.extrabold),
           ),
         ],
       ),
@@ -1541,7 +1496,7 @@ class _GradientButton extends StatelessWidget {
         child: Container(
           height: height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: Radii.brBanner,
             gradient: LinearGradient(colors: colors),
             boxShadow: [
               BoxShadow(
@@ -1554,15 +1509,11 @@ class _GradientButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 20),
+              Icon(icon, color: AppColors.onAccent, size: 20),
               const SizedBox(width: Insets.sm),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                ),
+                style: AppTypography.titleSmall(context, color: AppColors.onAccent, weight: FontWeights.black),
               ),
             ],
           ),

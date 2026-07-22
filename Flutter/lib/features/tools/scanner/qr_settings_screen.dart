@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
+import '../../../theme/app_typography.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
 import 'data/scan_history_repository.dart';
@@ -155,7 +156,7 @@ class QrSettingsScreen extends ConsumerWidget {
                       'Your scan history is encrypted and stored only on this '
                       'device. Nothing is uploaded and there is no tracking.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11.5, color: p.textMuted, height: 1.4),
+                      style: AppTypography.labelSmall(context, color: p.textMuted).copyWith(height: 1.4),
                     ),
                   ],
                 ),
@@ -219,13 +220,13 @@ class QrSettingsScreen extends ConsumerWidget {
         backgroundColor: p.surface,
         shape: const RoundedRectangleBorder(borderRadius: Radii.brPanel),
         title: Text('Clear all history?',
-            style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w800)),
+            style: AppTypography.bodyLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
         content: Text('This permanently deletes every saved scan on this device.',
-            style: TextStyle(color: p.textSecondary)),
+            style: AppTypography.bodyLarge(context, color: p.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
+            child: Text('Cancel', style: AppTypography.bodyLarge(context, color: p.textSecondary)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
@@ -264,12 +265,7 @@ class _Group extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, Insets.sm),
           child: Text(
             title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-              color: p.textMuted,
-            ),
+            style: AppTypography.labelSmall(context, color: p.textMuted, weight: FontWeights.extrabold).copyWith(letterSpacing: 0.8),
           ),
         ),
         GlassCard(
@@ -308,10 +304,9 @@ class _SwitchTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: Insets.sm),
       secondary: Icon(icon, color: p.accent),
       title: Text(title,
-          style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w700, color: p.textPrimary)),
+          style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.bold)),
       subtitle: Text(subtitle,
-          style: TextStyle(fontSize: 12, color: p.textMuted)),
+          style: AppTypography.labelMedium(context, color: p.textMuted)),
     );
   }
 }
@@ -341,12 +336,9 @@ class _RetentionTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Auto-delete history',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: p.textPrimary)),
+                        style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.bold)),
                     Text('Remove scans older than the selected window',
-                        style: TextStyle(fontSize: 12, color: p.textMuted)),
+                        style: AppTypography.labelMedium(context, color: p.textMuted)),
                   ],
                 ),
               ),
@@ -393,10 +385,9 @@ class _ActionTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: Insets.sm),
       leading: Icon(icon, color: p.accent),
       title: Text(title,
-          style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w700, color: p.textPrimary)),
+          style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.bold)),
       subtitle: Text(subtitle,
-          style: TextStyle(fontSize: 12, color: p.textMuted)),
+          style: AppTypography.labelMedium(context, color: p.textMuted)),
     );
   }
 }
@@ -414,8 +405,7 @@ class _DangerTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: Insets.sm),
       leading: Icon(icon, color: AppColors.error),
       title: Text(title,
-          style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.error)),
+          style: AppTypography.titleSmall(context, color: AppColors.error, weight: FontWeights.bold)),
     );
   }
 }

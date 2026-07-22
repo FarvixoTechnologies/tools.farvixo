@@ -5,17 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../providers/account_entitlements_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../providers/profile_details_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../utils/profile_actions.dart';
+import '../../utils/profile_link.dart';
 import '../../widgets/premium_kit.dart';
+import '../profile/my_qr_screen.dart';
 import 'settings_capability.dart';
 import 'settings_v5_widgets.dart';
 
@@ -31,17 +36,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with TickerProviderStateMixin {
   late final AnimationController _intro = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1200),
+    duration: Motion.verySlow,
   )..forward();
 
   late final AnimationController _pulse = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 2400),
+    duration: Motion.breathe,
   )..repeat(reverse: true);
 
   late final AnimationController _wave = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 8000),
+    duration: Motion.ambient,
   )..repeat();
 
   @override
@@ -59,7 +64,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       curve: Interval(
         start,
         (start + 0.28).clamp(0.0, 1.0),
-        curve: Curves.easeOutCubic,
+        curve: Motion.easeOut,
       ),
     );
     return FadeTransition(
@@ -101,6 +106,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     context.push('/settings/$id');
   }
 
+  Future<void> _shareProfileFromSettings() async {
+    _haptic();
+    final user = ref.read(authProvider);
+    final details = ref.read(profileDetailsProvider);
+    final name = details.displayName.isNotEmpty
+        ? details.displayName
+        : (user?.displayName ?? 'Farvixo');
+    final url = ProfileLink.forUser(user: user, details: details);
+    await Share.share(
+      ProfileLink.shareText(displayName: name, url: url),
+      subject: '$name · Farvixo',
+    );
+  }
+
   List<(IconData, Color, String, String, String)> _hubRows(
     SettingsHubGroup group, {
     String? subscriptionSubtitle,
@@ -139,14 +158,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         return Padding(
           padding: const EdgeInsets.all(16),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: Radii.brBanner,
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 decoration: BoxDecoration(
                   color: p.surface.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: Radii.brBanner,
                   border: Border.all(color: p.border),
                 ),
                 child: Column(
@@ -163,17 +182,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     const SizedBox(height: 16),
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: p.textPrimary,
-                      ),
+                      style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.black),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       body,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: p.textSecondary),
+                      style: AppTypography.bodyMedium(context, color: p.textSecondary),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -212,7 +227,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       title: 'Sign Out?',
       body: 'You will need to sign in again to sync cloud files and credits.',
       confirmLabel: 'Sign Out',
-      confirmColor: const Color(0xFFF43F5E),
+      confirmColor: AppColors.destructive,
     );
     if (ok == true && mounted) {
       await ref.read(authProvider.notifier).signOut();
@@ -257,9 +272,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final storageMax = entitlements.storageMaxGb;
 
     return Scaffold(
-      backgroundColor: p.isDark
-          ? const Color(0xFF080B14)
-          : const Color(0xFFF8F9FF),
+      backgroundColor: p.bg,
       body: PremiumBackground(
         child: Stack(
           children: [
@@ -328,6 +341,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           SettingsQuickActions(
                             onTap: (id, label) {
                               switch (id) {
+                                case 'qr':
+                                  openMyQr(context);
+                                case 'share':
+                                  _shareProfileFromSettings();
                                 case 'downloads':
                                   context.push('/downloads');
                                 case 'activity':
@@ -491,7 +508,7 @@ class SettingsMeshPainter extends CustomPainter {
       70,
       paint,
     );
-    paint.color = const Color(0xFF3B82F6).withValues(alpha: 0.10);
+    paint.color = AppColors.accentDev.withValues(alpha: 0.10);
     canvas.drawCircle(
       Offset(
         size.width * 0.55,
@@ -501,7 +518,7 @@ class SettingsMeshPainter extends CustomPainter {
       paint,
     );
 
-    final particle = Paint()..color = Colors.white.withValues(alpha: 0.08);
+    final particle = Paint()..color = AppColors.onAccent.withValues(alpha: 0.08);
     for (var i = 0; i < 18; i++) {
       final x =
           (size.width * ((i * 37) % 100) / 100) +

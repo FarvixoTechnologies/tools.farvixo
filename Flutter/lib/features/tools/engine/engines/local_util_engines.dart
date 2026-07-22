@@ -9,6 +9,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../tool_engine.dart';
 import 'engine_util.dart';
 
+import '../../../../theme/app_colors.dart';
+
 /// Local hashing — MD5 / SHA-1 / SHA-256 / SHA-512, fully offline.
 class HashEngine extends LocalToolEngine {
   @override
@@ -133,13 +135,15 @@ class QrEngine extends LocalToolEngine {
     final painter = QrPainter.withQr(
       qr: qr,
       gapless: true,
+      // Pure black on pure white is a scannability requirement, not a design
+      // choice — a themed QR code fails to decode at low contrast.
       eyeStyle: const QrEyeStyle(
         eyeShape: QrEyeShape.square,
-        color: ui.Color(0xFF000000),
+        color: AppColors.scrim,
       ),
       dataModuleStyle: const QrDataModuleStyle(
         dataModuleShape: QrDataModuleShape.square,
-        color: ui.Color(0xFF000000),
+        color: AppColors.scrim,
       ),
     );
 
@@ -151,7 +155,7 @@ class QrEngine extends LocalToolEngine {
     );
     canvas.drawRect(
       ui.Rect.fromLTWH(0, 0, dim, dim),
-      ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+      ui.Paint()..color = AppColors.onAccent,
     );
     painter.paint(canvas, ui.Size(dim, dim));
     final picture = recorder.endRecording();

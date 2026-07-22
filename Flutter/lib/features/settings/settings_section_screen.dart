@@ -10,14 +10,15 @@ import '../../providers/app_settings_provider.dart';
 import '../../providers/appearance_layout_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../providers/settings_capabilities_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/cache_cleanup_service.dart';
-import '../../providers/settings_capabilities_provider.dart';
 import '../../services/settings_capability_services.dart';
 import '../../services/settings_sync_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import 'accent_color_picker_sheet.dart';
@@ -241,7 +242,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
       context: context,
       backgroundColor: p.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: Radii.brSheetTop,
       ),
       builder: (context) => SafeArea(
         child: StatefulBuilder(
@@ -266,10 +267,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text('Theme',
-                      style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: p.textPrimary)),
+                      style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -321,7 +319,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
       isScrollControlled: true,
       backgroundColor: p.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: Radii.brSheetTop,
       ),
       builder: (context) => const AccentColorPickerSheet(),
     );
@@ -333,7 +331,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
       context: context,
       backgroundColor: p.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: Radii.brSheetTop,
       ),
       builder: (context) => SafeArea(
         child: Consumer(
@@ -358,11 +356,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Home layout',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                   ),
                   const SizedBox(height: 8),
                   for (final mode in HomeLayoutMode.values)
@@ -378,14 +372,15 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                       ),
                       title: Text(
                         mode.label,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
+                        style: AppTypography.bodyLarge(
+                          context,
                           color: p.textPrimary,
+                          weight: FontWeights.bold,
                         ),
                       ),
                       subtitle: Text(
                         mode.description,
-                        style: TextStyle(fontSize: 12, color: p.textSecondary),
+                        style: AppTypography.labelMedium(context, color: p.textSecondary),
                       ),
                       trailing: mode == current
                           ? Icon(Icons.check_circle_rounded, color: p.accent)
@@ -412,7 +407,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
       context: context,
       backgroundColor: p.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: Radii.brSheetTop,
       ),
       builder: (context) => SafeArea(
         child: Consumer(
@@ -437,11 +432,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Bottom bar style',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                   ),
                   const SizedBox(height: 8),
                   for (final style in BottomNavStyle.values)
@@ -457,14 +448,15 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
                       ),
                       title: Text(
                         style.label,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
+                        style: AppTypography.bodyLarge(
+                          context,
                           color: p.textPrimary,
+                          weight: FontWeights.bold,
                         ),
                       ),
                       subtitle: Text(
                         style.description,
-                        style: TextStyle(fontSize: 12, color: p.textSecondary),
+                        style: AppTypography.labelMedium(context, color: p.textSecondary),
                       ),
                       trailing: style == current
                           ? Icon(Icons.check_circle_rounded, color: p.accent)
@@ -492,7 +484,7 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
       context: context,
       backgroundColor: p.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: Radii.brSheetTop,
       ),
       builder: (context) => SafeArea(
         child: Column(
@@ -500,16 +492,13 @@ class _SettingsSectionScreenState extends ConsumerState<SettingsSectionScreen> {
           children: [
             const SizedBox(height: 14),
             Text('App Language',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: p.textPrimary)),
+                style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold)),
             const SizedBox(height: 8),
             for (final lang in supportedLanguages)
               ListTile(
                 title: Text(lang.name),
                 subtitle: Text(lang.nativeName,
-                    style: TextStyle(fontSize: 12, color: p.textSecondary)),
+                    style: AppTypography.labelMedium(context, color: p.textSecondary)),
                 trailing: lang.code == current
                     ? Icon(Icons.check_circle_rounded, color: p.accent)
                     : null,

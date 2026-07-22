@@ -10,6 +10,7 @@ import '../../utils/validators.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
+import '../../theme/app_typography.dart';
 
 /// Registration — premium galaxy backdrop, glass form card, password strength
 /// meter. Full password policy preserved (see docs/AUTHENTICATION_SYSTEM.md).
@@ -107,15 +108,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               p.textPrimary,
                               p.accent,
                             ]).createShader(b),
-                            child: const Text('Join Farvixo',
-                                style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white)),
+                            child: Text('Join Farvixo',
+                                style: AppTypography.metric(context, color: AppColors.onAccent, weight: FontWeights.black)),
                           ),
                           const SizedBox(height: 6),
                           Text('One account. Every tool. Everywhere.',
-                              style: TextStyle(color: p.textSecondary)),
+                              style: AppTypography.bodyLarge(context, color: p.textSecondary)),
                         ],
                       ),
                     ),
@@ -200,11 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     const SizedBox(width: 12),
                                     Text(
                                       Validators.strengthLabel(_strength),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _strengthColor,
-                                      ),
+                                      style: AppTypography.labelMedium(context, color: _strengthColor, weight: FontWeights.semibold),
                                     ),
                                   ],
                                 ),
@@ -236,7 +230,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Text(
                       'By signing up you agree to our Terms of Service and Privacy Policy.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: p.textMuted),
+                      style: AppTypography.labelMedium(context, color: p.textMuted),
                     ),
                     const SizedBox(height: 8),
                     TextButton(

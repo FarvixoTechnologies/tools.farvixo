@@ -14,6 +14,7 @@ import '../../theme/app_palette.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import 'widgets/typing_indicator.dart';
+import '../../theme/app_typography.dart';
 
 /// AI Assistant — streaming chat, multi-turn context, local history.
 class AiAssistantScreen extends ConsumerStatefulWidget {
@@ -114,7 +115,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               decoration: BoxDecoration(
                 color: p.surface,
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                    const BorderRadius.vertical(top: Radii.rPanel),
                 border: Border.all(color: p.border),
               ),
               child: Column(
@@ -125,7 +126,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     height: 4,
                     decoration: BoxDecoration(
                       color: p.border,
-                      borderRadius: BorderRadius.circular(99),
+                      borderRadius: Radii.brPill,
                     ),
                   ),
                   Padding(
@@ -134,11 +135,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                       children: [
                         Text(
                           'Chat history',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                         const Spacer(),
                         TextButton(
@@ -156,7 +153,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                         ? Center(
                             child: Text(
                               'No saved chats yet',
-                              style: TextStyle(color: p.textMuted),
+                              style: AppTypography.bodyLarge(context, color: p.textMuted),
                             ),
                           )
                         : ListView.builder(
@@ -171,15 +168,15 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                                   c.title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: AppTypography.bodyLarge(
+                                    context,
                                     color: p.textPrimary,
-                                    fontWeight: FontWeight.w600,
+                                    weight: FontWeights.semibold,
                                   ),
                                 ),
                                 subtitle: Text(
                                   _formatTime(c.updatedAt),
-                                  style: TextStyle(
-                                      color: p.textMuted, fontSize: 12),
+                                  style: AppTypography.labelMedium(context, color: p.textMuted),
                                 ),
                                 trailing: IconButton(
                                   icon: Icon(Icons.delete_outline,
@@ -429,7 +426,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                             minLines: 1,
                             maxLines: 4,
                             enabled: !_sending,
-                            style: TextStyle(color: p.textPrimary),
+                            style: AppTypography.bodyLarge(context, color: p.textPrimary),
                             textInputAction: TextInputAction.send,
                             onSubmitted: (_) => _send(),
                             onChanged: (_) => setState(() {}),
@@ -438,7 +435,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                               contentPadding:
                                   const EdgeInsets.symmetric(vertical: 15),
                               hintText: 'Ask me anything...',
-                              hintStyle: TextStyle(color: p.textMuted),
+                              hintStyle: AppTypography.bodyLarge(context, color: p.textMuted),
                               border: InputBorder.none,
                               filled: false,
                             ),
@@ -497,7 +494,7 @@ class _SendButton extends StatelessWidget {
           child: Icon(
             sending ? Icons.stop_rounded : Icons.send_rounded,
             key: ValueKey(sending),
-            color: Colors.white,
+            color: AppColors.onAccent,
             size: 22,
           ),
         ),
@@ -535,7 +532,7 @@ class _EmptyChat extends StatelessWidget {
                     p.accent,
                     Color.lerp(p.accent, AppColors.brandMagenta, .55)!,
                   ]),
-                  borderRadius: BorderRadius.circular(26),
+                  borderRadius: Radii.brSheet,
                   boxShadow: [
                     BoxShadow(
                         color: p.accent.withValues(alpha: .5),
@@ -544,20 +541,16 @@ class _EmptyChat extends StatelessWidget {
                   ],
                 ),
                 child: const Icon(Icons.auto_awesome_rounded,
-                    color: Colors.white, size: 44),
+                    color: AppColors.onAccent, size: 44),
               ),
               const SizedBox(height: 22),
               Text('How can I help you today?',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary)),
+                  style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
               const SizedBox(height: 8),
               Text(
                 'Write, summarize, translate, brainstorm — powered by AI.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 13.5, height: 1.5, color: p.textSecondary),
+                style: AppTypography.bodyMedium(context, color: p.textSecondary).copyWith(height: 1.5),
               ),
               const SizedBox(height: 24),
               Wrap(
@@ -585,10 +578,7 @@ class _EmptyChat extends StatelessWidget {
                                 color: p.accent.withValues(alpha: .9)),
                             const SizedBox(width: Insets.sm),
                             Text(s,
-                                style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: p.textPrimary)),
+                                style: AppTypography.bodySmall(context, color: p.textPrimary, weight: FontWeights.semibold)),
                           ],
                         ),
                       ),
@@ -624,7 +614,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
     if (!mounted) return;
     HapticFeedback.selectionClick();
     setState(() => _copied = true);
-    Future<void>.delayed(const Duration(seconds: 2), () {
+    Future<void>.delayed(Motion.snackbar, () {
       if (mounted) setState(() => _copied = false);
     });
   }
@@ -677,11 +667,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
             ? const TypingIndicator()
             : SelectableText(
                 showCursor ? '${message.text}▋' : message.text,
-                style: TextStyle(
-                  fontSize: 14.5,
-                  height: 1.45,
-                  color: isUser ? Colors.white : p.textPrimary,
-                ),
+                style: AppTypography.titleSmall(context, color: isUser ? AppColors.onAccent : p.textPrimary).copyWith(height: 1.45),
               ),
       ),
     );
@@ -748,7 +734,7 @@ class _AssistantAvatar extends StatelessWidget {
         ],
       ),
       child: const Icon(Icons.auto_awesome_rounded,
-          color: Colors.white, size: 15),
+          color: AppColors.onAccent, size: 15),
     );
   }
 }
@@ -784,11 +770,7 @@ class _CopyChip extends StatelessWidget {
             const SizedBox(width: Insets.xs),
             Text(
               copied ? 'Copied' : 'Copy',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: copied ? AppColors.success : color,
-              ),
+              style: AppTypography.labelSmall(context, color: copied ? AppColors.success : color, weight: FontWeights.semibold),
             ),
           ],
         ),

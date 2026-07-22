@@ -1,11 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/app_providers.dart';
+import 'engines/calc_engines.dart';
+import 'engines/dev_engines.dart';
 import 'engines/image_engines.dart';
+import 'engines/image_fx_engines.dart';
 import 'engines/local_util_engines.dart';
 import 'engines/pdf_engines.dart';
+import 'engines/pdf_extra_engines.dart';
 import 'engines/remote_engines.dart';
+import 'engines/scan_engines.dart';
 import 'engines/text_engines.dart';
+import 'engines/text_extra_engines.dart';
+import '../converter/engines/pdf_converter_engine.dart';
+import '../converter/engines/pdf_ocr_engine.dart';
+import '../converter/models/target_format.dart';
 import 'tool_engine.dart';
 
 /// Maps tool slugs → engines. Registering a `RemoteToolEngine` here instead of a
@@ -26,56 +35,176 @@ final toolEngineRegistryProvider = Provider<ToolEngineRegistry>((ref) {
   final base64 = Base64Engine();
   final json = JsonEngine();
   final textStats = TextStatsEngine();
+
+  RemotePromptEngine prompt(String action, String hint, String instruction) =>
+      RemotePromptEngine(ai,
+          actionLabel: action, textHint: hint, instruction: instruction);
+
   return ToolEngineRegistry({
-    // --- Local (on-device) engines ---
-    // PDF (syncfusion)
+    // --- PDF Converter (unified + aliases) ---
+    'pdf-converter': PdfConverterEngine(),
+    'pdf-to-word': PdfConverterEngine(lockedTarget: TargetFormat.docx),
+    'word-to-pdf': PdfConverterEngine(
+      lockedTarget: TargetFormat.pdf,
+      expectExtension: 'docx',
+    ),
+    'pdf-to-excel': PdfConverterEngine(lockedTarget: TargetFormat.xlsx),
+    'excel-to-pdf': PdfConverterEngine(
+      lockedTarget: TargetFormat.pdf,
+      expectExtension: 'xlsx',
+    ),
+    'pdf-to-image': PdfConverterEngine(lockedTarget: TargetFormat.png),
+    'pdf-ocr': PdfOcrEngine(),
+
+    // --- PDF (syncfusion, on-device) ---
     'merge-pdf': MergePdfEngine(),
+    'split-pdf': SplitPdfEngine(),
+    'compress-pdf': CompressPdfEngine(),
     'image-to-pdf': ImageToPdfEngine(),
     'protect-pdf': ProtectPdfEngine(),
-    // Image (image pkg)
+    'unlock-pdf': UnlockPdfEngine(),
+    'rotate-pdf': PdfRotateEngine(),
+    'watermark-pdf': PdfWatermarkEngine(),
+    'reverse-pdf': ReversePdfEngine(),
+    'pdf-to-text': PdfToTextEngine(),
+    'pdf-info': PdfInfoEngine(),
+    'pdf-page-numbers': PdfPageNumberEngine(),
+
+    // --- Image (image pkg, on-device) ---
     'image-compressor': ImageCompressEngine(),
     'image-resizer': ImageResizeEngine(),
     'image-converter': ImageConvertEngine(),
     'rotate-flip-image': ImageRotateFlipEngine(),
-    // Utility (crypto / qr_flutter, offline)
+    'image-crop': ImageCropRatioEngine(),
+    'image-grayscale': ImageFilterEngine('grayscale'),
+    'image-sepia': ImageFilterEngine('sepia'),
+    'image-invert': ImageFilterEngine('invert'),
+    'image-blur': ImageBlurEngine(),
+    'image-pixelate': ImagePixelateEngine(),
+    'image-enhance': ImageEnhanceEngine(),
+    'image-info': ImageInfoEngine(),
+    'image-to-base64': ImageBase64Engine(),
+    'color-palette-extractor': DominantColorsEngine(),
+
+    // --- Utility (offline) ---
     'hash-generator': HashEngine(),
     'uuid-generator': UuidEngine(),
     'qr-generator': qr, // local-catalog slug
     'qr-code-generator': qr, // backend-catalog slug
-    // Text / developer (pure-Dart, offline)
+    'qr-scanner': QrScanEngine(),
+    'password-generator': PasswordEngine(),
+    'password-strength': PasswordStrengthEngine(),
+    'unit-converter': UnitConvertEngine(),
+    'age-calculator': AgeCalcEngine(),
+    'bmi-calculator': BmiEngine(),
+    'percentage-calculator': PercentageEngine(),
+    'emi-calculator': EmiEngine(),
+    'interest-calculator': InterestEngine(),
+    'discount-calculator': DiscountEngine(),
+    'tip-calculator': TipEngine(),
+    'gst-calculator': GstEngine(),
+    'date-difference': DateDiffEngine(),
+    'random-number': RandomNumberEngine(),
+    'dice-roller': DiceEngine(),
+    'card-validator': LuhnEngine(),
+    'fuel-cost-calculator': FuelCostEngine(),
+
+    // --- Text (pure-Dart, offline) ---
+    'word-counter': textStats,
+    'character-counter': textStats,
+    'case-converter': CaseConverterEngine(),
+    'lorem-ipsum-generator': LoremEngine(),
+    'text-compare': TextCompareEngine(),
+    'reverse-text': ReverseTextEngine(),
+    'sort-lines': SortLinesEngine(),
+    'remove-duplicate-lines': DedupeLinesEngine(),
+    'text-cleaner': CleanTextEngine(),
+    'slug-generator': SlugifyEngine(),
+    'line-break-remover': LineBreakRemoverEngine(),
+    'binary-translator': BinaryTextEngine(),
+    'morse-code': MorseEngine(),
+    'caesar-cipher': CipherEngine(),
+    'text-extractor': ExtractorEngine(),
+    'word-frequency': WordFrequencyEngine(),
+    'number-to-words': NumberToWordsEngine(),
+    'find-replace': FindReplaceEngine(),
+    'text-repeater': TextRepeaterEngine(),
+
+    // --- Developer (pure-Dart, offline) ---
     'base64': base64, // local-catalog slug
     'base64-encoder-decoder': base64, // backend-catalog slug
     'json-formatter': json,
     'json-validator': json,
-    'word-counter': textStats,
-    'character-counter': textStats,
-    'case-converter': CaseConverterEngine(),
-    'password-generator': PasswordEngine(),
-    'lorem-ipsum-generator': LoremEngine(),
+    'url-encoder': UrlCodecEngine(),
+    'html-entities': HtmlEntityEngine(),
+    'jwt-decoder': JwtDecodeEngine(),
+    'color-converter': ColorConvertEngine(),
+    'timestamp-converter': TimestampEngine(),
+    'number-base-converter': NumberBaseEngine(),
+    'roman-numerals': RomanEngine(),
+    'csv-to-json': CsvToJsonEngine(),
+    'json-to-csv': JsonToCsvEngine(),
+    'markdown-to-html': MarkdownHtmlEngine(),
+    'css-minifier': CssMinifyEngine(),
+    'html-to-text': HtmlStripEngine(),
+    'token-generator': TokenGeneratorEngine(),
+    'json-escape': JsonEscapeEngine(),
+    'ip-subnet-calculator': IpSubnetEngine(),
+    'file-to-base64': FileToBase64Engine(),
+    'http-status-codes': HttpStatusEngine(),
 
-    // --- Remote engines (existing Farvixo AI backend) ---
+    // --- AI (existing Farvixo AI backend) ---
     'ai-chat': RemoteChatEngine(ai),
     'ai-image-generator': RemoteImageGenEngine(ai),
     'ai-translator': RemoteTranslateEngine(ai),
-    'ai-summarizer': RemotePromptEngine(
-      ai,
-      actionLabel: 'Summarize',
-      textHint: 'Paste text to summarize…',
-      instruction: 'Summarize the following text clearly and concisely:',
-    ),
-    'ai-writer': RemotePromptEngine(
-      ai,
-      actionLabel: 'Write',
-      textHint: 'What should I write about?',
-      instruction: 'Write high-quality, well-structured content for this brief:',
-    ),
-    'ai-email-writer': RemotePromptEngine(
-      ai,
-      actionLabel: 'Draft Email',
-      textHint: 'Describe the email you need…',
-      instruction:
-          'Draft a clear, professional email based on this description:',
-    ),
+    'ai-summarizer': prompt('Summarize', 'Paste text to summarize…',
+        'Summarize the following text clearly and concisely:'),
+    'ai-writer': prompt('Write', 'What should I write about?',
+        'Write high-quality, well-structured content for this brief:'),
+    'ai-email-writer': prompt('Draft Email', 'Describe the email you need…',
+        'Draft a clear, professional email based on this description:'),
+    'grammar-checker': prompt('Fix Grammar', 'Paste text to correct…',
+        'Correct the grammar, spelling and punctuation of the following text. '
+            'Return the corrected text first, then briefly list the fixes:'),
+    'paraphraser': prompt('Paraphrase', 'Paste text to rephrase…',
+        'Rephrase the following text so it keeps the same meaning but reads '
+            'differently. Offer one strong rewrite:'),
+    'ai-caption-generator': prompt('Generate Captions',
+        'Describe your photo or post…',
+        'Write 5 catchy social-media captions (with fitting emojis) for:'),
+    'hashtag-generator': prompt('Generate Hashtags', 'Describe your post…',
+        'Suggest 15 effective, relevant hashtags (no banned or spammy tags) '
+            'for this post:'),
+    'blog-outliner': prompt('Outline', 'Blog topic…',
+        'Create a detailed blog-post outline with headings, subheadings and '
+            'key talking points for:'),
+    'product-description': prompt('Describe Product',
+        'Product name + key features…',
+        'Write a persuasive e-commerce product description (title, bullets, '
+            'paragraph) for:'),
+    'business-name-generator': prompt('Suggest Names',
+        'What does the business do?…',
+        'Suggest 10 brandable business names (with a one-line rationale each) '
+            'for:'),
+    'ai-story-writer': prompt('Write Story', 'A premise, characters, a vibe…',
+        'Write an engaging short story based on this premise:'),
+    'resume-bullet-writer': prompt('Write Bullets',
+        'Role + what you did…',
+        'Turn this experience into 4 strong, quantified resume bullet points:'),
+    'interview-questions': prompt('Prepare', 'Role you are interviewing for…',
+        'List the 10 most likely interview questions for this role, each with '
+            'a strong sample answer outline:'),
+    'quiz-generator': prompt('Generate Quiz', 'Topic + difficulty…',
+        'Create a 10-question multiple-choice quiz (answers at the end) on:'),
+    'prompt-improver': prompt('Improve Prompt', 'Paste your AI prompt…',
+        'Rewrite this AI prompt to be clearer, more specific and more '
+            'effective. Explain the key changes briefly:'),
+    'notes-cleaner': prompt('Clean Notes', 'Paste rough notes…',
+        'Turn these rough notes into clean, well-organized bullet notes with '
+            'headings:'),
+    'ai-code-explainer': prompt('Explain Code', 'Paste code…',
+        'Explain what this code does, step by step, in plain language. Note '
+            'any bugs or improvements:'),
   });
 });
 
@@ -134,6 +263,14 @@ class ToolExecutionController
   void reset() {
     _canceled = false;
     state = const ToolIdle();
+  }
+
+  /// Publish an externally produced result (e.g. the live camera scanner)
+  /// so it renders through the standard success card (copy / share / retry).
+  void complete(ToolResult result) {
+    _canceled = false;
+    _runId++; // invalidate any in-flight run
+    state = ToolSuccess(result);
   }
 
   Future<void> run(ToolInput input) async {

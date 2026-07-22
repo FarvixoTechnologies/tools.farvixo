@@ -6,6 +6,7 @@ import '../../providers/app_providers.dart';
 import '../../services/device_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../widgets/premium_kit.dart';
 
 final _devicesProvider = FutureProvider.autoDispose<List<UserDevice>>((ref) {
@@ -43,7 +44,7 @@ class DevicesScreen extends ConsumerWidget {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Center(
                     child: Text('Could not load devices',
-                        style: TextStyle(color: p.textSecondary)),
+                        style: AppTypography.bodyLarge(context, color: p.textSecondary)),
                   ),
                   data: (devices) {
                     if (devices.isEmpty) {
@@ -51,7 +52,7 @@ class DevicesScreen extends ConsumerWidget {
                         child: Text(
                           'No devices registered yet.\nSign in online to sync.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: p.textSecondary),
+                          style: AppTypography.bodyLarge(context, color: p.textSecondary),
                         ),
                       );
                     }
@@ -78,7 +79,7 @@ class DevicesScreen extends ConsumerWidget {
                             ),
                             title: Text(
                               d.deviceName ?? 'Unknown device',
-                              style: const TextStyle(fontWeight: FontWeight.w700),
+                              style: AppTypography.bodyLarge(context, weight: FontWeights.bold),
                             ),
                             subtitle: Text(
                               [
@@ -86,13 +87,12 @@ class DevicesScreen extends ConsumerWidget {
                                 if (d.isCurrent) 'This device',
                                 'Last active ${_fmt(d.lastActive)}',
                               ].join(' · '),
-                              style: TextStyle(
-                                  fontSize: 12, color: p.textSecondary),
+                              style: AppTypography.labelMedium(context, color: p.textSecondary),
                             ),
                             trailing: d.isCurrent
-                                ? const Chip(
+                                ? Chip(
                                     label: Text('Current',
-                                        style: TextStyle(fontSize: 11)),
+                                        style: AppTypography.labelSmall(context)),
                                     visualDensity: VisualDensity.compact,
                                   )
                                 : IconButton(

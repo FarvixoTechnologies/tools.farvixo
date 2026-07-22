@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -36,11 +37,7 @@ class SettingsHubSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: p.textPrimary,
-                  ),
+                  style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
                 ),
               ),
               if (onAction != null)
@@ -54,10 +51,7 @@ class SettingsHubSection extends StatelessWidget {
                   ),
                   child: Text(
                     '$actionLabel →',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppTypography.labelMedium(context, weight: FontWeights.bold),
                   ),
                 ),
             ],
@@ -105,17 +99,13 @@ class _HubRow extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: TextStyle(fontSize: 11, color: p.textSecondary),
+                      style: AppTypography.labelSmall(context, color: p.textSecondary),
                     ),
                   ],
                 ],
@@ -174,7 +164,7 @@ class SettingsDataStorageCard extends StatelessWidget {
       title: 'Data & Storage',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -187,8 +177,8 @@ class SettingsDataStorageCard extends StatelessWidget {
                     height: 88,
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: ratio),
-                      duration: const Duration(milliseconds: 1200),
-                      curve: Curves.easeOutCubic,
+                      duration: Motion.verySlow,
+                      curve: Motion.easeOut,
                       builder: (context, value, _) {
                         return CustomPaint(
                           painter: _StorageRingPainter(
@@ -202,16 +192,11 @@ class SettingsDataStorageCard extends StatelessWidget {
                               children: [
                                 Text(
                                   '${(value * 100).round()}%',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: p.textPrimary,
-                                  ),
+                                  style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.black),
                                 ),
                                 Text(
                                   'used',
-                                  style: TextStyle(
-                                      fontSize: 10, color: p.textMuted),
+                                  style: AppTypography.caption(context, color: p.textMuted),
                                 ),
                               ],
                             ),
@@ -227,17 +212,13 @@ class SettingsDataStorageCard extends StatelessWidget {
                       children: [
                         Text(
                           'Storage overview',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           '${usedGb.toStringAsFixed(1)} GB of ${maxGb.toStringAsFixed(0)} GB used',
                           style:
-                              TextStyle(fontSize: 12, color: p.textSecondary),
+                              AppTypography.labelMedium(context, color: p.textSecondary),
                         ),
                         const SizedBox(height: 10),
                         Wrap(
@@ -296,7 +277,7 @@ class _LegendDot extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 10, color: p.textMuted)),
+        Text(label, style: AppTypography.caption(context, color: p.textMuted)),
       ],
     );
   }
@@ -383,13 +364,13 @@ class SettingsSubscriptionCard extends StatelessWidget {
       title: 'Subscription',
       onAction: onOpen,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: Radii.brBanner,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: Radii.brBanner,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -414,7 +395,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: Radii.brButton,
                         gradient: const LinearGradient(
-                          colors: [AppColors.goldPremium, Color(0xFFF97316)],
+                          colors: [AppColors.goldPremium, AppColors.accentAudio],
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -424,7 +405,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                         ],
                       ),
                       child: const Icon(Icons.workspace_premium_rounded,
-                          color: Colors.black87, size: 24),
+                          color: AppColors.onPremium, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -434,15 +415,11 @@ class SettingsSubscriptionCard extends StatelessWidget {
                           Text(
                             'Current Plan',
                             style:
-                                TextStyle(fontSize: 11, color: p.textMuted),
+                                AppTypography.labelSmall(context, color: p.textMuted),
                           ),
                           Text(
                             isPro ? 'Farvixo Pro' : 'Free',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: p.textPrimary,
-                            ),
+                            style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.black),
                           ),
                         ],
                       ),
@@ -452,14 +429,10 @@ class SettingsSubscriptionCard extends StatelessWidget {
                       children: [
                         Text('Credits left',
                             style:
-                                TextStyle(fontSize: 10, color: p.textMuted)),
+                                AppTypography.caption(context, color: p.textMuted)),
                         Text(
                           '$creditsLeft / $creditsMax',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                       ],
                     ),
@@ -468,7 +441,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   isPro ? 'Renews · Auto' : 'Renew date · —',
-                  style: TextStyle(fontSize: 12, color: p.textSecondary),
+                  style: AppTypography.labelMedium(context, color: p.textSecondary),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -486,11 +459,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                         ),
                         child: Text(
                           b,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: p.textSecondary,
-                          ),
+                          style: AppTypography.labelSmall(context, color: p.textSecondary, weight: FontWeights.semibold),
                         ),
                       ),
                   ],
@@ -509,7 +478,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                             end: Alignment(x, 0),
                             colors: const [
                               Colors.transparent,
-                              Colors.white54,
+                              AppColors.onPremiumMuted,
                               Colors.transparent,
                             ],
                           ).createShader(bounds);
@@ -526,7 +495,7 @@ class SettingsSubscriptionCard extends StatelessWidget {
                           gradient: const LinearGradient(
                             colors: [
                               AppColors.goldPremium,
-                              Color(0xFFF97316),
+                              AppColors.accentAudio,
                               AppColors.brandMagenta,
                             ],
                           ),
@@ -544,19 +513,15 @@ class SettingsSubscriptionCard extends StatelessWidget {
                           child: InkWell(
                             onTap: onUpgrade,
                             borderRadius: Radii.brCard,
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.workspace_premium_rounded,
-                                    color: Colors.black87, size: 20),
+                                    color: AppColors.onPremium, size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   'Upgrade to Pro',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black87,
-                                  ),
+                                  style: AppTypography.titleSmall(context, color: AppColors.onPremium, weight: FontWeights.black),
                                 ),
                               ],
                             ),
@@ -623,7 +588,7 @@ class SettingsAiCard extends StatelessWidget {
       title: 'AI Settings',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -690,7 +655,7 @@ class SettingsNotificationsCard extends StatelessWidget {
       title: 'Notifications',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -807,7 +772,7 @@ class SettingsPrivacyCard extends StatelessWidget {
       title: 'Privacy',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -845,12 +810,12 @@ class SettingsConnectedAccountsCard extends StatelessWidget {
   final void Function(String id, bool connected) onProvider;
 
   static const _providers = <(String, String, IconData, Color, bool)>[
-    ('google', 'Google', Icons.g_mobiledata_rounded, Color(0xFFEA4335), true),
-    ('github', 'GitHub', Icons.code_rounded, Color(0xFF8B5CF6), false),
-    ('apple', 'Apple', Icons.apple, Color(0xFFA0A0B8), false),
-    ('microsoft', 'Microsoft', Icons.window_rounded, Color(0xFF3B82F6), false),
-    ('discord', 'Discord', Icons.forum_outlined, Color(0xFF5865F2), false),
-    ('linkedin', 'LinkedIn', Icons.work_outline_rounded, Color(0xFF0A66C2),
+    ('google', 'Google', Icons.g_mobiledata_rounded, AppColors.socialGoogle, true),
+    ('github', 'GitHub', Icons.code_rounded, AppColors.brandPrimaryHover, false),
+    ('apple', 'Apple', Icons.apple, AppColors.textSecondary, false),
+    ('microsoft', 'Microsoft', Icons.window_rounded, AppColors.accentDev, false),
+    ('discord', 'Discord', Icons.forum_outlined, AppColors.socialDiscord, false),
+    ('linkedin', 'LinkedIn', Icons.work_outline_rounded, AppColors.socialLinkedIn,
         false),
   ];
 
@@ -861,7 +826,7 @@ class SettingsConnectedAccountsCard extends StatelessWidget {
       title: 'Connected Accounts',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -876,13 +841,9 @@ class SettingsConnectedAccountsCard extends StatelessWidget {
                       onProvider(_providers[i].$1, _providers[i].$5),
                   child: Text(
                     _providers[i].$5 ? 'Disconnect' : 'Connect',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: _providers[i].$5
+                    style: AppTypography.labelMedium(context, color: _providers[i].$5
                           ? AppColors.error
-                          : AppColors.brandPrimaryHover,
-                    ),
+                          : AppColors.brandPrimaryHover, weight: FontWeights.bold),
                   ),
                 ),
                 onTap: () => onProvider(_providers[i].$1, _providers[i].$5),
@@ -938,7 +899,7 @@ class SettingsActivityCard extends StatelessWidget {
       title: 'Activity',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [
@@ -949,11 +910,7 @@ class SettingsActivityCard extends StatelessWidget {
                 children: [
                   Text(
                     'Timeline',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: p.textMuted,
-                    ),
+                    style: AppTypography.labelMedium(context, color: p.textMuted, weight: FontWeights.extrabold),
                   ),
                   const SizedBox(height: 10),
                   for (final t in timeline)
@@ -977,14 +934,9 @@ class SettingsActivityCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(t.$1,
-                                    style: TextStyle(
-                                        fontSize: 10, color: p.textMuted)),
+                                    style: AppTypography.caption(context, color: p.textMuted)),
                                 Text(t.$2,
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: p.textPrimary,
-                                    )),
+                                    style: AppTypography.bodySmall(context, color: p.textPrimary, weight: FontWeights.semibold)),
                               ],
                             ),
                           ),
@@ -1056,7 +1008,7 @@ class SettingsSupportCard extends StatelessWidget {
       title: 'Support',
       onAction: onOpen,
       child: GlassCard(
-        radius: 24,
+        radius: Radii.banner,
         padding: EdgeInsets.zero,
         child: Column(
           children: [

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
+import '../../../theme/app_typography.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
 import 'models/parsed_qr.dart';
@@ -100,7 +101,7 @@ class _HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    final accent = parsed.type.accent;
+    final accent = parsed.type.accentOf(context);
     return GlassCard(
       child: Row(
         children: [
@@ -114,11 +115,7 @@ class _HeaderCard extends StatelessWidget {
                   parsed.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: p.textPrimary,
-                  ),
+                  style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                 ),
                 if (parsed.subtitle != null && parsed.subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -126,7 +123,7 @@ class _HeaderCard extends StatelessWidget {
                     parsed.subtitle!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, color: p.textSecondary),
+                    style: AppTypography.bodyMedium(context, color: p.textSecondary),
                   ),
                 ],
               ],
@@ -168,16 +165,12 @@ class _SecurityCard extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                      ),
+                      style: AppTypography.titleSmall(context, color: color, weight: FontWeights.extrabold),
                     ),
                     Text(
                       'Offline check • '
                       '${(verdict.confidence * 100).round()}% confidence',
-                      style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                      style: AppTypography.labelSmall(context, color: p.textMuted),
                     ),
                   ],
                 ),
@@ -198,8 +191,7 @@ class _SecurityCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         reason,
-                        style: TextStyle(
-                            fontSize: 12.5, height: 1.35, color: p.textSecondary),
+                        style: AppTypography.bodySmall(context, color: p.textSecondary).copyWith(height: 1.35),
                       ),
                     ),
                   ],
@@ -237,11 +229,7 @@ class _RiskMeter extends StatelessWidget {
           ),
           Text(
             '$score',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: color,
-            ),
+            style: AppTypography.bodyMedium(context, color: color, weight: FontWeights.black),
           ),
         ],
       ),
@@ -276,22 +264,14 @@ class _DetailsCard extends StatelessWidget {
                   width: 92,
                   child: Text(
                     _prettyKey(entries[i].key),
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: p.textMuted,
-                    ),
+                    style: AppTypography.bodySmall(context, color: p.textMuted, weight: FontWeights.bold),
                   ),
                 ),
                 const SizedBox(width: Insets.sm),
                 Expanded(
                   child: Text(
                     entries[i].value,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.semibold),
                   ),
                 ),
               ],
@@ -330,11 +310,7 @@ class _RawCard extends StatelessWidget {
               const SizedBox(width: Insets.sm),
               Text(
                 'Raw data • from $source',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: p.textMuted,
-                ),
+                style: AppTypography.labelSmall(context, color: p.textMuted, weight: FontWeights.bold),
               ),
             ],
           ),
@@ -342,12 +318,7 @@ class _RawCard extends StatelessWidget {
           SelectableText(
             raw,
             maxLines: 6,
-            style: TextStyle(
-              fontSize: 12.5,
-              height: 1.4,
-              color: p.textSecondary,
-              fontFamily: 'monospace',
-            ),
+            style: AppTypography.bodySmall(context, color: p.textSecondary).copyWith(height: 1.4, fontFamily: 'monospace'),
           ),
         ],
       ),
@@ -412,7 +383,7 @@ class _Actions extends StatelessWidget {
     return _PrimaryButton(
       label: label,
       icon: icon,
-      accent: parsed.type.accent,
+      accent: parsed.type.accentOf(context),
       onTap: () => _runPrimary(context),
     );
   }
@@ -448,17 +419,17 @@ class _Actions extends StatelessWidget {
         shape: const RoundedRectangleBorder(borderRadius: Radii.brPanel),
         icon: const Icon(Icons.gpp_bad_rounded, color: AppColors.error, size: 34),
         title: Text('Open risky link?',
-            style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w800)),
+            style: AppTypography.bodyLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
         content: Text(
           verdict.reasons.isNotEmpty
               ? verdict.reasons.first
               : 'This link was flagged as high risk.',
-          style: TextStyle(color: p.textSecondary),
+          style: AppTypography.bodyLarge(context, color: p.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
+            child: Text('Cancel', style: AppTypography.bodyLarge(context, color: p.textSecondary)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
@@ -533,15 +504,11 @@ class _PrimaryButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 20),
+              Icon(icon, color: AppColors.onAccent, size: 20),
               const SizedBox(width: Insets.sm),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
+                style: AppTypography.titleSmall(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
               ),
             ],
           ),
@@ -583,11 +550,7 @@ class _SecondaryButton extends StatelessWidget {
               const SizedBox(width: Insets.sm),
               Text(
                 label,
-                style: TextStyle(
-                  color: p.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
-                ),
+                style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.bold),
               ),
             ],
           ),

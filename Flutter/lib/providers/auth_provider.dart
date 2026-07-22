@@ -16,6 +16,7 @@ import '../services/secure_storage_service.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import 'app_providers.dart';
+import '../theme/design_tokens.dart';
 
 /// Thrown with a user-friendly message when authentication fails.
 class AuthException implements Exception {
@@ -281,12 +282,12 @@ class AuthNotifier extends StateNotifier<AppUser?> {
   /// Phone OTP — still local mock until SMS provider is configured in Supabase.
   Future<void> sendOtp(String phone) async {
     _logEvent('otp_sent', 'phone');
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(Motion.slow);
     debugPrint('MOCK OTP for $phone: 123456');
   }
 
   Future<void> verifyOtp(String phone, String code) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(Motion.slow);
     if (code != '123456') {
       _logEvent('login_failed', 'phone');
       throw const AuthException('Invalid or expired code. Try again.');
@@ -415,7 +416,7 @@ class AuthNotifier extends StateNotifier<AppUser?> {
 
   Future<void> verifyResetCode(String email, String code) async {
     // Supabase uses email magic link for reset; local 6-digit mock kept for UI flow.
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(Motion.slow);
     if (code != '123456') {
       throw const AuthException('Invalid or expired code. Try again.');
     }

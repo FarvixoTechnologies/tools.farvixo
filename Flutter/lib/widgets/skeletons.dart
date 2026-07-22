@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 import '../theme/design_tokens.dart';
 
@@ -25,7 +26,7 @@ class _ShimmerState extends State<Shimmer>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1400),
+    duration: Motion.shimmer,
   );
 
   bool _repeating = false;
@@ -57,8 +58,10 @@ class _ShimmerState extends State<Shimmer>
     if (reduceMotion) return widget.child;
 
     final base = Colors.transparent;
-    final highlight = (p.isDark ? Colors.white : Colors.white)
-        .withValues(alpha: p.isDark ? 0.06 : 0.55);
+    // The shimmer sweep is a light wash in both themes — only its opacity
+    // changes, so it reads on dark surfaces without blowing out light ones.
+    final highlight =
+        AppColors.onAccent.withValues(alpha: p.isDark ? 0.06 : 0.55);
 
     return RepaintBoundary(
       child: AnimatedBuilder(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -70,20 +71,12 @@ class SettingsV5Header extends StatelessWidget {
                         children: [
                           Text(
                             'Settings',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: p.textPrimary,
-                              letterSpacing: -0.3,
-                            ),
+                            style: AppTypography.headlineSmall(context, color: p.textPrimary, weight: FontWeights.extrabold).copyWith(letterSpacing: -0.3),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Manage your account & app preferences',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: p.textSecondary,
-                            ),
+                            style: AppTypography.labelMedium(context, color: p.textSecondary),
                           ),
                         ],
                       ),
@@ -235,7 +228,7 @@ class SettingsProfileHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: Radii.brBanner,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: AnimatedBuilder(
@@ -246,14 +239,14 @@ class SettingsProfileHero extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 168),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: Radii.brBanner,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
                     AppColors.brandPrimary.withValues(alpha: 0.22),
                     AppColors.brandMagenta.withValues(alpha: 0.14),
-                    const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                    AppColors.accentDev.withValues(alpha: 0.12),
                     p.surface.withValues(alpha: p.isDark ? 0.72 : 0.88),
                   ],
                 ),
@@ -294,7 +287,7 @@ class SettingsProfileHero extends StatelessWidget {
                             colors: [
                               AppColors.brandPrimary,
                               AppColors.brandMagenta,
-                              Color(0xFF3B82F6),
+                              AppColors.accentDev,
                             ],
                           ),
                           boxShadow: [
@@ -319,11 +312,7 @@ class SettingsProfileHero extends StatelessWidget {
                           child: avatarUrl == null || avatarUrl!.isEmpty
                               ? Text(
                                   initial,
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w800,
-                                    color: p.textPrimary,
-                                  ),
+                                  style: AppTypography.metric(context, color: p.textPrimary, weight: FontWeights.extrabold),
                                 )
                               : null,
                         ),
@@ -379,28 +368,21 @@ class SettingsProfileHero extends StatelessWidget {
                                 name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: p.textPrimary,
-                                ),
+                                style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
                               ),
                             ),
                             const SizedBox(width: 6),
                             const Icon(
                               Icons.verified_rounded,
                               size: 18,
-                              color: Color(0xFF3B82F6),
+                              color: AppColors.accentDev,
                             ),
                           ],
                         ),
                         const SizedBox(height: 2),
                         Text(
                           username,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: p.textSecondary,
-                          ),
+                          style: AppTypography.bodyMedium(context, color: p.textSecondary),
                         ),
                         const SizedBox(height: 2),
                         InkWell(
@@ -409,7 +391,7 @@ class SettingsProfileHero extends StatelessWidget {
                             email,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12, color: p.textMuted),
+                            style: AppTypography.labelMedium(context, color: p.textMuted),
                           ),
                         ),
                       ],
@@ -424,7 +406,7 @@ class SettingsProfileHero extends StatelessWidget {
                   onPressed: onEdit,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.brandPrimary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.onAccent,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 8,
@@ -434,9 +416,9 @@ class SettingsProfileHero extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.edit_rounded, size: 16),
-                  label: const Text(
+                  label: Text(
                     'Edit Profile',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: AppTypography.bodyLarge(context, weight: FontWeights.bold),
                   ),
                 ),
               ),
@@ -497,7 +479,7 @@ class SettingsAccountStats extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.cloud_outlined,
-            color: const Color(0xFF3B82F6),
+            color: AppColors.accentDev,
             label: 'Storage',
             value: '${storageUsedGb.toStringAsFixed(0)} GB',
             progress: storageUsedGb / storageMaxGb,
@@ -557,8 +539,8 @@ class _StatCard extends StatelessWidget {
         if (progress != null)
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: progress!.clamp(0.0, 1.0)),
-            duration: const Duration(milliseconds: 1100),
-            curve: Curves.easeOutCubic,
+            duration: Motion.verySlow,
+            curve: Motion.easeOut,
             builder: (context, v, _) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,16 +549,12 @@ class _StatCard extends StatelessWidget {
                     value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary,
-                    ),
+                    style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     label,
-                    style: TextStyle(fontSize: 10, color: p.textMuted),
+                    style: AppTypography.caption(context, color: p.textMuted),
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
@@ -597,14 +575,10 @@ class _StatCard extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: p.textPrimary,
-            ),
+            style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
           ),
           const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10, color: p.textMuted)),
+          Text(label, style: AppTypography.caption(context, color: p.textMuted)),
         ],
       ],
     );
@@ -614,7 +588,7 @@ class _StatCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
         decoration: BoxDecoration(
           color: p.surface2.withValues(alpha: p.isDark ? 0.55 : 0.7),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: Radii.brPanel,
           border: Border.all(color: p.border.withValues(alpha: 0.7)),
         ),
         child: content,
@@ -648,7 +622,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
 
   static const _items = <(String, String, IconData, Color)>[
     ('qr', 'My QR', Icons.qr_code_2_rounded, AppColors.brandPrimaryHover),
-    ('share', 'Share Profile', Icons.ios_share_rounded, Color(0xFF3B82F6)),
+    ('share', 'Share Profile', Icons.ios_share_rounded, AppColors.accentDev),
     (
       'invite',
       'Invite Friends',
@@ -699,7 +673,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
                 child: Container(
                     width: 90,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: Radii.brBanner,
                       color: p.surface.withValues(alpha: p.isDark ? 0.65 : 0.9),
                       border: Border.all(color: p.border),
                       boxShadow: [
@@ -727,12 +701,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: p.textPrimary,
-                              height: 1.15,
-                            ),
+                            style: AppTypography.caption(context, color: p.textPrimary, weight: FontWeights.bold).copyWith(height: 1.15),
                           ),
                         ),
                       ],
@@ -748,7 +717,7 @@ class _SettingsQuickActionsState extends State<SettingsQuickActions> {
           children: List.generate(
             3,
             (i) => AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Motion.base,
               width: i == _page ? 14 : 6,
               height: 6,
               margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -789,11 +758,7 @@ class SettingsSectionLabel extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: p.textPrimary,
-          ),
+          style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
         ),
         const Spacer(),
         if (actionLabel != null && onAction != null)
@@ -807,10 +772,7 @@ class SettingsSectionLabel extends StatelessWidget {
             ),
             child: Text(
               '$actionLabel →',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 12.5,
-              ),
+              style: AppTypography.bodySmall(context, weight: FontWeights.bold),
             ),
           ),
       ],
@@ -915,7 +877,7 @@ class SettingsPreferencesGrid extends StatelessWidget {
           child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: Radii.brBanner,
                 color: p.surface.withValues(alpha: p.isDark ? 0.7 : 0.92),
                 border: Border.all(color: p.border),
               ),
@@ -929,7 +891,7 @@ class SettingsPreferencesGrid extends StatelessWidget {
                       borderRadius: Radii.brButton,
                       color: c.color.withValues(alpha: 0.16),
                     ),
-                    child: Text(c.emoji, style: const TextStyle(fontSize: 18)),
+                    child: Text(c.emoji, style: AppTypography.titleLarge(context)),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -941,21 +903,14 @@ class SettingsPreferencesGrid extends StatelessWidget {
                           c.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                          ),
+                          style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           c.subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: p.textSecondary,
-                          ),
+                          style: AppTypography.labelSmall(context, color: p.textSecondary),
                         ),
                       ],
                     ),
@@ -1030,7 +985,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
     return GlassCard(
-      radius: 24,
+      radius: Radii.banner,
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
@@ -1090,8 +1045,8 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                                   begin: 0,
                                   end: securityScore / 100,
                                 ),
-                                duration: const Duration(milliseconds: 1400),
-                                curve: Curves.easeOutCubic,
+                                duration: Motion.shimmer,
+                                curve: Motion.easeOut,
                                 builder: (context, value, _) {
                                   return AnimatedBuilder(
                                     animation: shine,
@@ -1114,18 +1069,11 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                                 children: [
                                   Text(
                                     '$securityScore',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w900,
-                                      color: p.textPrimary,
-                                    ),
+                                    style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.black),
                                   ),
                                   Text(
                                     '/ 100',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: p.textMuted,
-                                    ),
+                                    style: AppTypography.caption(context, color: p.textMuted),
                                   ),
                                 ],
                               ),
@@ -1136,11 +1084,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                         Text(
                           'Your account is secure',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: p.textSecondary,
-                          ),
+                          style: AppTypography.labelSmall(context, color: p.textSecondary, weight: FontWeights.semibold),
                         ),
                         const SizedBox(height: 10),
                         SizedBox(
@@ -1160,16 +1104,12 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                               child: InkWell(
                                 onTap: onImprove,
                                 borderRadius: Radii.brPill,
-                                child: const Padding(
+                                child: Padding(
                                   padding: EdgeInsets.symmetric(vertical: 9),
                                   child: Text(
                                     'Improve Security',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
+                                    style: AppTypography.labelSmall(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
                                   ),
                                 ),
                               ),
@@ -1190,11 +1130,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               'Verification',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: p.textMuted,
-              ),
+              style: AppTypography.labelSmall(context, color: p.textMuted, weight: FontWeights.extrabold),
             ),
           ),
           const SizedBox(height: 8),
@@ -1227,11 +1163,7 @@ class SettingsAccountSecuritySplit extends StatelessWidget {
                   ),
                   child: Text(
                     '$deviceCount Devices',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentAi,
-                    ),
+                    style: AppTypography.labelSmall(context, color: AppColors.accentAi, weight: FontWeights.bold),
                   ),
                 ),
               ),
@@ -1278,11 +1210,7 @@ class _VerifyChip extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
+              style: AppTypography.labelSmall(context, color: color, weight: FontWeights.bold),
             ),
           ],
         ),
@@ -1322,11 +1250,7 @@ class _SecRow extends StatelessWidget {
               child: Text(
                 title,
                 maxLines: 2,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: p.textPrimary,
-                ),
+                style: AppTypography.labelMedium(context, color: p.textPrimary, weight: FontWeights.bold),
               ),
             ),
             Icon(Icons.chevron_right_rounded, size: 18, color: p.textMuted),
@@ -1378,19 +1302,12 @@ class SettingsMenuList extends StatelessWidget {
                         children: [
                           Text(
                             items[i].$3,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: p.textPrimary,
-                            ),
+                            style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             items[i].$4,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: p.textSecondary,
-                            ),
+                            style: AppTypography.labelSmall(context, color: p.textSecondary),
                           ),
                         ],
                       ),
@@ -1426,13 +1343,13 @@ class SettingsGradientSignOut extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: Radii.brBanner,
         gradient: const LinearGradient(
-          colors: [Color(0xFFF43F5E), Color(0xFFF97316)],
+          colors: [AppColors.destructive, AppColors.accentAudio],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFF43F5E).withValues(alpha: 0.35),
+            color: AppColors.destructive.withValues(alpha: 0.35),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1442,21 +1359,17 @@ class SettingsGradientSignOut extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: const SizedBox(
+          borderRadius: Radii.brBanner,
+          child: SizedBox(
             height: 60,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.logout_rounded, color: Colors.white),
+                Icon(Icons.logout_rounded, color: AppColors.onAccent),
                 SizedBox(width: 10),
                 Text(
                   'Sign Out',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: AppTypography.titleMedium(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
                 ),
               ],
             ),
@@ -1485,10 +1398,10 @@ class SettingsDangerZoneCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        color: const Color(0xFFF43F5E).withValues(alpha: 0.08),
+        borderRadius: Radii.brBanner,
+        color: AppColors.destructive.withValues(alpha: 0.08),
         border: Border.all(
-          color: const Color(0xFFF43F5E).withValues(alpha: 0.35),
+          color: AppColors.destructive.withValues(alpha: 0.35),
         ),
       ),
       child: Column(
@@ -1496,11 +1409,7 @@ class SettingsDangerZoneCard extends StatelessWidget {
         children: [
           Text(
             'Danger Zone',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: p.textPrimary,
-            ),
+            style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
           ),
           const SizedBox(height: 10),
           SizedBox(
@@ -1510,8 +1419,8 @@ class SettingsDangerZoneCard extends StatelessWidget {
               icon: const Icon(Icons.logout_rounded, size: 18),
               label: const Text('Sign Out'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFF43F5E),
-                side: const BorderSide(color: Color(0xFFF43F5E)),
+                foregroundColor: AppColors.destructive,
+                side: const BorderSide(color: AppColors.destructive),
               ),
             ),
           ),
@@ -1522,8 +1431,8 @@ class SettingsDangerZoneCard extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onReset,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFF43F5E),
-                    side: const BorderSide(color: Color(0xFFF43F5E)),
+                    foregroundColor: AppColors.destructive,
+                    side: const BorderSide(color: AppColors.destructive),
                   ),
                   child: const Text('Reset App'),
                 ),
@@ -1533,8 +1442,8 @@ class SettingsDangerZoneCard extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onDelete,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFF43F5E),
-                    side: const BorderSide(color: Color(0xFFF43F5E)),
+                    foregroundColor: AppColors.destructive,
+                    side: const BorderSide(color: AppColors.destructive),
                   ),
                   child: const Text('Delete Account'),
                 ),

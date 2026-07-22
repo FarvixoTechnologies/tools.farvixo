@@ -18,6 +18,10 @@
         android:label="Farvixo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Background FCM messages post to this channel (created in-app). -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="farvixo_general"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -49,9 +53,6 @@
                     android:host="login-callback"/>
             </intent-filter>
         </activity>
-        <meta-data
-          android:name="com.google.firebase.messaging.default_notification_channel_id"
-          android:value="farvixo_default"/>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+
 /// Violet primary button with a built-in loading state.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -25,7 +27,7 @@ class PrimaryButton extends StatelessWidget {
               height: 22,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: Colors.white,
+                color: AppColors.onAccent,
               ),
             )
           : Row(

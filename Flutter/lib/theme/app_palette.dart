@@ -26,6 +26,11 @@ class AppPalette {
     required this.accent,
   });
 
+  /// Translucent card surface for screens with an animated backdrop (Home):
+  /// glassy in dark mode, plain white in light mode.
+  Color get surfaceGlass =>
+      isDark ? AppColors.bgSurfaceGlass : AppColors.lightSurface;
+
   factory AppPalette.of(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;

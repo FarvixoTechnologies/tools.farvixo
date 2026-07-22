@@ -17,6 +17,12 @@ class AiImageException implements Exception {
   String toString() => message;
 }
 
+/// Internal: the AI backend/providers are momentarily overloaded (429 /
+/// queue full). Triggers an automatic retry with backoff, then fallback.
+class _AiBusyException implements Exception {
+  const _AiBusyException();
+}
+
 /// Stream events from [AiService.streamChat].
 sealed class AiChatEvent {
   const AiChatEvent();
@@ -81,16 +87,53 @@ class AiService {
     }
 
     // 1) Farvixo Tools API (production path — quotas + streaming).
-    try {
-      await for (final ev in _streamViaFarvixoApi(
-        usable,
-        cancelToken: cancelToken,
-      )) {
-        yield ev;
+    //    Busy providers (429 / queue full) are retried automatically with
+    //    backoff BEFORE falling through, so transient congestion never
+    //    surfaces as an error bubble.
+    const retryDelays = [
+      Duration(seconds: 2),
+      Duration(seconds: 4),
+    ];
+    String? backendError; // friendly message when the backend answered but failed
+    for (var attempt = 0; attempt <= retryDelays.length; attempt++) {
+      var emitted = false;
+      try {
+        await for (final ev in _streamViaFarvixoApi(
+          usable,
+          cancelToken: cancelToken,
+        )) {
+          if (ev is AiChatDelta) emitted = true;
+          yield ev;
+        }
+        return;
+      } on _AiBusyException {
+        if (cancelToken?.isCancelled ?? false) return;
+        if (emitted) {
+          // Partial answer already shown — end gracefully, no raw error.
+          yield const AiChatDone();
+          return;
+        }
+        if (attempt < retryDelays.length) {
+          debugPrint('AiService busy — retry ${attempt + 1} '
+              'in ${retryDelays[attempt].inSeconds}s');
+          await Future<void>.delayed(retryDelays[attempt]);
+          if (cancelToken?.isCancelled ?? false) return;
+          continue;
+        }
+        debugPrint('AiService busy after retries — falling back');
+        backendError = _sanitizeAiError('429');
+        break;
+      } catch (e, st) {
+        debugPrint('AiService Farvixo API fallback: $e\n$st');
+        if (emitted) {
+          yield const AiChatDone();
+          return;
+        }
+        // The backend replied with a real (already sanitized) failure —
+        // remember it so we never mask it with the demo response.
+        if (e is StateError) backendError = _sanitizeAiError(e.message);
+        break;
       }
-      return;
-    } catch (e, st) {
-      debugPrint('AiService Farvixo API fallback: $e\n$st');
     }
 
     // 2) Direct Gemini (dev / when server AI unavailable).
@@ -116,7 +159,14 @@ class AiService {
       }
     }
 
-    // 3) Offline / local demo — always available.
+    // 3) The backend responded but failed (busy/limit): show the friendly
+    //    message with no fake demo answer — the UI offers retry.
+    if (backendError != null) {
+      yield AiChatError(backendError);
+      return;
+    }
+
+    // 4) Offline / local demo — only when no live AI is reachable at all.
     await for (final ev in _mockStream(usable.last.text)) {
       yield ev;
     }
@@ -205,10 +255,26 @@ class AiService {
   // Farvixo `/api/ai/chat` SSE
   // ---------------------------------------------------------------------------
 
+  /// Start time of the most recent request — used to pace calls so the
+  /// backend's free AI providers (1 queued request per IP) aren't slammed
+  /// by back-to-back tool runs.
+  static DateTime? _lastRequestAt;
+
+  Future<void> _paceRequests() async {
+    const minGap = Duration(milliseconds: 1200);
+    final last = _lastRequestAt;
+    if (last != null) {
+      final gap = DateTime.now().difference(last);
+      if (gap < minGap) await Future<void>.delayed(minGap - gap);
+    }
+    _lastRequestAt = DateTime.now();
+  }
+
   Stream<AiChatEvent> _streamViaFarvixoApi(
     List<ChatMessage> history, {
     CancelToken? cancelToken,
   }) async* {
+    await _paceRequests();
     final headers = <String, dynamic>{
       'Content-Type': 'application/json',
       'Accept': 'text/event-stream',
@@ -242,11 +308,7 @@ class AiService {
     );
 
     final code = response.statusCode ?? 0;
-    if (code == 429) {
-      throw StateError(
-        'AI daily limit reached. Upgrade to Pro or try again later.',
-      );
-    }
+    if (code == 429) throw const _AiBusyException();
     if (code == 503 || code == 502) {
       throw StateError('AI service unavailable ($code)');
     }
@@ -260,6 +322,7 @@ class AiService {
 
     yield const AiChatProviderInfo(provider: 'farvixo');
 
+    var sentText = false;
     final buffer = StringBuffer();
     await for (final chunk in stream) {
       buffer.write(utf8.decode(chunk, allowMalformed: true));
@@ -279,7 +342,16 @@ class AiService {
         try {
           final map = jsonDecode(payload) as Map<String, dynamic>;
           if (map['error'] != null) {
-            yield AiChatError(map['error'].toString());
+            // NEVER surface raw provider errors in chat. Busy errors are
+            // thrown so the caller retries/falls back; anything else is
+            // thrown to trigger the Gemini/demo fallback — unless we were
+            // mid-answer, in which case end the message cleanly.
+            final err = map['error'].toString();
+            if (!sentText) {
+              if (_looksBusy(err)) throw const _AiBusyException();
+              throw StateError(_sanitizeAiError(err));
+            }
+            yield const AiChatDone();
             return;
           }
           if (map['provider'] != null) {
@@ -290,8 +362,13 @@ class AiService {
           }
           final text = map['text'] as String?;
           if (text != null && text.isNotEmpty) {
+            sentText = true;
             yield AiChatDelta(text);
           }
+        } on _AiBusyException {
+          rethrow;
+        } on StateError {
+          rethrow;
         } catch (_) {
           // ignore malformed SSE lines
         }
@@ -464,5 +541,44 @@ class AiService {
     }
     if (e is StateError) return e.message;
     return e.toString();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Error hygiene — raw provider/server errors must NEVER reach the chat UI.
+  // ---------------------------------------------------------------------------
+
+  /// True when an upstream error means "momentarily overloaded" — safe to
+  /// retry automatically.
+  static bool _looksBusy(String raw) {
+    final r = raw.toLowerCase();
+    return r.contains('429') ||
+        r.contains('queue full') ||
+        r.contains('rate limit') ||
+        r.contains('too many requests') ||
+        r.contains('overloaded') ||
+        r.contains('capacity');
+  }
+
+  /// Convert any upstream error into a short, human message. Raw JSON,
+  /// provider names, IPs and URLs are never shown to the user.
+  static String _sanitizeAiError(String raw) {
+    final r = raw.toLowerCase();
+    if (_looksBusy(raw)) {
+      return 'Farvixo AI is a little busy right now. '
+          'Please try again in a few seconds.';
+    }
+    if (r.contains('quota') || r.contains('daily limit')) {
+      return 'You have reached today\'s AI limit. '
+          'Try again later or upgrade to Pro.';
+    }
+    final looksRaw = raw.length > 120 ||
+        raw.contains('{') ||
+        raw.contains('http') ||
+        r.contains('provider') ||
+        r.contains('deprecation');
+    if (looksRaw) {
+      return 'The AI service hit a temporary problem. Please try again.';
+    }
+    return raw;
   }
 }

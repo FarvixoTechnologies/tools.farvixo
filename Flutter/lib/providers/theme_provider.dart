@@ -25,19 +25,19 @@ class AccentPresets {
   static const violet = AppColors.brandPrimary; // default
   static const magenta = AppColors.brandMagenta;
   static const gold = AppColors.goldPremium;
-  static const blue = Color(0xFF3B82F6);
-  static const indigo = Color(0xFF6366F1);
-  static const cyan = Color(0xFF06B6D4);
-  static const teal = Color(0xFF14B8A6);
-  static const green = Color(0xFF22C55E);
-  static const lime = Color(0xFF84CC16);
-  static const orange = Color(0xFFF97316);
-  static const amber = Color(0xFFF59E0B);
-  static const rose = Color(0xFFF43F5E);
-  static const pink = Color(0xFFEC4899);
-  static const red = Color(0xFFEF4444);
-  static const slate = Color(0xFF64748B);
-  static const white = Color(0xFFE2E8F0);
+  static const blue = AppColors.accentDev;
+  static const indigo = AppColors.indigo;
+  static const cyan = AppColors.accentText;
+  static const teal = AppColors.teal;
+  static const green = AppColors.success;
+  static const lime = AppColors.lime;
+  static const orange = AppColors.accentAudio;
+  static const amber = AppColors.warning;
+  static const rose = AppColors.destructive;
+  static const pink = AppColors.accentPink;
+  static const red = AppColors.error;
+  static const slate = AppColors.accentUtility;
+  static const white = AppColors.silver;
 
   static const all = <Color>[
     violet,

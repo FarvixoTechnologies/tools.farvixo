@@ -144,18 +144,36 @@ class ToolRepository {
     );
   }
 
-  /// Server-side search with a local fallback.
+  /// Server-side search with ranked local fallback / merge seed.
   Future<RepoResult<Tool>> searchTools(String query) async {
     final q = query.trim();
     if (q.isEmpty) return const RepoResult(items: [], source: RepoSource.local);
 
+    final localRanked = ToolsData.search(q);
     final res = await _api.getPublic('/v1/tools/search', query: {'q': q});
     if (res.ok && res.data != null) {
       final parsed = _parseTools(res.data!['tools']);
-      return RepoResult(items: parsed, source: RepoSource.network);
+      // Prefer local ranking order, append any remote-only tools.
+      final merged = <Tool>[];
+      final seen = <String>{};
+      for (final t in localRanked) {
+        if (seen.add(t.id)) merged.add(t);
+      }
+      // Prefer network copies (may have fresher metadata) when id overlaps.
+      final byId = {for (final t in parsed) t.id: t};
+      for (var i = 0; i < merged.length; i++) {
+        final net = byId[merged[i].id];
+        if (net != null) {
+          merged[i] = net.copyWith(icon: merged[i].icon);
+        }
+      }
+      for (final t in parsed) {
+        if (seen.add(t.id)) merged.add(t);
+      }
+      return RepoResult(items: merged, source: RepoSource.network);
     }
     return RepoResult(
-      items: ToolsData.search(q),
+      items: localRanked,
       source: RepoSource.local,
       error: res.message,
     );

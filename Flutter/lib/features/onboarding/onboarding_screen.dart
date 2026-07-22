@@ -8,6 +8,7 @@ import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/farvixo_logo.dart';
+import '../../theme/app_typography.dart';
 
 /// FARVIXO — Onboarding v3.0 (3 pages, per LAUNCH/LOADING/ONBOARDING spec):
 ///
@@ -32,7 +33,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   int _index = 0;
 
   late final AnimationController _loop = AnimationController(
-      vsync: this, duration: const Duration(seconds: 10))
+      vsync: this, duration: Motion.ambient)
     ..repeat();
 
   @override
@@ -64,7 +65,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF05010F),
+      backgroundColor: AppColors.bgDeep,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -88,19 +89,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                         titleTop: 'Welcome to',
                         titleAccent: 'Farvixo',
                         accentGradient: const [
-                          Color(0xFFF5B93D),
-                          Color(0xFFC026D3)
+                          AppColors.goldPremium,
+                          AppColors.brandMagenta
                         ],
                         description:
-                            'All-in-one platform with 120+ smart tools to simplify your work and life.',
+                            'All-in-one platform with 140+ smart tools to simplify your work and life.',
                         visual: _ToolsOrbitVisual(loop: _loop),
                       ),
                       _OnboardPage(
                         titleTop: 'AI Powered',
                         titleAccent: 'Smart Experience',
                         accentGradient: const [
-                          Color(0xFF8B5CF6),
-                          Color(0xFF22D3EE)
+                          AppColors.brandPrimaryHover,
+                          AppColors.accentCyanBright
                         ],
                         description:
                             'Advanced AI features to make your tasks faster, smarter and easier.',
@@ -110,8 +111,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                         titleTop: 'Secure. Private.',
                         titleAccent: 'Always Reliable',
                         accentGradient: const [
-                          Color(0xFF8B5CF6),
-                          Color(0xFF3B82F6)
+                          AppColors.brandPrimaryHover,
+                          AppColors.accentDev
                         ],
                         description:
                             'Your data is encrypted and 100% private with cloud sync anywhere.',
@@ -152,13 +153,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                     children: [
                       TextButton(
                         onPressed: _finish,
-                        child: const Text(
+                        child: Text(
                           'SKIP',
-                          style: TextStyle(
-                            letterSpacing: 2,
-                            fontWeight: FontWeight.w600,
+                          style: AppTypography.labelMedium(
+                            context,
                             color: AppColors.textSecondary,
-                          ),
+                            weight: FontWeights.semibold,
+                          ).copyWith(letterSpacing: 2),
                         ),
                       ),
                       const Spacer(),
@@ -220,12 +221,7 @@ class _OnboardPage extends StatelessWidget {
           Text(
             titleTop,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              height: 1.15,
-            ),
+            style: AppTypography.metric(context, color: AppColors.onAccent, weight: FontWeights.extrabold).copyWith(height: 1.15),
           ),
           ShaderMask(
             shaderCallback: (b) =>
@@ -233,23 +229,14 @@ class _OnboardPage extends StatelessWidget {
             child: Text(
               titleAccent,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                height: 1.2,
-              ),
+              style: AppTypography.displaySmall(context, color: AppColors.onAccent, weight: FontWeights.black).copyWith(height: 1.2),
             ),
           ),
           const SizedBox(height: 14),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14.5,
-              height: 1.6,
-              color: AppColors.textSecondary,
-            ),
+            style: AppTypography.titleSmall(context, color: AppColors.textSecondary).copyWith(height: 1.6),
           ),
           const Spacer(),
         ],
@@ -294,7 +281,7 @@ class _ToolsOrbitVisual extends StatelessWidget {
                   width: 190,
                   height: 34,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                     gradient: RadialGradient(colors: [
                       AppColors.accentText.withValues(alpha: .5),
                       AppColors.brandPrimary.withValues(alpha: .15),
@@ -354,7 +341,7 @@ class _HexChip extends StatelessWidget {
       height: 46,
       decoration: BoxDecoration(
         color: AppColors.bgSurface.withValues(alpha: .85),
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: Radii.brTile,
         border: Border.all(color: color.withValues(alpha: .55)),
         boxShadow: [
           BoxShadow(color: color.withValues(alpha: .3), blurRadius: 12),
@@ -401,7 +388,7 @@ class _AiPhoneVisual extends StatelessWidget {
                   width: 200,
                   height: 40,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: Radii.brPill,
                     border: Border.all(
                       color: AppColors.brandPrimaryHover
                           .withValues(alpha: .3 + pulse * .3),
@@ -425,7 +412,7 @@ class _AiPhoneVisual extends StatelessWidget {
                   height: 226,
                   decoration: BoxDecoration(
                     color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: Radii.brSheet,
                     border: Border.all(
                         color: AppColors.brandPrimaryHover
                             .withValues(alpha: .6),
@@ -446,7 +433,7 @@ class _AiPhoneVisual extends StatelessWidget {
                       height: 74,
                       decoration: BoxDecoration(
                         gradient: AppColors.brandGradient,
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: Radii.brPanel,
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.brandMagenta
@@ -455,14 +442,10 @@ class _AiPhoneVisual extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'AI',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                          ),
+                          style: AppTypography.metric(context, color: AppColors.onAccent, weight: FontWeights.black),
                         ),
                       ),
                     ),
@@ -515,7 +498,7 @@ class _ShieldVisual extends StatelessWidget {
                   width: 180,
                   height: 34,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(99),
+                    borderRadius: Radii.brPill,
                     gradient: RadialGradient(colors: [
                       AppColors.brandMagenta.withValues(alpha: .4),
                       Colors.transparent,
@@ -539,10 +522,10 @@ class _ShieldVisual extends StatelessWidget {
                       ],
                     ),
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(28),
-                      topRight: Radius.circular(28),
-                      bottomLeft: Radius.circular(75),
-                      bottomRight: Radius.circular(75),
+                      topLeft: Radii.rSheet,
+                      topRight: Radii.rSheet,
+                      bottomLeft: Radii.rHero,
+                      bottomRight: Radii.rHero,
                     ),
                     border: Border.all(
                         color: AppColors.brandPrimaryHover
@@ -568,7 +551,7 @@ class _ShieldVisual extends StatelessWidget {
                         child: Container(
                           height: 2.4,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(99),
+                            borderRadius: Radii.brPill,
                             gradient: LinearGradient(colors: [
                               Colors.transparent,
                               AppColors.accentText.withValues(alpha: .9),
@@ -643,7 +626,7 @@ class _NextOrb extends StatelessWidget {
             ],
           ),
           child: const Icon(Icons.arrow_forward_rounded,
-              color: Colors.white, size: 26),
+              color: AppColors.onAccent, size: 26),
         ),
       ),
     );
@@ -675,21 +658,16 @@ class _GetStartedButton extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'GET STARTED',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                ),
+                style: AppTypography.titleSmall(context, color: AppColors.onAccent, weight: FontWeights.extrabold).copyWith(letterSpacing: 1.2),
               ),
               SizedBox(width: 8),
               Icon(Icons.arrow_forward_rounded,
-                  color: Colors.white, size: 18),
+                  color: AppColors.onAccent, size: 18),
             ],
           ),
         ),
@@ -727,7 +705,7 @@ class _StarsPainter extends CustomPainter {
     final p = Paint();
     for (final (x, y, r, phase) in _stars) {
       final tw = .12 + (math.sin(t * 12 + phase) + 1) / 2 * .4;
-      p.color = Colors.white.withValues(alpha: tw);
+      p.color = AppColors.onAccent.withValues(alpha: tw);
       canvas.drawCircle(Offset(x * size.width, y * size.height), r, p);
     }
   }

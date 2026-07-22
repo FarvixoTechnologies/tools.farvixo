@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/category_colors.dart';
 
 enum ToolBadge { popular, isNew, ai }
 
@@ -66,33 +66,32 @@ IconData _iconForCategoryName(String? name) {
       return Icons.swap_horiz_rounded;
     case 'landmark':
       return Icons.account_balance_rounded;
+    case 'scan-line':
+    case 'scan':
+      return Icons.document_scanner_rounded;
+    case 'qr-code':
+      return Icons.qr_code_2_rounded;
+    case 'cloud':
+      return Icons.cloud_rounded;
+    case 'notebook':
+    case 'sticky-note':
+      return Icons.sticky_note_2_rounded;
+    case 'upload-cloud':
+      return Icons.bolt_rounded;
     default:
       return Icons.apps_rounded;
   }
 }
 
-/// Maps a backend accent token (`accent-pdf`, …) to a theme [Color].
-Color _colorForAccent(String? accent) {
-  switch (accent?.trim().toLowerCase()) {
-    case 'accent-pdf':
-      return AppColors.accentPdf;
-    case 'accent-image':
-      return AppColors.accentImage;
-    case 'accent-video':
-      return AppColors.accentVideo;
-    case 'accent-audio':
-      return AppColors.accentAudio;
-    case 'accent-ai':
-      return AppColors.accentAi;
-    case 'accent-dev':
-      return AppColors.accentDev;
-    case 'accent-text':
-      return AppColors.accentText;
-    case 'accent-utility':
-      return AppColors.accentUtility;
-    default:
-      return AppColors.accentDev;
-  }
+/// Maps a backend accent token (`accent-pdf`, …) or category slug to the
+/// category's base [Color].
+///
+/// Resolution is delegated to [CategoryColors] so accent tokens, slugs and
+/// aliases all land on the same identity, and unknown values still get a
+/// stable, distinct hue rather than a shared grey fallback.
+Color _colorForAccent(String? accent, {String? slug}) {
+  final hasAccent = accent != null && accent.trim().isNotEmpty;
+  return CategoryColors.of(hasAccent ? accent : slug).dark;
 }
 
 class ToolCategory {
@@ -117,13 +116,21 @@ class ToolCategory {
   final String? description;
   final int? toolCount;
 
+  /// Full per-category color identity (gradient, tint, border, glow).
+  ///
+  /// Prefer this over [color] in UI code — [color] is the flat legacy base and
+  /// is not brightness-aware, whereas the identity resolves correctly for both
+  /// light and dark themes.
+  CategoryIdentity get identity => CategoryColors.of(id);
+
   /// Parse a category from `GET /api/v1/tools/categories`.
   factory ToolCategory.fromApi(Map<String, dynamic> json) {
+    final slug = (json['slug'] ?? json['id'] ?? '').toString();
     return ToolCategory(
-      id: (json['slug'] ?? json['id'] ?? '').toString(),
+      id: slug,
       name: (json['name'] ?? '').toString(),
       icon: _iconForCategoryName(json['icon']?.toString()),
-      color: _colorForAccent(json['accent']?.toString()),
+      color: _colorForAccent(json['accent']?.toString(), slug: slug),
       shortName: json['shortName']?.toString(),
       description: json['description']?.toString(),
       toolCount: (json['toolCount'] as num?)?.toInt(),
@@ -141,6 +148,7 @@ class Tool {
     this.badge,
     this.slug,
     this.url,
+    this.keywords = const [],
   });
 
   /// Stable id — equals the backend `slug` for API-sourced tools.
@@ -155,8 +163,14 @@ class Tool {
   final String? slug;
   final String? url;
 
+  /// Extra search tokens (aliases, common queries).
+  final List<String> keywords;
+
   /// The slug used against the backend (`/api/v1/tools/:slug`, favorites).
   String get remoteSlug => slug ?? id;
+
+  /// The color identity this tool inherits from its category.
+  CategoryIdentity get identity => CategoryColors.of(categoryId);
 
   /// Parse a tool from `GET /api/v1/tools` / `/search` / `/:id`.
   ///
@@ -167,6 +181,14 @@ class Tool {
     IconData fallbackIcon = Icons.build_rounded,
   }) {
     final slug = (json['slug'] ?? json['id'] ?? '').toString();
+    final rawKeywords = json['keywords'];
+    final keywords = <String>[];
+    if (rawKeywords is List) {
+      for (final k in rawKeywords) {
+        final s = k.toString().trim();
+        if (s.isNotEmpty) keywords.add(s);
+      }
+    }
     return Tool(
       id: slug,
       slug: slug,
@@ -176,6 +198,7 @@ class Tool {
       icon: fallbackIcon,
       badge: toolBadgeFromApi(json['badge']),
       url: json['url']?.toString(),
+      keywords: keywords,
     );
   }
 
@@ -186,9 +209,14 @@ class Tool {
         'category': categoryId,
         'badge': toolBadgeToApi(badge),
         'url': url,
+        'keywords': keywords,
       };
 
-  Tool copyWith({IconData? icon}) => Tool(
+  Tool copyWith({
+    IconData? icon,
+    List<String>? keywords,
+  }) =>
+      Tool(
         id: id,
         name: name,
         description: description,
@@ -197,5 +225,6 @@ class Tool {
         badge: badge,
         slug: slug,
         url: url,
+        keywords: keywords ?? this.keywords,
       );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../widgets/farvixo_logo.dart';
+import '../../theme/design_tokens.dart';
 
 /// Smart Asset Preloading — single Farvixo logo.
 class AssetsLoader {
@@ -15,7 +16,7 @@ class AssetsLoader {
       } catch (e) {
         debugPrint('AssetsLoader attempt $attempt failed: $e');
         if (attempt == _maxAttempts) return;
-        await Future<void>.delayed(const Duration(milliseconds: 150));
+        await Future<void>.delayed(Motion.fast);
       }
     }
   }

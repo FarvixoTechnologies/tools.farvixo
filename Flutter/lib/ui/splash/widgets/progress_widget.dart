@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/launch/models/splash_config.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/design_tokens.dart';
+import '../../../theme/app_typography.dart';
 
 /// Progress with Details — real step message + gradient bar + percentage
 /// (LAUNCH & SPLASH SYSTEM v2.0.0, sections 2 & 3).
@@ -33,11 +36,11 @@ class ProgressWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
+            duration: Motion.searchDebounce,
             child: Text(
               message,
               key: ValueKey(message),
-              style: const TextStyle(fontSize: 14, color: Color(0xFF9BA0C2)),
+              style: AppTypography.titleSmall(context, color: AppColors.lavender500),
             ),
           ),
           const SizedBox(height: 14),
@@ -50,19 +53,19 @@ class ProgressWidget extends StatelessWidget {
                     height: 5,
                     decoration: BoxDecoration(
                       color: config.progressTrackColor,
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: Radii.brPill,
                     ),
                     alignment: Alignment.centerLeft,
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(end: progress.clamp(0.0, 1.0)),
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeOutCubic,
+                      duration: Motion.slow,
+                      curve: Motion.easeOut,
                       builder: (context, value, _) => FractionallySizedBox(
                         widthFactor: value,
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(colors: colors),
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: Radii.brPill,
                             boxShadow: [
                               BoxShadow(
                                 color: config.progressColor
@@ -82,11 +85,7 @@ class ProgressWidget extends StatelessWidget {
                   child: Text(
                     '$percent%',
                     textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF9BA0C2),
-                    ),
+                    style: AppTypography.labelMedium(context, color: AppColors.lavender500, weight: FontWeights.bold),
                   ),
                 ),
               ],

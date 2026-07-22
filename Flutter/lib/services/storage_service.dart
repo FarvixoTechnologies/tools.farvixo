@@ -242,6 +242,7 @@ class StorageService {
 
   static const _kRecentTools = 'recent_tools';
   static const _kFavoriteTools = 'favorite_tools';
+  static const _kRecentSearches = 'recent_tool_searches';
 
   List<String> get recentToolIds => _prefs.getStringList(_kRecentTools) ?? [];
   Future<void> setRecentToolIds(List<String> ids) =>
@@ -251,6 +252,27 @@ class StorageService {
       _prefs.getStringList(_kFavoriteTools) ?? [];
   Future<void> setFavoriteToolIds(List<String> ids) =>
       _prefs.setStringList(_kFavoriteTools, ids);
+
+  /// Recent tool search queries (newest first, max 12).
+  List<String> get recentSearches =>
+      _prefs.getStringList(_kRecentSearches) ?? const [];
+
+  Future<void> setRecentSearches(List<String> queries) =>
+      _prefs.setStringList(_kRecentSearches, queries);
+
+  Future<void> addRecentSearch(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return;
+    final next = <String>[
+      q,
+      for (final existing in recentSearches)
+        if (existing.toLowerCase() != q.toLowerCase()) existing,
+    ];
+    if (next.length > 12) next.removeRange(12, next.length);
+    await setRecentSearches(next);
+  }
+
+  Future<void> clearRecentSearches() => _prefs.remove(_kRecentSearches);
 
   String? get userJson => _prefs.getString(_kUserJson);
   Future<void> setUserJson(String json) => _prefs.setString(_kUserJson, json);

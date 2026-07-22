@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
+
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
@@ -15,13 +18,16 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: Gap.inline),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              style: AppTypography.titleLarge(
+                context,
+                weight: FontWeights.bold,
+              ),
             ),
           ),
           if (actionLabel != null)

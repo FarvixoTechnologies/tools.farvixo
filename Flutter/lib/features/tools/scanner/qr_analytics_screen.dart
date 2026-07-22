@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
+import '../../../theme/app_typography.dart';
+import '../../../theme/category_colors.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
 import '../../../widgets/skeletons.dart';
@@ -102,23 +104,24 @@ class _TotalsGrid extends StatelessWidget {
         Expanded(
             child: _StatTile(
                 label: 'Total', value: stats.total, icon: Icons.qr_code_rounded,
-                color: AppColors.brandPrimaryHover)),
+                color: CategoryColors.brand.accentOf(context))),
         const SizedBox(width: Insets.sm),
         Expanded(
             child: _StatTile(
                 label: 'Today', value: stats.today, icon: Icons.today_rounded,
-                color: AppColors.accentImage)),
+                color: CategoryColors.image.accentOf(context))),
         const SizedBox(width: Insets.sm),
         Expanded(
             child: _StatTile(
                 label: 'Week', value: stats.week,
-                icon: Icons.date_range_rounded, color: AppColors.accentDev)),
+                icon: Icons.date_range_rounded,
+                color: CategoryColors.dev.accentOf(context))),
         const SizedBox(width: Insets.sm),
         Expanded(
             child: _StatTile(
                 label: 'Month', value: stats.month,
                 icon: Icons.calendar_month_rounded,
-                color: AppColors.accentAudio)),
+                color: CategoryColors.audio.accentOf(context))),
       ],
     );
   }
@@ -151,10 +154,9 @@ class _StatTile extends StatelessWidget {
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 6),
           Text('$value',
-              style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w900, color: p.textPrimary)),
+              style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.black)),
           Text(label,
-              style: TextStyle(fontSize: 11, color: p.textMuted)),
+              style: AppTypography.labelSmall(context, color: p.textMuted)),
         ],
       ),
     );
@@ -179,8 +181,7 @@ class _ActivityChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Last 7 days',
-              style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: p.textPrimary)),
+              style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           const SizedBox(height: Insets.md),
           SizedBox(
             height: 120,
@@ -228,8 +229,7 @@ class _Bar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text('$value',
-              style: TextStyle(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: p.textMuted)),
+              style: AppTypography.caption(context, color: p.textMuted, weight: FontWeights.bold)),
           const SizedBox(height: 4),
           Expanded(
             child: FractionallySizedBox(
@@ -250,7 +250,7 @@ class _Bar extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: TextStyle(fontSize: 11, color: p.textMuted)),
+              style: AppTypography.labelSmall(context, color: p.textMuted)),
         ],
       ),
     );
@@ -272,8 +272,7 @@ class _TypeBreakdown extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('By type',
-              style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: p.textPrimary)),
+              style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           const SizedBox(height: Insets.sm),
           for (final entry in top) ...[
             const SizedBox(height: Insets.sm),
@@ -306,12 +305,12 @@ class _TypeRow extends StatelessWidget {
       label: '${type.label}: $count scans, ${(fraction * 100).round()} percent',
       child: Row(
         children: [
-          Icon(type.icon, size: 16, color: type.accent),
+          Icon(type.icon, size: 16, color: type.accentOf(context)),
           const SizedBox(width: Insets.sm),
           SizedBox(
             width: 64,
             child: Text(type.label,
-                style: TextStyle(fontSize: 12.5, color: p.textSecondary)),
+                style: AppTypography.bodySmall(context, color: p.textSecondary)),
           ),
           Expanded(
             child: ClipRRect(
@@ -320,14 +319,13 @@ class _TypeRow extends StatelessWidget {
                 value: fraction.clamp(0.0, 1.0),
                 minHeight: 8,
                 backgroundColor: p.border.withValues(alpha: 0.4),
-                color: type.accent,
+                color: type.accentOf(context),
               ),
             ),
           ),
           const SizedBox(width: Insets.sm),
           Text('$count',
-              style: TextStyle(
-                  fontSize: 12.5, fontWeight: FontWeight.w800, color: p.textPrimary)),
+              style: AppTypography.bodySmall(context, color: p.textPrimary, weight: FontWeights.extrabold)),
         ],
       ),
     );
@@ -362,14 +360,11 @@ class _SecurityCard extends StatelessWidget {
                   clean
                       ? 'No risky links found'
                       : '${stats.threats} link${stats.threats == 1 ? '' : 's'} flagged',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: p.textPrimary),
+                  style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
                 ),
                 Text(
                   'Offline security checks across your scanned links.',
-                  style: TextStyle(fontSize: 12, color: p.textMuted),
+                  style: AppTypography.labelMedium(context, color: p.textMuted),
                 ),
               ],
             ),

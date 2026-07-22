@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
 
 /// Social login card (doc: UI Guidelines — Social Login Cards).
 class SocialLoginButton extends StatelessWidget {
@@ -25,7 +27,7 @@ class SocialLoginButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(52),
         side: BorderSide(
-          color: isDark ? AppColors.borderSubtle : const Color(0xFFE5E5EF),
+          color: isDark ? AppColors.borderSubtle : AppColors.lightBorder,
         ),
         foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
@@ -39,9 +41,14 @@ class SocialLoginButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(width: 24, height: 24, child: Center(child: leading)),
-                const SizedBox(width: 12),
-                Text(label,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(width: Gap.icon),
+                Text(
+                  label,
+                  style: AppTypography.bodyLarge(
+                    context,
+                    weight: FontWeights.semibold,
+                  ),
+                ),
               ],
             ),
     );
@@ -54,12 +61,12 @@ class GoogleGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       'G',
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-        color: Color(0xFF4285F4),
+      style: AppTypography.titleLarge(
+        context,
+        color: AppColors.socialGoogleBlue,
+        weight: FontWeights.extrabold,
       ),
     );
   }

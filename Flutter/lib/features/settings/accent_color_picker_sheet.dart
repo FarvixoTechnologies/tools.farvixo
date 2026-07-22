@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/theme_provider.dart';
 import '../../services/settings_sync_service.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import 'settings_widgets.dart';
 
@@ -67,7 +69,7 @@ class _AccentColorPickerSheetState
       const SnackBar(
         content: Text('Color added to your palette'),
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
+        duration: Motion.snackbar,
       ),
     );
   }
@@ -113,25 +115,17 @@ class _AccentColorPickerSheetState
               const SizedBox(height: 16),
               Text(
                 'Accent color',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: p.textPrimary,
-                ),
+                style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold),
               ),
               const SizedBox(height: 4),
               Text(
                 'Pick a preset or create your own color',
-                style: TextStyle(fontSize: 13, color: p.textSecondary),
+                style: AppTypography.bodyMedium(context, color: p.textSecondary),
               ),
               const SizedBox(height: 16),
               Text(
                 'Palette',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: p.textMuted,
-                ),
+                style: AppTypography.bodyMedium(context, color: p.textMuted, weight: FontWeights.bold),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -150,11 +144,7 @@ class _AccentColorPickerSheetState
                 const SizedBox(height: 18),
                 Text(
                   'My colors',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: p.textMuted,
-                  ),
+                  style: AppTypography.bodyMedium(context, color: p.textMuted, weight: FontWeights.bold),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -201,11 +191,7 @@ class _AccentColorPickerSheetState
               const SizedBox(height: 20),
               Text(
                 'Custom color',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: p.textMuted,
-                ),
+                style: AppTypography.bodyMedium(context, color: p.textMuted, weight: FontWeights.bold),
               ),
               const SizedBox(height: 12),
               Row(
@@ -229,14 +215,14 @@ class _AccentColorPickerSheetState
                   Expanded(
                     child: TextField(
                       controller: _hexCtrl,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.w700,
+                      style: AppTypography.mono(
+                        context,
                         color: p.textPrimary,
+                        weight: FontWeights.bold,
                       ),
                       decoration: InputDecoration(
                         prefixText: '# ',
-                        prefixStyle: TextStyle(color: p.textMuted),
+                        prefixStyle: AppTypography.mono(context, color: p.textMuted),
                         labelText: 'Hex',
                         filled: true,
                         fillColor: p.surface2,
@@ -265,7 +251,7 @@ class _AccentColorPickerSheetState
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Hue', style: TextStyle(fontSize: 12, color: p.textMuted)),
+              Text('Hue', style: AppTypography.labelMedium(context, color: p.textMuted)),
               const SizedBox(height: 6),
               _HueSlider(
                 value: _hsv.hue,
@@ -274,7 +260,7 @@ class _AccentColorPickerSheetState
               const SizedBox(height: 12),
               Text(
                 'Saturation',
-                style: TextStyle(fontSize: 12, color: p.textMuted),
+                style: AppTypography.labelMedium(context, color: p.textMuted),
               ),
               const SizedBox(height: 6),
               SliderTheme(
@@ -292,7 +278,7 @@ class _AccentColorPickerSheetState
               ),
               Text(
                 'Brightness',
-                style: TextStyle(fontSize: 12, color: p.textMuted),
+                style: AppTypography.labelMedium(context, color: p.textMuted),
               ),
               const SizedBox(height: 6),
               SliderTheme(
@@ -335,15 +321,18 @@ class _AccentColorPickerSheetState
                       },
                       style: FilledButton.styleFrom(
                         backgroundColor: draft,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.onAccent,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: Radii.brButton,
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Apply',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: AppTypography.bodyLarge(
+                          context,
+                          weight: FontWeights.extrabold,
+                        ),
                       ),
                     ),
                   ),
@@ -384,13 +373,7 @@ class _HueSlider extends StatelessWidget {
                     borderRadius: Radii.brPill,
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFFFF0000),
-                        Color(0xFFFFFF00),
-                        Color(0xFF00FF00),
-                        Color(0xFF00FFFF),
-                        Color(0xFF0000FF),
-                        Color(0xFFFF00FF),
-                        Color(0xFFFF0000),
+                        ...AppColors.hueWheel,
                       ],
                     ),
                   ),
@@ -403,7 +386,7 @@ class _HueSlider extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: HSVColor.fromAHSV(1, value, 1, 1).toColor(),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2.5),
+                      border: Border.all(color: AppColors.onAccent, width: 2.5),
                       boxShadow: const [
                         BoxShadow(blurRadius: 6, color: Colors.black26),
                       ],

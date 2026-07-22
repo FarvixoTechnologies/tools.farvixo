@@ -20,9 +20,12 @@ void main() {
     );
 
     await tester.pump();
-    // Flush LaunchManager minDuration timer before dispose.
-    await tester.pump(const Duration(seconds: 3));
-
     expect(find.text('FARVIXO'), findsWidgets);
+
+    // Flush LaunchManager + splash exit + deferred permission timers.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 2));
+    // Still mounted / no uncaught exception after leaving splash.
+    expect(tester.takeException(), isNull);
   });
 }

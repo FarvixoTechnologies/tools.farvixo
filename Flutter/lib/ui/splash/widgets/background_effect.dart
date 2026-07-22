@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../core/launch/models/splash_config.dart';
+import '../../../theme/app_colors.dart';
 
 /// Animated splash background — deep gradient + floating particle orbs
 /// (LAUNCH & SPLASH SYSTEM v2.0.0, section 7: Particle Systems, Gradient
@@ -30,9 +31,9 @@ class BackgroundEffect extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color.lerp(base, const Color(0xFF1A1040), 0.35)!,
+                  Color.lerp(base, AppColors.violetNight, 0.35)!,
                   base,
-                  Color.lerp(base, Colors.black, 0.35)!,
+                  Color.lerp(base, AppColors.scrim, 0.35)!,
                 ],
               )
             : null,

@@ -14,6 +14,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
 import '../theme/design_tokens.dart';
 import 'animations.dart';
@@ -91,7 +92,7 @@ class GlassPanel extends StatelessWidget {
                 border: Border.all(
                   color: borderColor ??
                       (p.isDark
-                          ? Colors.white.withValues(alpha: 0.06)
+                          ? AppColors.onAccent.withValues(alpha: 0.06)
                           : p.border),
                 ),
               ),

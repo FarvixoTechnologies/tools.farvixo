@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../../theme/app_colors.dart';
+import '../../../../theme/category_colors.dart';
 
 /// The payload categories a scanned/decoded QR (or barcode) can resolve to.
 ///
 /// Kept intentionally small and grounded in what the offline parser can
 /// reliably recognise — every value here is produced by [QrParser] and has a
-/// matching branch in the result UI. Colors reuse the existing category tokens
-/// from [AppColors] so the module needs no new theme surface.
+/// matching branch in the result UI. Colours resolve through [CategoryColors]
+/// so the module needs no theme surface of its own and adapts to light mode.
 enum QrType {
   url,
   wifi,
@@ -53,19 +53,20 @@ enum QrType {
         QrType.text => Icons.notes_rounded,
       };
 
-  /// Accent color drawn from existing brand/category tokens.
-  Color get accent => switch (this) {
-        QrType.url => AppColors.accentDev,
-        QrType.wifi => AppColors.accentDev,
-        QrType.contact => AppColors.brandPrimaryHover,
-        QrType.email => AppColors.accentAi,
-        QrType.sms => AppColors.accentImage,
-        QrType.phone => AppColors.accentImage,
-        QrType.geo => AppColors.accentAudio,
-        QrType.event => AppColors.accentVideo,
-        QrType.upi => AppColors.success,
-        QrType.crypto => AppColors.goldPremium,
-        QrType.appLink => AppColors.brandMagenta,
-        QrType.text => AppColors.accentUtility,
+  /// The category identity this payload type borrows its colour from.
+  CategoryIdentity get identity => switch (this) {
+        QrType.url || QrType.wifi => CategoryColors.dev,
+        QrType.contact => CategoryColors.brand,
+        QrType.email => CategoryColors.ai,
+        QrType.sms || QrType.phone => CategoryColors.image,
+        QrType.geo => CategoryColors.audio,
+        QrType.event => CategoryColors.video,
+        QrType.crypto => CategoryColors.premium,
+        QrType.appLink => CategoryColors.favorite,
+        QrType.upi => CategoryColors.finance,
+        QrType.text => CategoryColors.utility,
       };
+
+  /// Theme-aware accent for this payload type.
+  Color accentOf(BuildContext context) => identity.accentOf(context);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 
@@ -45,7 +46,7 @@ class SettingsSectionTile extends StatelessWidget {
                   Row(
                     children: [
                       if (emoji != null) ...[
-                        Text(emoji!, style: const TextStyle(fontSize: 14)),
+                        Text(emoji!, style: AppTypography.titleSmall(context)),
                         const SizedBox(width: 6),
                       ],
                       Flexible(
@@ -53,12 +54,7 @@ class SettingsSectionTile extends StatelessWidget {
                           title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: p.textPrimary,
-                            letterSpacing: 0.3,
-                          ),
+                          style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.extrabold).copyWith(letterSpacing: 0.3),
                         ),
                       ),
                     ],
@@ -69,7 +65,7 @@ class SettingsSectionTile extends StatelessWidget {
                       subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, color: p.textSecondary),
+                      style: AppTypography.labelSmall(context, color: p.textSecondary),
                     ),
                   ],
                 ],
@@ -87,11 +83,7 @@ class SettingsSectionTile extends StatelessWidget {
                 ),
                 child: Text(
                   '$itemCount',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: p.textSecondary,
-                  ),
+                  style: AppTypography.labelSmall(context, color: p.textSecondary, weight: FontWeights.bold),
                 ),
               ),
             Icon(Icons.chevron_right_rounded, color: p.textMuted, size: 22),
@@ -158,11 +150,7 @@ class SettingsItemTile extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: titleColor,
-                          ),
+                          style: AppTypography.titleSmall(context, color: titleColor, weight: FontWeights.bold),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
@@ -170,10 +158,7 @@ class SettingsItemTile extends StatelessWidget {
                             subtitle!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: p.textSecondary,
-                            ),
+                            style: AppTypography.labelSmall(context, color: p.textSecondary),
                           ),
                         ],
                       ],
@@ -188,13 +173,9 @@ class SettingsItemTile extends StatelessWidget {
                         maxLines: 2,
                         textAlign: TextAlign.end,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: destructive
+                        style: AppTypography.labelMedium(context, color: destructive
                               ? AppColors.error
-                              : AppColors.brandPrimaryHover,
-                        ),
+                              : AppColors.brandPrimaryHover, weight: FontWeights.semibold),
                       ),
                     ),
                     if (onTap != null) ...[
@@ -233,8 +214,8 @@ class SettingsGlowSwitch extends StatelessWidget {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
+        duration: Motion.searchDebounce,
+        curve: Motion.easeOut,
         width: 48,
         height: 27,
         padding: const EdgeInsets.all(3),
@@ -255,14 +236,14 @@ class SettingsGlowSwitch extends StatelessWidget {
               : null,
         ),
         child: AnimatedAlign(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutBack,
+          duration: Motion.searchDebounce,
+          curve: Motion.emphasized,
           alignment: value ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             width: 21,
             height: 21,
             decoration: BoxDecoration(
-              color: value ? Colors.white : AppPalette.of(context).textMuted,
+              color: value ? AppColors.onAccent : AppPalette.of(context).textMuted,
               shape: BoxShape.circle,
             ),
           ),
@@ -291,11 +272,7 @@ class SettingsSoonBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: AppColors.brandPrimaryHover,
-        ),
+        style: AppTypography.caption(context, color: AppColors.brandPrimaryHover, weight: FontWeights.extrabold),
       ),
     );
   }
@@ -324,11 +301,7 @@ class SettingsUnavailableBadge extends StatelessWidget {
           short,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: AppPalette.of(context).textMuted,
-          ),
+          style: AppTypography.caption(context, color: AppPalette.of(context).textMuted, weight: FontWeights.bold),
         ),
       ),
     );
@@ -359,7 +332,7 @@ class AppearanceModeChip extends StatelessWidget {
       borderRadius: Radii.brButton,
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: Motion.base,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: selected
@@ -378,10 +351,10 @@ class AppearanceModeChip extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              style: AppTypography.labelSmall(
+                context,
                 color: selected ? accent : p.textPrimary,
+                weight: selected ? FontWeights.extrabold : FontWeights.semibold,
               ),
             ),
           ],
@@ -409,7 +382,7 @@ class AccentSwatch extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: Motion.base,
         width: 46,
         height: 46,
         decoration: BoxDecoration(
@@ -422,12 +395,12 @@ class AccentSwatch extends StatelessWidget {
             ),
           ],
           border: Border.all(
-            color: Colors.white.withValues(alpha: selected ? .9 : 0),
+            color: AppColors.onAccent.withValues(alpha: selected ? .9 : 0),
             width: 2.5,
           ),
         ),
         child: selected
-            ? const Icon(Icons.check_rounded, color: Colors.white, size: 22)
+            ? const Icon(Icons.check_rounded, color: AppColors.onAccent, size: 22)
             : null,
       ),
     );

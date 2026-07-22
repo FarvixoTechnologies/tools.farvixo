@@ -11,6 +11,7 @@ import '../../theme/design_tokens.dart';
 import '../../utils/validators.dart';
 import '../../widgets/farvixo_logo.dart';
 import '../../widgets/social_login_button.dart';
+import '../../theme/app_typography.dart';
 
 enum _LoginMethod { email, phone }
 
@@ -68,16 +69,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   void initState() {
     super.initState();
     _bgController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 24))
+        AnimationController(vsync: this, duration: Motion.ambient)
           ..repeat();
     _introController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1400))
+        vsync: this, duration: Motion.shimmer)
       ..forward();
     _pulseController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2200))
+        vsync: this, duration: Motion.breathe)
       ..repeat(reverse: true);
     _shakeController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
+        vsync: this, duration: Motion.page);
     _checkBiometrics();
   }
 
@@ -246,7 +247,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final end = (start + 0.45).clamp(0.0, 1.0);
     final curved = CurvedAnimation(
       parent: _introController,
-      curve: Interval(start, end, curve: Curves.easeOutCubic),
+      curve: Interval(start, end, curve: Motion.easeOut),
     );
     return FadeTransition(
       opacity: curved,
@@ -271,7 +272,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         : (_otpSent ? 'Verify & Sign In' : 'Send Code');
 
     return Scaffold(
-      backgroundColor: const Color(0xFF05010F),
+      backgroundColor: AppColors.bgDeep,
       body: Stack(
         children: [
           // ================= animated background =================
@@ -346,10 +347,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         const SizedBox(height: 8),
                         _entrance(
                           index: 2,
-                          child: const Text(
+                          child: Text(
                             'Sign in to continue to Farvixo',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppColors.textSecondary),
+                            style: AppTypography.bodyLarge(context, color: AppColors.textSecondary),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -372,13 +373,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   color: AppColors.brandPrimary
                                       .withValues(alpha: .10),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '🔒 Next-Gen Security',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFC4B5FD),
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: AppTypography.labelMedium(context, color: AppColors.violet300, weight: FontWeights.semibold),
                                 ),
                               ),
                             ),
@@ -410,8 +407,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 offset: Offset(dx, 0), child: child);
                           },
                           child: AnimatedSize(
-                            duration: const Duration(milliseconds: 350),
-                            curve: Curves.easeOutCubic,
+                            duration: Motion.slow,
+                            curve: Motion.easeOut,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -476,9 +473,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                               onChanged: (v) => setState(() =>
                                                   _rememberMe = v ?? true),
                                             ),
-                                            const Text('Remember me',
+                                            Text('Remember me',
                                                 style:
-                                                    TextStyle(fontSize: 13)),
+                                                    AppTypography.bodyMedium(context)),
                                             const Spacer(),
                                             TextButton(
                                               onPressed: () => context
@@ -578,7 +575,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         const SizedBox(height: 24),
                         _entrance(
                           index: 8,
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(child: Divider()),
                               Padding(
@@ -586,11 +583,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                     EdgeInsets.symmetric(horizontal: 12),
                                 child: Text(
                                   'OR CONTINUE WITH',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    letterSpacing: 1.2,
-                                    color: AppColors.textMuted,
-                                  ),
+                                  style: AppTypography.labelSmall(context, color: AppColors.textMuted).copyWith(letterSpacing: 1.2),
                                 ),
                               ),
                               Expanded(child: Divider()),
@@ -657,9 +650,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 "Don't have an account?",
-                                style: TextStyle(
+                                style: AppTypography.bodyLarge(context,
                                     color: AppColors.textSecondary),
                               ),
                               TextButton(
@@ -676,16 +669,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             children: [
                               TextButton(
                                 onPressed: () {},
-                                child: const Text('Privacy Policy',
-                                    style: TextStyle(fontSize: 12)),
+                                child: Text('Privacy Policy',
+                                    style: AppTypography.labelMedium(context)),
                               ),
-                              const Text('•',
+                              Text('•',
                                   style:
-                                      TextStyle(color: AppColors.textMuted)),
+                                      AppTypography.bodyLarge(context, color: AppColors.textMuted)),
                               TextButton(
                                 onPressed: () {},
-                                child: const Text('Terms & Conditions',
-                                    style: TextStyle(fontSize: 12)),
+                                child: Text('Terms & Conditions',
+                                    style: AppTypography.labelMedium(context)),
                               ),
                             ],
                           ),
@@ -721,10 +714,10 @@ class _ShimmerTitle extends StatelessWidget {
         return ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
             colors: const [
-              Color(0xFF8B5CF6),
-              Color(0xFFEC4899),
-              Color(0xFF22D3EE),
-              Color(0xFF8B5CF6),
+              AppColors.brandPrimaryHover,
+              AppColors.accentPink,
+              AppColors.accentCyanBright,
+              AppColors.brandPrimaryHover,
             ],
             transform: GradientRotation(shift * .05),
             tileMode: TileMode.mirror,
@@ -732,12 +725,7 @@ class _ShimmerTitle extends StatelessWidget {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: .5,
-            ),
+            style: AppTypography.headlineLarge(context, color: AppColors.onAccent, weight: FontWeights.extrabold).copyWith(letterSpacing: .5),
           ),
         );
       },
@@ -833,10 +821,10 @@ class _MethodCardState extends State<_MethodCard> {
       },
       child: AnimatedScale(
         scale: _pressed ? .93 : 1,
-        duration: const Duration(milliseconds: 120),
+        duration: Motion.fast,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
+          duration: Motion.slow,
+          curve: Motion.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             borderRadius: Radii.brCard,
@@ -875,16 +863,16 @@ class _MethodCardState extends State<_MethodCard> {
                 Icon(d.icon,
                     size: 26,
                     color: d.selected
-                        ? Colors.white
+                        ? AppColors.onAccent
                         : AppColors.textSecondary),
               const SizedBox(height: 8),
               Text(
                 d.label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: d.selected ? FontWeight.w700 : FontWeight.w500,
+                style: AppTypography.bodySmall(
+                  context,
                   color:
-                      d.selected ? Colors.white : AppColors.textSecondary,
+                      d.selected ? AppColors.onAccent : AppColors.textSecondary,
+                  weight: d.selected ? FontWeights.bold : FontWeights.medium,
                 ),
               ),
             ],
@@ -914,7 +902,7 @@ class _GlowFieldState extends State<_GlowField> {
     return Focus(
       onFocusChange: (f) => setState(() => _focused = f),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: Motion.slow,
         decoration: BoxDecoration(
           borderRadius: Radii.brButton,
           boxShadow: _focused
@@ -980,9 +968,9 @@ class _GlowGradientButton extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF3B82F6),
-                  Color(0xFF8B5CF6),
-                  Color(0xFFEC4899),
+                  AppColors.accentDev,
+                  AppColors.brandPrimaryHover,
+                  AppColors.accentPink,
                 ],
               ),
               borderRadius: Radii.brCard,
@@ -994,7 +982,7 @@ class _GlowGradientButton extends StatelessWidget {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.6,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                        valueColor: AlwaysStoppedAnimation(AppColors.onAccent),
                       ),
                     )
                   : Row(
@@ -1002,16 +990,11 @@ class _GlowGradientButton extends StatelessWidget {
                       children: [
                         Text(
                           label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: .3,
-                          ),
+                          style: AppTypography.titleMedium(context, color: AppColors.onAccent, weight: FontWeights.bold).copyWith(letterSpacing: .3),
                         ),
                         const SizedBox(width: 8),
                         const Icon(Icons.arrow_forward_rounded,
-                            color: Colors.white, size: 20),
+                            color: AppColors.onAccent, size: 20),
                       ],
                     ),
             ),
@@ -1046,7 +1029,7 @@ class _BiometricButton extends StatelessWidget {
         icon: Icon(
           Icons.fingerprint_rounded,
           color: Color.lerp(AppColors.brandPrimaryHover,
-              const Color(0xFFEC4899), pulse.value),
+              AppColors.accentPink, pulse.value),
         ),
         label: const Text('Sign in with biometrics'),
       ),
@@ -1080,15 +1063,15 @@ class _AuthBackgroundPainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 90);
     final drift = math.sin(t * 2 * math.pi) * 40;
 
-    orbPaint.color = const Color(0xFF6D28D9).withValues(alpha: .30);
+    orbPaint.color = AppColors.violet700.withValues(alpha: .30);
     canvas.drawCircle(
         Offset(size.width * .12 + drift, size.height * .10), 150, orbPaint);
 
-    orbPaint.color = const Color(0xFFBE185D).withValues(alpha: .22);
+    orbPaint.color = AppColors.pinkDeep.withValues(alpha: .22);
     canvas.drawCircle(
         Offset(size.width * .92 - drift, size.height * .88), 160, orbPaint);
 
-    orbPaint.color = const Color(0xFF1D4ED8).withValues(alpha: .16);
+    orbPaint.color = AppColors.blueDeep.withValues(alpha: .16);
     canvas.drawCircle(
         Offset(size.width * .80 + drift * .5, size.height * .35), 120, orbPaint);
 
@@ -1098,7 +1081,7 @@ class _AuthBackgroundPainter extends CustomPainter {
       final y = (pt.y - t * pt.speed) % 1.0;
       final twinkle =
           .25 + (math.sin(t * 40 * pt.speed + pt.phase) + 1) / 2 * .55;
-      p.color = (pt.pink ? const Color(0xFFEC4899) : const Color(0xFFA78BFA))
+      p.color = (pt.pink ? AppColors.accentPink : AppColors.violet400)
           .withValues(alpha: twinkle);
       canvas.drawCircle(
           Offset(pt.x * size.width, y * size.height), pt.r, p);

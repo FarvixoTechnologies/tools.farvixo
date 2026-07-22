@@ -9,6 +9,7 @@ import '../../theme/design_tokens.dart';
 import '../../utils/validators.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
+import '../../theme/app_typography.dart';
 
 enum _ResetStep { email, code, newPassword, done }
 
@@ -149,10 +150,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                         _ResetStep.code => 'Enter the code',
                                         _ => 'Create a new password',
                                       },
-                                      style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w800,
-                                          color: p.textPrimary),
+                                      style: AppTypography.headlineSmall(context, color: p.textPrimary, weight: FontWeights.extrabold),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
@@ -164,8 +162,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                         _ =>
                                           'Choose a strong password you haven\'t used before.',
                                       },
-                                      style: TextStyle(
-                                          color: p.textSecondary, height: 1.4),
+                                      style: AppTypography.bodyLarge(context,
+                                          color: p.textSecondary).copyWith(height: 1.4),
                                     ),
                                     const SizedBox(height: 24),
                                     if (_step == _ResetStep.email)
@@ -294,15 +292,12 @@ class _SuccessView extends StatelessWidget {
           const SizedBox(height: 24),
           Text('Password updated',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: p.textPrimary)),
+              style: AppTypography.headlineSmall(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           const SizedBox(height: 8),
           Text(
             'Your password has been changed. Sign in with your new password.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: p.textSecondary, height: 1.4),
+            style: AppTypography.bodyLarge(context, color: p.textSecondary).copyWith(height: 1.4),
           ),
           const SizedBox(height: 28),
           PrimaryButton(label: 'Back to Sign In', onPressed: onDone),

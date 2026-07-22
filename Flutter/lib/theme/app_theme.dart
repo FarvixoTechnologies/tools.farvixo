@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_typography.dart';
 import 'design_tokens.dart';
 
 class AppTheme {
@@ -75,26 +76,21 @@ class AppTheme {
     final isDark = base.brightness == Brightness.dark;
     final borderColor =
         isDark ? AppColors.borderSubtle : AppColors.lightBorder;
-    final weight = boldText ? FontWeight.w700 : FontWeight.w400;
+    // Single source of truth for the type ramp — see app_typography.dart.
+    // `boldText` bumps body/label weights for the accessibility preference
+    // without changing the metric scale.
+    final textTheme = AppTypography.textTheme(
+      color: cs.onSurface,
+      boldText: boldText,
+    );
     return base.copyWith(
-      textTheme: base.textTheme.apply(
-        bodyColor: cs.onSurface,
-        displayColor: cs.onSurface,
-      ).copyWith(
-        bodyLarge: base.textTheme.bodyLarge?.copyWith(fontWeight: weight),
-        bodyMedium: base.textTheme.bodyMedium?.copyWith(fontWeight: weight),
-        bodySmall: base.textTheme.bodySmall?.copyWith(fontWeight: weight),
-        titleMedium:
-            base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-      ),
+      textTheme: textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: base.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(
+        titleTextStyle: AppTypography.titleLargeStyle.copyWith(
           color: cs.onSurface,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
         ),
       ),
       cardTheme: CardThemeData(
@@ -114,7 +110,8 @@ class AppTheme {
           shape: const RoundedRectangleBorder(
             borderRadius: Radii.brSm,
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: AppTypography.bodyLargeStyle
+              .copyWith(fontWeight: FontWeights.semibold),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -125,7 +122,8 @@ class AppTheme {
           shape: const RoundedRectangleBorder(
             borderRadius: Radii.brSm,
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: AppTypography.bodyLargeStyle
+              .copyWith(fontWeight: FontWeights.semibold),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -148,7 +146,7 @@ class AppTheme {
           borderRadius: Radii.brSm,
           borderSide: BorderSide(color: accent, width: 2),
         ),
-        hintStyle: TextStyle(
+        hintStyle: AppTypography.bodyMediumStyle.copyWith(
             color: isDark ? AppColors.textMuted : AppColors.lightTextMuted),
       ),
       dividerTheme: DividerThemeData(color: borderColor, thickness: 1),
@@ -158,7 +156,8 @@ class AppTheme {
         // (that showed up as a black bar with invisible text).
         backgroundColor: isDark ? AppColors.bgSurface2 : AppColors.lightSurface,
         elevation: 6,
-        contentTextStyle: TextStyle(color: cs.onSurface),
+        contentTextStyle:
+            AppTypography.bodyMediumStyle.copyWith(color: cs.onSurface),
         shape: RoundedRectangleBorder(
           borderRadius: Radii.brButton,
           side: BorderSide(color: borderColor),
@@ -168,7 +167,7 @@ class AppTheme {
         backgroundColor: isDark ? AppColors.bgSurface : AppColors.lightSurface,
         indicatorColor: accent.withValues(alpha: 0.18),
         labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(fontSize: 12, color: cs.onSurface),
+          AppTypography.labelMediumStyle.copyWith(color: cs.onSurface),
         ),
       ),
     );

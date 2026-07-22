@@ -11,10 +11,14 @@ import '../../providers/tool_repository_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/tool_card.dart';
+import '../upload/domain/upload_status.dart';
+import '../upload/presentation/upload_layout.dart';
+import '../upload/presentation/widgets/lightning_hero.dart';
 import 'engine/tool_engine.dart';
 import 'engine/tool_execution.dart';
 import 'engine/tool_io_service.dart';
@@ -92,6 +96,17 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
 
   ToolEngine? get _engine =>
       ref.read(toolEngineRegistryProvider).forSlug(widget.toolId);
+
+  /// Line under the stage before anything is picked: what to tap, and what
+  /// the tool accepts.
+  String _pickHint(ToolSpec spec) {
+    final verb = spec.multiFile ? 'Tap to select files' : 'Tap to select a file';
+    final formats = spec.allowedExtensions;
+    if (formats == null || formats.isEmpty) {
+      return '$verb · processed on your device';
+    }
+    return '$verb\n${formats.map((e) => e.toUpperCase()).join(' · ')} · on-device';
+  }
 
   Future<void> _pick() async {
     final engine = _engine;
@@ -346,16 +361,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(tool.name,
-                                        style: TextStyle(
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.w800,
-                                            color: p.textPrimary)),
+                                        style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
                                     const SizedBox(height: 3),
                                     Text(tool.description,
-                                        style: TextStyle(
-                                            fontSize: 12.5,
-                                            height: 1.35,
-                                            color: p.textSecondary)),
+                                        style: AppTypography.bodySmall(context, color: p.textSecondary).copyWith(height: 1.35)),
                                   ],
                                 ),
                               ),
@@ -448,18 +457,18 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                 borderRadius: Radii.brTile,
                 boxShadow: Elevations.accentGlow(accent),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.qr_code_scanner_rounded,
-                      color: Colors.white, size: 22),
-                  SizedBox(width: 10),
+                  const Icon(Icons.qr_code_scanner_rounded,
+                      color: AppColors.onAccent, size: 22),
+                  const SizedBox(width: Space.s10),
                   Text(
                     'Scan Live with Camera',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                    style: AppTypography.titleSmall(
+                      context,
+                      color: AppColors.onAccent,
+                      weight: FontWeights.extrabold,
                     ),
                   ),
                 ],
@@ -474,7 +483,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   'or scan from a photo',
-                  style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                  style: AppTypography.labelSmall(context, color: p.textMuted),
                 ),
               ),
               Expanded(child: Divider(color: p.border)),
@@ -482,69 +491,21 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           ),
           const SizedBox(height: 14),
         ],
+        // Lightning stage, shared by every engine-backed tool. The screen owns
+        // picking (via ToolIoService) — the stage is the surface and the
+        // status readout, so on-device tools never touch the upload queue.
         if (spec.needsFile)
-          PressableScale(
-            onTap: _pick,
-            child: AnimatedContainer(
-              duration: Motion.base,
-              curve: Motion.standard,
-              height: 184,
-              decoration: BoxDecoration(
-                borderRadius: Radii.brPanel,
-                border: Border.all(
-                  color: hasFiles ? AppColors.success : accent,
-                  width: 1.5,
-                ),
-                color: (hasFiles ? AppColors.success : accent)
-                    .withValues(alpha: .06),
-                boxShadow: [
-                  BoxShadow(
-                      color: (hasFiles ? AppColors.success : accent)
-                          .withValues(alpha: .18),
-                      blurRadius: 24),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedSwitcher(
-                    duration: Motion.fast,
-                    transitionBuilder: (child, anim) =>
-                        ScaleTransition(scale: anim, child: child),
-                    child: Icon(
-                      hasFiles
-                          ? Icons.check_circle_rounded
-                          : Icons.cloud_upload_rounded,
-                      key: ValueKey(hasFiles),
-                      size: 50,
-                      color: hasFiles ? AppColors.success : accent,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    hasFiles
-                        ? (_files.length == 1
-                            ? _files.first.name
-                            : '${_files.length} files selected')
-                        : (spec.multiFile
-                            ? 'Tap to select files'
-                            : 'Tap to select a file'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: p.textPrimary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    spec.allowedExtensions == null
-                        ? 'Processed privately on your device'
-                        : '${spec.allowedExtensions!.map((e) => e.toUpperCase()).join(', ')} • on-device',
-                    style: TextStyle(fontSize: 12, color: p.textMuted),
-                  ),
-                ],
-              ),
+          SizedBox(
+            height: UploadMetrics.of(context).embedded.heroMaxHeight,
+            child: LightningHero(
+              status: hasFiles ? UploadStatus.completed : UploadStatus.idle,
+              metrics: UploadMetrics.of(context).embedded,
+              onTap: _pick,
+              caption: hasFiles
+                  ? (_files.length == 1
+                      ? _files.first.name
+                      : '${_files.length} files selected')
+                  : _pickHint(spec),
             ),
           ),
         if (needsText) ...[
@@ -555,18 +516,18 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
             maxLines: spec.textHint.toLowerCase().contains('password') ? 1 : 3,
             minLines: 1,
             onChanged: (_) => setState(() {}),
-            style: TextStyle(color: p.textPrimary),
+            style: AppTypography.bodyLarge(context, color: p.textPrimary),
             decoration: InputDecoration(
               hintText: spec.textHint,
-              hintStyle: TextStyle(color: p.textMuted),
+              hintStyle: AppTypography.bodyLarge(context, color: p.textMuted),
               filled: true,
               fillColor: p.surface2,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: Radii.brTile,
                 borderSide: BorderSide(color: p.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: Radii.brTile,
                 borderSide: BorderSide(color: p.border),
               ),
             ),
@@ -578,20 +539,20 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
             initialValue: _choiceValue ?? spec.choice!.defaultValue,
             isExpanded: true,
             dropdownColor: p.surface,
-            style: TextStyle(color: p.textPrimary, fontSize: 14),
+            style: AppTypography.titleSmall(context, color: p.textPrimary),
             decoration: InputDecoration(
               labelText: spec.choice!.label,
-              labelStyle: TextStyle(color: p.textMuted),
+              labelStyle: AppTypography.bodyMedium(context, color: p.textMuted),
               filled: true,
               fillColor: p.surface2,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: Radii.brTile,
                 borderSide: BorderSide(color: p.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: Radii.brTile,
                 borderSide: BorderSide(color: p.border),
               ),
             ),
@@ -605,7 +566,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         if (spec.takesNoInput) ...[
           Text(
             'Tap below to generate a new value.',
-            style: TextStyle(fontSize: 12.5, color: p.textMuted),
+            style: AppTypography.bodySmall(context, color: p.textMuted),
           ),
           const SizedBox(height: 12),
         ],
@@ -631,7 +592,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
             CircularProgressIndicator(color: accent)
           else
             ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: Radii.brPill,
               child: LinearProgressIndicator(
                 value: fraction,
                 minHeight: 8,
@@ -643,12 +604,12 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           Text(
             stage ?? 'Processing…',
             style:
-                TextStyle(fontWeight: FontWeight.w700, color: p.textPrimary),
+                AppTypography.bodyLarge(context, color: p.textPrimary, weight: FontWeights.bold),
           ),
           if (fraction != null) ...[
             const SizedBox(height: 4),
             Text('${(fraction * 100).round()}%',
-                style: TextStyle(fontSize: 12, color: p.textMuted)),
+                style: AppTypography.labelMedium(context, color: p.textMuted)),
           ],
           const SizedBox(height: 16),
           OutlinedButton(
@@ -675,20 +636,20 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         constraints: const BoxConstraints(maxHeight: 280),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: Radii.brPanel,
           color: p.surface2,
           border: Border.all(color: p.border),
         ),
         child: SingleChildScrollView(
           child: SelectableText(
             result.text!,
-            style: TextStyle(fontSize: 13.5, height: 1.45, color: p.textPrimary),
+            style: AppTypography.bodyMedium(context, color: p.textPrimary).copyWith(height: 1.45),
           ),
         ),
       );
     } else if (isImage && result.bytes != null) {
       resultZone = ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: Radii.brPanel,
         child: Image.memory(
           result.bytes!,
           height: 240,
@@ -700,7 +661,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
       resultZone = Container(
         height: 184,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: Radii.brPanel,
           color: AppColors.success.withValues(alpha: 0.08),
           border: Border.all(color: AppColors.success.withValues(alpha: 0.5)),
           boxShadow: [
@@ -715,10 +676,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                 size: 50, color: AppColors.success),
             const SizedBox(height: 12),
             Text('Done! Your result is ready.',
-                style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: p.textPrimary)),
+                style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           ],
         ),
       );
@@ -732,7 +690,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           const SizedBox(height: 8),
           Text(result.summary!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: p.textMuted)),
+              style: AppTypography.labelMedium(context, color: p.textMuted)),
         ],
         const SizedBox(height: 16),
         Row(
@@ -773,7 +731,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         const SnackBar(
           content: Text('Copied to clipboard'),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: Motion.snackbar,
         ),
       );
     }
@@ -787,7 +745,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: Radii.brPanel,
             color: AppColors.error.withValues(alpha: 0.08),
             border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
           ),
@@ -798,8 +756,8 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
               const SizedBox(height: 10),
               Text(message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: p.textPrimary)),
+                  style: AppTypography.bodyLarge(context,
+                      color: p.textPrimary, weight: FontWeights.bold)),
             ],
           ),
         ),
@@ -824,15 +782,12 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           Icon(Icons.hourglass_top_rounded, size: 44, color: p.accent),
           const SizedBox(height: 12),
           Text('Coming soon on mobile',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  color: p.textPrimary)),
+              style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold)),
           const SizedBox(height: 4),
           Text(
             'This tool isn\'t available on-device yet. You can use it now at tools.farvixo.com.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12.5, height: 1.4, color: p.textMuted),
+            style: AppTypography.bodySmall(context, color: p.textMuted).copyWith(height: 1.4),
           ),
         ],
       ),
@@ -863,13 +818,10 @@ class _HowItWorksRow extends StatelessWidget {
                   GlowIcon(icon: icon, color: accent, size: 46, iconSize: 22),
                   const SizedBox(height: 8),
                   Text(title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: p.textPrimary)),
+                      style: AppTypography.bodyMedium(context, color: p.textPrimary, weight: FontWeights.bold)),
                   Text(subtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, color: p.textMuted)),
+                      style: AppTypography.labelSmall(context, color: p.textMuted)),
                 ],
               ),
             ),

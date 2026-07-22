@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_palette.dart';
+import '../../../theme/app_typography.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../widgets/premium_kit.dart';
 import '../../../widgets/skeletons.dart';
@@ -124,13 +125,10 @@ class _LockedView extends StatelessWidget {
                     icon: Icons.lock_rounded, color: p.accent, size: 72, iconSize: 34),
                 const SizedBox(height: Insets.lg),
                 Text('History locked',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: p.textPrimary)),
+                    style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
                 const SizedBox(height: Insets.sm),
                 Text('Authenticate to view your saved scans.',
-                    style: TextStyle(color: p.textSecondary)),
+                    style: AppTypography.bodyLarge(context, color: p.textSecondary)),
                 const SizedBox(height: Insets.lg),
                 FilledButton.icon(
                   onPressed: busy ? null : onUnlock,
@@ -197,7 +195,7 @@ class _HistoryBodyState extends ConsumerState<_HistoryBody> {
 
   void _onSearch(String v) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 250), () {
+    _debounce = Timer(Motion.searchDebounce, () {
       ref.read(historyQueryProvider.notifier).update((q) => q.copyWith(search: v));
       setState(() => _limit = _pageSize);
     });
@@ -507,7 +505,7 @@ class _HistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    final accent = entry.type.accent;
+    final accent = entry.type.accentOf(context);
 
     final card = Semantics(
       button: true,
@@ -560,11 +558,7 @@ class _HistoryRow extends StatelessWidget {
                             entry.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: p.textPrimary,
-                            ),
+                            style: AppTypography.titleSmall(context, color: p.textPrimary, weight: FontWeights.bold),
                           ),
                         ),
                       ],
@@ -574,7 +568,7 @@ class _HistoryRow extends StatelessWidget {
                       '${entry.type.label} • ${_ago(entry.createdAt)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                      style: AppTypography.labelSmall(context, color: p.textMuted),
                     ),
                   ],
                 ),
@@ -752,11 +746,7 @@ class _ModeTabs extends StatelessWidget {
             child: Text(
               count > 0 ? '$label ($count)' : label,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: active ? Colors.white : p.textSecondary,
-              ),
+              style: AppTypography.bodySmall(context, color: active ? AppColors.onAccent : p.textSecondary, weight: FontWeights.bold),
             ),
           ),
         ),
@@ -781,7 +771,7 @@ class _SearchBar extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        style: TextStyle(color: p.textPrimary, fontSize: 14),
+        style: AppTypography.titleSmall(context, color: p.textPrimary),
         decoration: InputDecoration(
           isDense: true,
           hintText: 'Search history…',
@@ -842,7 +832,7 @@ class _TypeFilterChips extends StatelessWidget {
             _chip(context,
                 label: t.label,
                 icon: t.icon,
-                accent: t.accent,
+                accent: t.accentOf(context),
                 active: selected == t,
                 onTap: () => onSelected(t)),
           ],
@@ -879,11 +869,7 @@ class _TypeFilterChips extends StatelessWidget {
             ],
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: active ? c : p.textSecondary,
-              ),
+              style: AppTypography.labelMedium(context, color: active ? c : p.textSecondary, weight: FontWeights.bold),
             ),
           ],
         ),
@@ -922,11 +908,7 @@ class _SelectionBar extends StatelessWidget {
         ),
         Text(
           '$count selected',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: p.textPrimary,
-          ),
+          style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold),
         ),
         const Spacer(),
         if (mode == HistoryMode.trash)
@@ -985,12 +967,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, Insets.sm, 4, Insets.sm),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
-          color: p.textMuted,
-        ),
+        style: AppTypography.labelSmall(context, color: p.textMuted, weight: FontWeights.extrabold).copyWith(letterSpacing: 0.8),
       ),
     );
   }

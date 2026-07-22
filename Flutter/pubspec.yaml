@@ -80,5 +80,4 @@ flutter:
     - .env
     - .env.example
     - assets/logo/farvixo_logo.png
-    - assets/logo/farvixo_logo.svg
-    - assets/logo/app_icon_1024.png
+    # app_icon_1024.png is macOS/Xcode only — not bundled in mobile APK

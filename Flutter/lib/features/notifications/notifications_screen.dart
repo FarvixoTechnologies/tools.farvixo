@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../services/notification_feed_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_palette.dart';
+import '../../theme/category_colors.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/skeletons.dart';
+import '../../theme/app_typography.dart';
 
 /// Notifications — Supabase feed with offline fallback list.
 class NotificationsScreen extends ConsumerWidget {
@@ -135,7 +137,7 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    final color = _colorFor(item.type);
+    final color = _colorFor(context, item.type);
     return PressableScale(
       onTap: onTap,
       child: GlassCard(
@@ -160,10 +162,7 @@ class _NotificationCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14.5,
-                            ),
+                            style: AppTypography.titleSmall(context, weight: FontWeights.extrabold),
                           ),
                         ),
                         if (!item.isRead)
@@ -181,17 +180,13 @@ class _NotificationCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         item.body!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: p.textSecondary,
-                          height: 1.35,
-                        ),
+                        style: AppTypography.bodyMedium(context, color: p.textSecondary).copyWith(height: 1.35),
                       ),
                     ],
                     const SizedBox(height: 6),
                     Text(
                       _timeLabel(item.createdAt),
-                      style: TextStyle(fontSize: 11.5, color: p.textMuted),
+                      style: AppTypography.labelSmall(context, color: p.textMuted),
                     ),
                   ],
                 ),
@@ -202,10 +197,10 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  static Color _colorFor(String type) {
+  static Color _colorFor(BuildContext context, String type) {
     switch (type) {
       case 'ai':
-        return AppColors.accentAi;
+        return CategoryColors.ai.accentOf(context);
       case 'promo':
         return AppColors.goldPremium;
       case 'security':

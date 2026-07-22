@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
 
 /// Violet→magenta gradient CTA used across splash/onboarding mockups.
 class GradientButton extends StatelessWidget {
@@ -21,48 +24,36 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
     final enabled = onPressed != null;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: Radii.brCard,
         child: Ink(
           width: width ?? double.infinity,
           height: height,
           decoration: BoxDecoration(
-            gradient: enabled
-                ? const LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [Color(0xFF7C3AED), Color(0xFFC026D3), Color(0xFF3B82F6)],
-                  )
-                : null,
-            color: enabled ? null : AppColors.bgSurface2,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: AppColors.brandPrimary.withValues(alpha: 0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
+            gradient: enabled ? AppColors.ctaGradient : null,
+            color: enabled ? null : p.surface2,
+            borderRadius: Radii.brCard,
+            boxShadow:
+                enabled ? Elevations.accentGlow(AppColors.brandPrimary) : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                Icon(icon, color: AppColors.onAccent, size: 20),
+                const SizedBox(width: Gap.icon),
               ],
               Text(
                 label,
-                style: TextStyle(
-                  color: enabled ? Colors.white : AppColors.textMuted,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                style: AppTypography.bodyLarge(
+                  context,
+                  color: enabled ? AppColors.onAccent : p.textMuted,
+                  weight: FontWeights.bold,
                 ),
               ),
             ],

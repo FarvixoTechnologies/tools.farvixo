@@ -2,11 +2,14 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/appearance_layout_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/design_tokens.dart';
+import '../../theme/app_typography.dart';
 
 /// Main shell — 5-tab floating bottom navigation with a center 72dp AI orb
 /// (Settings v5.0: Home • Tools • AI • History • Profile).
@@ -23,8 +26,10 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 2000))
+      vsync: this, duration: Motion.breathe)
     ..repeat(reverse: true);
+
+  DateTime? _lastBackPressed;
 
   @override
   void dispose() {
@@ -36,6 +41,29 @@ class _MainShellState extends ConsumerState<MainShell>
         index,
         initialLocation: index == widget.navigationShell.currentIndex,
       );
+
+  /// Double-back-to-exit for every tab: the first back press shows a hint,
+  /// a second press within 2 seconds exits the app.
+  Future<void> _onBackPressed() async {
+    final now = DateTime.now();
+    final pressedRecently = _lastBackPressed != null &&
+        now.difference(_lastBackPressed!) < Motion.doubleTapExit;
+    _lastBackPressed = now;
+
+    if (pressedRecently) {
+      await SystemNavigator.pop();
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Press back again to exit'),
+          duration: Motion.snackbar,
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +110,7 @@ class _MainShellState extends ConsumerState<MainShell>
       _ => 12 + bottomInset,
     };
 
-    final barFill = (isDark ? AppColors.bgSurface : Colors.white)
+    final barFill = (isDark ? AppColors.bgSurface : AppColors.onAccent)
         .withValues(alpha: layout.bottomBlur
             ? (isDark ? .72 : .86)
             : (isDark ? .97 : .99));
@@ -97,7 +125,7 @@ class _MainShellState extends ConsumerState<MainShell>
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? .5 : .12),
+                  color: AppColors.scrim.withValues(alpha: isDark ? .5 : .12),
                   blurRadius: 24,
                   offset: const Offset(0, 10),
                 ),
@@ -184,13 +212,13 @@ class _MainShellState extends ConsumerState<MainShell>
                                 child: Center(
                                   child: Text(
                                     'AI',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: layout.bottomStyle ==
-                                              BottomNavStyle.minimal
-                                          ? 13
-                                          : 17,
-                                      fontWeight: FontWeight.w900,
+                                    style: (layout.bottomStyle ==
+                                                BottomNavStyle.minimal
+                                            ? AppTypography.bodyMedium(context)
+                                            : AppTypography.titleLarge(context))
+                                        .copyWith(
+                                      color: AppColors.onAccent,
+                                      fontWeight: FontWeights.black,
                                       letterSpacing: .5,
                                     ),
                                   ),
@@ -257,12 +285,23 @@ class _MainShellState extends ConsumerState<MainShell>
       );
     }
 
-    return Scaffold(
-      extendBody: true,
-      body: widget.navigationShell,
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(horizontalPad, 0, horizontalPad, bottomPad),
-        child: bar,
+    return PopScope(
+      // Tabs never pop the shell — back is handled here: double-press within
+      // 2s exits the app. Screens pushed ABOVE the shell (tool pages, search,
+      // settings…) pop normally before this ever runs.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _onBackPressed();
+      },
+      child: Scaffold(
+        extendBody: true,
+        body: widget.navigationShell,
+        bottomNavigationBar: Padding(
+          padding:
+              EdgeInsets.fromLTRB(horizontalPad, 0, horizontalPad, bottomPad),
+          child: bar,
+        ),
       ),
     );
   }
@@ -299,15 +338,15 @@ class _NavItem extends StatelessWidget {
         selected: selected,
         label: label,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: Radii.brPanel,
           onTap: onTap,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedScale(
                 scale: selected ? 1.15 : 1,
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutBack,
+                duration: Motion.base,
+                curve: Motion.emphasized,
                 child: ShaderMask(
                   shaderCallback: (bounds) => (selected
                           ? accentGradient
@@ -317,18 +356,18 @@ class _NavItem extends StatelessWidget {
                   child: Icon(
                     selected ? activeIcon : icon,
                     size: showLabel ? 23 : 26,
-                    color: Colors.white,
+                    color: AppColors.onAccent,
                   ),
                 ),
               ),
               if (showLabel) ...[
                 const SizedBox(height: 3),
                 AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 220),
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  duration: Motion.base,
+                  style: AppTypography.caption(
+                    context,
                     color: selected ? accent : mutedColor,
+                    weight: selected ? FontWeights.extrabold : FontWeights.medium,
                   ),
                   child: Text(label),
                 ),

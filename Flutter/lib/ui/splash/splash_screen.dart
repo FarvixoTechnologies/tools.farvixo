@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,8 +7,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/app_config.dart';
 import '../../core/launch/splash_controller.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/farvixo_logo.dart';
+import '../../theme/design_tokens.dart';
+import '../../theme/app_typography.dart';
 
 /// FARVIXO — Launch & Loading System v3.0
 /// (docs: LAUNCH, LOADING & ONBOARDING SYSTEM — screens 001–005)
@@ -35,10 +39,10 @@ class _Phase {
 }
 
 const _phases = [
-  _Phase('Initializing Farvixo', 'Please wait...', Color(0xFF8B5CF6)),
-  _Phase('Preparing Magic', 'Almost there...', Color(0xFFC026D3)),
-  _Phase('Powering AI Engine', "This won't take long...", Color(0xFF3B82F6)),
-  _Phase('Launching Farvixo', 'Welcome aboard...', Color(0xFFF5B93D)),
+  _Phase('Initializing Farvixo', 'Please wait...', AppColors.brandPrimaryHover),
+  _Phase('Preparing Magic', 'Almost there...', AppColors.brandMagenta),
+  _Phase('Powering AI Engine', "This won't take long...", AppColors.accentDev),
+  _Phase('Launching Farvixo', 'Welcome aboard...', AppColors.goldPremium),
 ];
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
@@ -46,13 +50,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   /// One-shot logo reveal (scale 0 → 100% with elastic pop).
   late final AnimationController _reveal = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: Motion.verySlow,
   );
 
   /// Continuous loop: RGB ring rotation, particles, rays, crown shine.
   late final AnimationController _loop = AnimationController(
     vsync: this,
-    duration: const Duration(seconds: 8),
+    duration: Motion.ambientFast,
   );
 
   bool _exiting = false;
@@ -80,8 +84,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _exitTo(String route) async {
     if (_exiting) return;
     setState(() => _exiting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 420));
-    if (mounted) context.go(route);
+    await Future<void>.delayed(Motion.page);
+    if (!mounted) return;
+    context.go(route);
+    // Ask for notification permission only AFTER the splash has exited and
+    // the destination screen has settled — never as the app's first frame.
+    unawaited(
+      Future<void>.delayed(Motion.refreshDwell).then(
+        (_) => NotificationService.instance.requestPermissionIfNeeded(),
+      ),
+    );
   }
 
   @override
@@ -93,15 +105,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final launch = ref.watch(splashControllerProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF05010F),
+      backgroundColor: AppColors.bgDeep,
       body: AnimatedOpacity(
         opacity: _exiting ? 0 : 1,
-        duration: const Duration(milliseconds: 420),
-        curve: Curves.easeOut,
+        duration: Motion.page,
+        curve: Motion.easeOut,
         child: AnimatedScale(
           scale: _exiting ? 1.08 : 1,
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeOut,
+          duration: Motion.page,
+          curve: Motion.easeOut,
           child: launch.phase == LaunchPhase.error
               ? _ErrorFallback(
                   message: launch.message,
@@ -138,8 +150,8 @@ class _LaunchBody extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       // Smoothly chase the real startup progress so the bar never jumps.
       tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.easeOutCubic,
+      duration: Motion.refreshDwell,
+      curve: Motion.easeOut,
       builder: (context, shown, _) {
         final phaseIndex = (shown * 4).floor().clamp(0, 3);
         final phase = _phases[phaseIndex];
@@ -171,7 +183,7 @@ class _LaunchBody extends StatelessWidget {
                     // ------------------- crown logo + RGB rings -------------------
                     ScaleTransition(
                       scale: CurvedAnimation(
-                          parent: reveal, curve: Curves.elasticOut),
+                          parent: reveal, curve: Motion.elastic),
                       child: FadeTransition(
                         opacity: CurvedAnimation(
                             parent: reveal,
@@ -251,36 +263,25 @@ class _LaunchBody extends StatelessWidget {
                           ShaderMask(
                             shaderCallback: (b) => const LinearGradient(
                               colors: [
-                                Color(0xFFF5B93D),
-                                Color(0xFFF5F5FA),
-                                Color(0xFF8B5CF6),
+                                AppColors.goldPremium,
+                                AppColors.textPrimary,
+                                AppColors.brandPrimaryHover,
                               ],
                             ).createShader(b),
                             child: Text(
                               AppConfig.appName.toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 6,
-                                color: Colors.white,
-                              ),
+                              style: AppTypography.displaySmall(context, color: AppColors.onAccent, weight: FontWeights.black).copyWith(letterSpacing: 6),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'AI POWERED TOOLS ECOSYSTEM',
-                            style: TextStyle(
-                              fontSize: 11,
-                              letterSpacing: 3,
-                              color: Color(0xFF9BA0C2),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTypography.labelSmall(context, color: AppColors.lavender500, weight: FontWeights.semibold).copyWith(letterSpacing: 3),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
+                          Text(
                             'Smart Tools. AI Power. Limitless Possibilities.',
-                            style: TextStyle(
-                                fontSize: 11.5, color: Color(0xFF6B6F8E)),
+                            style: AppTypography.labelSmall(context, color: AppColors.slateMuted),
                           ),
                         ],
                       ),
@@ -294,7 +295,7 @@ class _LaunchBody extends StatelessWidget {
                       child: Column(
                         children: [
                           AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
+                            duration: Motion.slow,
                             transitionBuilder: (child, anim) =>
                                 FadeTransition(
                               opacity: anim,
@@ -311,17 +312,12 @@ class _LaunchBody extends StatelessWidget {
                               children: [
                                 Text(
                                   phase.title,
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white),
+                                  style: AppTypography.titleMedium(context, color: AppColors.onAccent, weight: FontWeights.bold),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   phase.subtitle,
-                                  style: const TextStyle(
-                                      fontSize: 12.5,
-                                      color: Color(0xFF9BA0C2)),
+                                  style: AppTypography.bodySmall(context, color: AppColors.lavender500),
                                 ),
                               ],
                             ),
@@ -329,14 +325,14 @@ class _LaunchBody extends StatelessWidget {
                           const SizedBox(height: 18),
                           // gradient progress bar with glow head
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(99),
+                            borderRadius: Radii.brPill,
                             child: SizedBox(
                               height: 6,
                               child: LayoutBuilder(
                                 builder: (context, c) => Stack(
                                   children: [
                                     Container(
-                                        color: Colors.white
+                                        color: AppColors.onAccent
                                             .withValues(alpha: .08)),
                                     Container(
                                       width: c.maxWidth * shown,
@@ -362,11 +358,7 @@ class _LaunchBody extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             '${(shown * 100).round()}%',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: phase.accent,
-                            ),
+                            style: AppTypography.bodyMedium(context, color: phase.accent, weight: FontWeights.extrabold),
                           ),
                         ],
                       ),
@@ -377,8 +369,7 @@ class _LaunchBody extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 22),
                       child: Text(
                         'Version ${AppConfig.version}',
-                        style: const TextStyle(
-                            fontSize: 11, color: Color(0xFF6B6F8E)),
+                        style: AppTypography.labelSmall(context, color: AppColors.slateMuted),
                       ),
                     ),
                   ],
@@ -410,19 +401,19 @@ class _RgbRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..shader = const SweepGradient(
         colors: [
-          Color(0xFFF5B93D),
-          Color(0xFFEC4899),
-          Color(0xFF8B5CF6),
-          Color(0xFF3B82F6),
-          Color(0xFF22D3EE),
-          Color(0xFFF5B93D),
+          AppColors.goldPremium,
+          AppColors.accentPink,
+          AppColors.brandPrimaryHover,
+          AppColors.accentDev,
+          AppColors.accentCyanBright,
+          AppColors.goldPremium,
         ],
       ).createShader(rect);
     canvas.drawArc(rect, 0, 2 * math.pi, false, ring);
 
     // bright spark at angle 0 (rotation supplied by parent Transform)
     final spark = Paint()
-      ..color = Colors.white
+      ..color = AppColors.onAccent
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(Offset(c.dx + r, c.dy), 5, spark);
   }
@@ -506,7 +497,7 @@ class _GalaxyPainter extends CustomPainter {
           ? AppColors.goldPremium
           : hue > .5
               ? AppColors.brandPrimaryHover
-              : Colors.white;
+              : AppColors.onAccent;
       if (warp) {
         final pos = Offset(x * size.width, y * size.height);
         final dir = pos - center;
@@ -562,20 +553,16 @@ class _ErrorFallback extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Something went wrong!',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+              style: AppTypography.titleLarge(context, color: AppColors.onAccent, weight: FontWeights.extrabold),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF9BA0C2)),
+              style: AppTypography.titleSmall(context, color: AppColors.lavender500),
             ),
             const SizedBox(height: 28),
             FilledButton.icon(

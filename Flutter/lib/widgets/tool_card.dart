@@ -11,6 +11,8 @@ import '../providers/tool_activity_provider.dart';
 import '../providers/tool_repository_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_typography.dart';
+import '../theme/category_colors.dart';
 import '../theme/design_tokens.dart';
 import 'animations.dart';
 
@@ -57,7 +59,7 @@ class ToolCard extends ConsumerWidget {
           const SnackBar(
             content: Text("Couldn't update favorite. Please try again."),
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+            duration: Motion.snackbar,
           ),
         );
       }
@@ -77,7 +79,7 @@ class ToolCard extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(8, 10, 8, 16),
           decoration: BoxDecoration(
             color: p.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: Radii.brPanel,
             border: Border.all(color: p.border),
           ),
           child: Column(
@@ -89,7 +91,7 @@ class ToolCard extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: p.border,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: Radii.brPill,
                 ),
               ),
               ListTile(
@@ -139,7 +141,7 @@ class ToolCard extends ConsumerWidget {
             const SnackBar(
               content: Text('Link copied'),
               behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 2),
+              duration: Motion.snackbar,
             ),
           );
         }
@@ -150,6 +152,10 @@ class ToolCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final category = ref.watch(categoryResolverProvider)(tool.categoryId);
     final p = AppPalette.of(context);
+    // Per-category identity: brightness-aware accent, gradient, tint and glow
+    // so every category reads as a distinct visual family in both themes.
+    final id = CategoryColors.of(tool.categoryId);
+    final accent = id.accentOf(context);
     // select() so a card rebuilds only when ITS own favorite bit flips, not on
     // every favorites-list change.
     final isFavorite = ref.watch(
@@ -168,15 +174,13 @@ class ToolCard extends ConsumerWidget {
             color: p.surface.withValues(alpha: p.isDark ? 0.72 : 0.95),
             borderRadius: Radii.brPanel,
             border: Border.all(
-              color: p.border.withValues(alpha: p.isDark ? 0.9 : 1),
+              color: Color.lerp(
+                p.border.withValues(alpha: p.isDark ? 0.9 : 1),
+                id.border(context),
+                0.55,
+              )!,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: category.color.withValues(alpha: p.isDark ? 0.08 : 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            boxShadow: id.cardShadow(context),
           ),
           child: Padding(
             padding: EdgeInsets.all(compact ? Insets.sm + 4 : Insets.md),
@@ -189,12 +193,13 @@ class ToolCard extends ConsumerWidget {
                       width: compact ? 36 : 40,
                       height: compact ? 36 : 40,
                       decoration: BoxDecoration(
-                        color: category.color.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: id.surfaceGradient(context),
+                        borderRadius: Radii.brButton,
+                        border: Border.all(color: id.border(context)),
                       ),
                       child: Icon(
                         tool.icon,
-                        color: category.color,
+                        color: accent,
                         size: compact ? 18 : 22,
                       ),
                     ),
@@ -228,12 +233,13 @@ class ToolCard extends ConsumerWidget {
                   tool.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: compact ? 12.5 : 15,
-                    height: 1.15,
-                    color: p.textPrimary,
-                  ),
+                  style: compact
+                      ? AppTypography.toolTitle(context, color: p.textPrimary)
+                      : AppTypography.titleSmall(
+                          context,
+                          color: p.textPrimary,
+                          weight: FontWeights.extrabold,
+                        ),
                 ),
                 const SizedBox(height: 4),
                 Expanded(
@@ -241,11 +247,11 @@ class ToolCard extends ConsumerWidget {
                     tool.description,
                     maxLines: compact ? 2 : 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: compact ? 10.5 : 12.5,
-                      height: 1.25,
-                      color: p.textSecondary,
-                    ),
+                    style: compact
+                        ? AppTypography.caption(context,
+                            color: p.textSecondary)
+                        : AppTypography.bodySmall(context,
+                            color: p.textSecondary),
                   ),
                 ),
                 Row(
@@ -256,24 +262,19 @@ class ToolCard extends ConsumerWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: category.color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
+                        color: id.tint(context),
+                        borderRadius: Radii.brPill,
                       ),
                       child: Text(
                         shortCat.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                          color: category.color,
-                        ),
+                        style: AppTypography.overline(context, color: accent),
                       ),
                     ),
                     const Spacer(),
                     Icon(
                       Icons.north_east_rounded,
                       size: 14,
-                      color: p.accent.withValues(alpha: 0.85),
+                      color: accent.withValues(alpha: 0.85),
                     ),
                   ],
                 ),
@@ -294,24 +295,21 @@ class _BadgeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (badge) {
-      ToolBadge.popular => ('POPULAR', AppColors.goldPremium),
+      ToolBadge.popular =>
+        ('POPULAR', CategoryColors.premium.accentOf(context)),
+      // Status colour, not a category — matches the New filter chip in Search.
       ToolBadge.isNew => ('NEW', AppColors.success),
-      ToolBadge.ai => ('AI', AppColors.accentAi),
+      ToolBadge.ai => ('AI', CategoryColors.ai.accentOf(context)),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: Radii.brPill,
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 8,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.3,
-          color: color,
-        ),
+        style: AppTypography.badge(context, color: color),
       ),
     );
   }
