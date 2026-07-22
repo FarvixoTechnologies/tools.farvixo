@@ -119,6 +119,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     try {
       final files = await ref.read(toolIoServiceProvider).pickFiles(engine.spec);
       if (files.isNotEmpty && mounted) {
+        AppHaptics.drop();
         setState(() => _files
           ..clear()
           ..addAll(files));
@@ -684,8 +685,15 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                size: 50, color: AppColors.success),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: Motion.of(context, Motion.verySlow),
+              curve: Motion.curveOf(context, Motion.elastic),
+              builder: (context, t, child) =>
+                  Transform.scale(scale: t, child: child),
+              child: const Icon(Icons.check_circle_rounded,
+                  size: 50, color: AppColors.success),
+            ),
             const SizedBox(height: 12),
             Text('Done! Your result is ready.',
                 style: AppTypography.titleMedium(context, color: p.textPrimary, weight: FontWeights.extrabold)),

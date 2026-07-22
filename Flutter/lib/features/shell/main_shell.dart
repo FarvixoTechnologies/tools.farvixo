@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/appearance_layout_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/premium/command_palette.dart';
 import '../../theme/design_tokens.dart';
 import '../../theme/app_typography.dart';
 
@@ -294,13 +295,26 @@ class _MainShellState extends ConsumerState<MainShell>
         if (didPop) return;
         _onBackPressed();
       },
-      child: Scaffold(
+      child: CallbackShortcuts(
+        // Desktop / web power users: Ctrl+K (or Cmd+K) opens the command
+        // palette from anywhere in the shell.
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyK, control: true): () =>
+              showCommandPalette(context),
+          const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () =>
+              showCommandPalette(context),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
         extendBody: true,
         body: widget.navigationShell,
         bottomNavigationBar: Padding(
           padding:
               EdgeInsets.fromLTRB(horizontalPad, 0, horizontalPad, bottomPad),
           child: bar,
+        ),
+          ),
         ),
       ),
     );
