@@ -65,12 +65,10 @@ class _TiltCardState extends State<TiltCard> {
           onHover: (e) => _update(e.localPosition, size),
           onExit: (_) => _reset(),
           child: GestureDetector(
+            // Press + hover only — no pan handlers, so the card never steals
+            // vertical drags from an enclosing scroll view.
             behavior: HitTestBehavior.opaque,
             onTap: widget.onTap,
-            onPanStart: (d) => _update(d.localPosition, size),
-            onPanUpdate: (d) => _update(d.localPosition, size),
-            onPanEnd: (_) => _reset(),
-            onPanCancel: _reset,
             onTapDown: (d) => _update(d.localPosition, size),
             onTapUp: (_) => _reset(),
             onTapCancel: _reset,

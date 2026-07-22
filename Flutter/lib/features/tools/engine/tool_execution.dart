@@ -1,8 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/app_providers.dart';
+import 'engines/audio_wav_engines.dart';
 import 'engines/calc_engines.dart';
 import 'engines/dev_engines.dart';
+import 'engines/media_extra_engines.dart';
+import 'engines/pending_native_engines.dart';
+import 'engines/video_ffmpeg_engines.dart';
 import 'engines/image_engines.dart';
 import 'engines/image_fx_engines.dart';
 import 'engines/local_util_engines.dart';
@@ -55,6 +59,89 @@ final toolEngineRegistryProvider = Provider<ToolEngineRegistry>((ref) {
     ),
     'pdf-to-image': PdfConverterEngine(lockedTarget: TargetFormat.png),
     'pdf-ocr': PdfOcrEngine(),
+
+    // --- Image extras (pure Dart, on-device) ---
+    'image-watermark': ImageWatermarkEngine(),
+    'meme-generator': MemeGeneratorEngine(),
+    'image-upscaler': ImageUpscalerEngine(),
+
+    // --- Video / audio codecs (ffmpeg, on-device) ---
+    'video-converter': VideoConverterEngine(),
+    'video-compressor': VideoCompressorEngine(),
+    'video-trimmer': VideoTrimmerEngine(),
+    'video-to-gif': VideoToGifEngine(),
+    'gif-to-video': GifToVideoEngine(),
+    'video-merger': VideoMergerEngine(),
+    'video-mute': VideoMuteEngine(),
+    'video-speed': VideoSpeedEngine(),
+    'video-rotate': VideoRotateEngine(),
+    'audio-extractor': AudioExtractorEngine(),
+    'video-thumbnail': VideoThumbnailEngine(),
+    'video-watermark': VideoWatermarkEngine(),
+    'audio-converter': AudioConverterEngine(),
+    'noise-reducer': NoiseReducerEngine(),
+
+    // --- Awaiting native modules (honest, never fake) ---
+    'screen-recorder': PendingNativeEngine(
+      actionLabel: 'Start Recording',
+      reason:
+          'Screen recording needs the system capture module, which ships in the '
+          'next native update. Until then use your device\'s built-in recorder.',
+    ),
+    'audio-recorder': PendingNativeEngine(
+      actionLabel: 'Record',
+      reason:
+          'Microphone recording needs the native recorder module, which ships '
+          'in the next update. Your device\'s voice recorder works meanwhile.',
+    ),
+    'text-to-speech': PendingNativeEngine(
+      actionLabel: 'Speak',
+      needsText: true,
+      textHint: 'Text to speak aloud',
+      reason:
+          'Text-to-speech needs the platform voice module, which ships in the '
+          'next native update.',
+    ),
+    'speech-to-text': PendingNativeEngine(
+      actionLabel: 'Transcribe',
+      needsFile: true,
+      allowedExtensions: ['wav', 'mp3', 'm4a'],
+      reason:
+          'Transcription needs the on-device speech model, which ships in the '
+          'next native update.',
+    ),
+    'image-ocr': PendingNativeEngine(
+      actionLabel: 'Extract Text',
+      needsFile: true,
+      pickFromGallery: true,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+      reason:
+          'Image OCR needs the on-device text-recognition model (ML Kit), '
+          'which ships in the next native update. PDF OCR already works for '
+          'digital PDFs via the PDF OCR tool.',
+    ),
+    'background-remover': PendingNativeEngine(
+      actionLabel: 'Remove Background',
+      needsFile: true,
+      pickFromGallery: true,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+      reason:
+          'Background removal needs the on-device segmentation model (ML Kit), '
+          'which ships in the next native update.',
+    ),
+
+    // --- Subtitles (pure text, on-device) ---
+    'subtitle-tools': SubtitleToolsEngine(),
+
+    // --- Audio (on-device WAV suite; compressed formats need a codec dep) ---
+    'audio-reverse': AudioReverseEngine(),
+    'volume-booster': VolumeBoostEngine(),
+    'audio-speed': AudioSpeedEngine(),
+    'audio-cutter': AudioCutterEngine(),
+    'ringtone-maker': AudioCutterEngine(maxSeconds: 30, suffix: 'ringtone'),
+    'audio-merger': AudioMergerEngine(),
+    'audio-normalizer': AudioNormalizerEngine(),
+    'audio-metadata': AudioMetadataEngine(),
 
     // --- PDF (syncfusion, on-device) ---
     'merge-pdf': MergePdfEngine(),

@@ -9,6 +9,7 @@
 #include <app_links/app_links_plugin_c_api.h>
 #include <cloud_firestore/cloud_firestore_plugin_c_api.h>
 #include <desktop_drop/desktop_drop_plugin.h>
+#include <ffmpeg_kit_flutter_new/f_fmpeg_kit_flutter_plugin.h>
 #include <file_selector_windows/file_selector_windows.h>
 #include <firebase_core/firebase_core_plugin_c_api.h>
 #include <firebase_storage/firebase_storage_plugin_c_api.h>
@@ -24,6 +25,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("CloudFirestorePluginCApi"));
   DesktopDropPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
+  FFmpegKitFlutterPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FFmpegKitFlutterPlugin"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
   FirebaseCorePluginCApiRegisterWithRegistrar(

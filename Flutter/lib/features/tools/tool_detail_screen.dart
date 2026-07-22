@@ -14,11 +14,13 @@ import '../../theme/app_palette.dart';
 import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../theme/tool_identity.dart';
+import '../../widgets/premium/animated_count.dart';
 import '../../widgets/premium/app_haptics.dart';
 import '../../widgets/premium/before_after_slider.dart';
 import '../../widgets/premium/command_palette.dart';
 import '../../widgets/premium/confetti_burst.dart';
 import '../../widgets/premium/progress_ring.dart';
+import '../../widgets/premium/tilt_card.dart';
 import '../../widgets/premium/typewriter_text.dart';
 import '../../widgets/premium/waveform_bars.dart';
 import '../../widgets/premium_kit.dart';
@@ -357,83 +359,141 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ---------- tool identity card ----------
-                      FadeSlideIn(
-                        index: 1,
-                        child: GlassCard(
-                          glowColor: accent,
-                          child: Row(
-                            children: [
-                              GlowIcon(
-                                icon: tool.icon,
-                                color: accent,
-                                size: 58,
-                                iconSize: 30,
-                                radius: 16,
+                child: Builder(builder: (context) {
+                  final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+                  // ---------- tool identity card (tilts toward the pointer) ----------
+                  final identityCard = FadeSlideIn(
+                    index: 1,
+                    child: TiltCard(
+                      child: GlassCard(
+                        glowColor: accent,
+                        child: Row(
+                          children: [
+                            GlowIcon(
+                              icon: tool.icon,
+                              color: accent,
+                              size: 58,
+                              iconSize: 30,
+                              radius: 16,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(tool.name,
+                                      style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
+                                  const SizedBox(height: 3),
+                                  Text(tool.description,
+                                      style: AppTypography.bodySmall(context, color: p.textSecondary).copyWith(height: 1.35)),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(tool.name,
-                                        style: AppTypography.titleLarge(context, color: p.textPrimary, weight: FontWeights.extrabold)),
-                                    const SizedBox(height: 3),
-                                    Text(tool.description,
-                                        style: AppTypography.bodySmall(context, color: p.textSecondary).copyWith(height: 1.35)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      // ---------- workspace ----------
-                      FadeSlideIn(
-                          index: 2, child: _buildWorkspace(accent, p)),
-                      const SizedBox(height: 26),
-                      // ---------- how it works ----------
+                    ),
+                  );
+
+                  final workspace =
+                      FadeSlideIn(index: 2, child: _buildWorkspace(accent, p));
+
+                  final howSection = Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                       FadeSlideIn(
                         index: 3,
                         child: const PremiumSectionHead(title: 'How it works'),
                       ),
                       FadeSlideIn(
                           index: 3, child: _HowItWorksRow(accent: accent)),
-                      const SizedBox(height: 8),
-                      // ---------- related ----------
-                      if (related.isNotEmpty) ...[
-                        FadeSlideIn(
-                          index: 4,
-                          child: const PremiumSectionHead(
-                              title: 'Related tools'),
-                        ),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 1.35,
-                          ),
-                          itemCount: related.length,
-                          itemBuilder: (context, i) => FadeSlideIn(
-                            index: 4 + i,
-                            child: ToolCard(tool: related[i]),
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
-                ),
+                  );
+
+                  final relatedSection = related.isEmpty
+                      ? const SizedBox.shrink()
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FadeSlideIn(
+                              index: 4,
+                              child: const PremiumSectionHead(
+                                  title: 'Related tools'),
+                            ),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1.35,
+                              ),
+                              itemCount: related.length,
+                              itemBuilder: (context, i) => FadeSlideIn(
+                                index: 4 + i,
+                                child: ToolCard(tool: related[i]),
+                              ),
+                            ),
+                          ],
+                        );
+
+                  // Phone: single column. Tablet/desktop: workspace left,
+                  // guidance + related tools right — no wasted width.
+                  final body = isWide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  identityCard,
+                                  const SizedBox(height: 18),
+                                  workspace,
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  howSection,
+                                  const SizedBox(height: 8),
+                                  relatedSection,
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            identityCard,
+                            const SizedBox(height: 18),
+                            workspace,
+                            const SizedBox(height: 26),
+                            howSection,
+                            const SizedBox(height: 8),
+                            relatedSection,
+                          ],
+                        );
+
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1100),
+                        child: body,
+                      ),
+                    ),
+                  );
+                }),
               ),
             ],
           ),
@@ -666,25 +726,38 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
 
     Widget resultZone;
     if (result.kind == ToolResultKind.text && result.text != null) {
-      // AI tools get a live-stream typewriter reveal; utility tools (JSON,
-      // hash, encoders…) show instantly — waiting there would be friction.
+      // AI tools get a live-stream typewriter reveal; dev/text/utility tools
+      // (JSON, hash, encoders…) render instantly in monospace with animated
+      // stats — waiting there would be friction.
       final isAiTool = _inCategory('ai');
-      final textStyle = AppTypography.bodyMedium(context, color: p.textPrimary)
-          .copyWith(height: 1.45);
-      resultZone = Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxHeight: 280),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: Radii.brPanel,
-          color: p.surface2,
-          border: Border.all(color: p.border),
-        ),
-        child: SingleChildScrollView(
-          child: isAiTool
-              ? TypewriterText(text: result.text!, style: textStyle)
-              : SelectableText(result.text!, style: textStyle),
-        ),
+      final isCode =
+          _inCategory('dev') || _inCategory('text') || _inCategory('utility');
+      final text = result.text!;
+      final textStyle = isCode
+          ? AppTypography.monoStyle
+              .copyWith(color: p.textPrimary, fontSize: 13, height: 1.5)
+          : AppTypography.bodyMedium(context, color: p.textPrimary)
+              .copyWith(height: 1.45);
+      resultZone = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isCode) _textStatsRow(text, p),
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 280),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: Radii.brPanel,
+              color: p.surface2,
+              border: Border.all(color: p.border),
+            ),
+            child: SingleChildScrollView(
+              child: isAiTool
+                  ? TypewriterText(text: text, style: textStyle)
+                  : SelectableText(text, style: textStyle),
+            ),
+          ),
+        ],
       );
     } else if (isImage && result.bytes != null) {
       // When the input was also an image, upgrade the plain preview to an
@@ -785,6 +858,51 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Animated chips over code/text output: characters, words, lines roll up
+  /// as the result lands.
+  Widget _textStatsRow(String text, AppPalette p) {
+    final trimmed = text.trim();
+    final words =
+        trimmed.isEmpty ? 0 : trimmed.split(RegExp(r'\s+')).length;
+    final lines = '\n'.allMatches(text).length + 1;
+
+    Widget chip(String label, int value) => Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Insets.smd, vertical: Insets.xs),
+          decoration: BoxDecoration(
+            color: p.surface2,
+            borderRadius: Radii.brPill,
+            border: Border.all(color: p.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedCount(
+                value: value.toDouble(),
+                style: AppTypography.labelMedium(context,
+                    color: p.textPrimary, weight: FontWeights.bold),
+              ),
+              Text(' $label',
+                  style:
+                      AppTypography.labelMedium(context, color: p.textMuted)),
+            ],
+          ),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Insets.sm),
+      child: Wrap(
+        spacing: Insets.sm,
+        runSpacing: Insets.xs,
+        children: [
+          chip('chars', text.length),
+          chip('words', words),
+          chip('lines', lines),
+        ],
+      ),
     );
   }
 

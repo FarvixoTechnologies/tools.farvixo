@@ -118,6 +118,31 @@ Consistency
 
 Reusable components
 
+Tool Engines (see TOOL ENGINE COMPLETION below)
+
+---
+
+# TOOL ENGINE COMPLETION
+
+EXCEPTION to the business-logic freeze above: on-device tool engines
+(lib/features/tools/engine/**) ARE in scope and MUST be completed.
+
+Target: every tool in tools_data.dart has a registered engine.
+No tool may show "Coming soon".
+
+Rules:
+
+• New engines follow the existing LocalToolEngine / RemoteToolEngine pattern
+  and are registered ONLY in toolEngineRegistryProvider.
+• Prefer pure-Dart implementations with existing dependencies
+  (image, syncfusion_flutter_pdf, archive, crypto, pdfrx).
+• A new dependency may be added when a category is impossible without it
+  (e.g. ffmpeg for video/audio codecs) — document it in the commit message.
+• Engines that genuinely require external credentials, a backend endpoint,
+  or an ML model that is not available yet must fail honestly with a clear
+  in-result message — never fake output.
+• Auth / Supabase / Firebase / payments / quota / routes remain frozen.
+
 ---
 
 # PROJECT TARGET
