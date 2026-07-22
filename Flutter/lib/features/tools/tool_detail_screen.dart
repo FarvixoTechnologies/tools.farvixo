@@ -15,6 +15,8 @@ import '../../theme/app_typography.dart';
 import '../../theme/design_tokens.dart';
 import '../../theme/tool_identity.dart';
 import '../../widgets/premium/app_haptics.dart';
+import '../../widgets/premium/before_after_slider.dart';
+import '../../widgets/premium/command_palette.dart';
 import '../../widgets/premium/confetti_burst.dart';
 import '../../widgets/premium/progress_ring.dart';
 import '../../widgets/premium_kit.dart';
@@ -346,6 +348,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
                       CircleGlassButton(
                         icon: Icons.search_rounded,
                         onTap: () => context.push('/search'),
+                        onLongPress: () => showCommandPalette(context),
                       ),
                     ],
                   ),
@@ -661,15 +664,24 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         ),
       );
     } else if (isImage && result.bytes != null) {
-      resultZone = ClipRRect(
-        borderRadius: Radii.brPanel,
-        child: Image.memory(
-          result.bytes!,
-          height: 240,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-      );
+      // When the input was also an image, upgrade the plain preview to an
+      // interactive before/after slider — drag to compare original vs result.
+      final inputBytes = _firstImageInputBytes();
+      resultZone = inputBytes != null
+          ? BeforeAfterSlider(
+              before: Image.memory(inputBytes, fit: BoxFit.cover),
+              after: Image.memory(result.bytes!, fit: BoxFit.cover),
+              borderRadius: Radii.brPanel,
+            )
+          : ClipRRect(
+              borderRadius: Radii.brPanel,
+              child: Image.memory(
+                result.bytes!,
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            );
     } else {
       resultZone = Container(
         height: 184,
@@ -751,6 +763,18 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         ),
       ],
     );
+  }
+
+  /// Bytes of the first picked file when it is an image (by mime, falling
+  /// back to extension), else null — gates the before/after comparison.
+  Uint8List? _firstImageInputBytes() {
+    if (_files.isEmpty) return null;
+    final f = _files.first;
+    final mime = f.mime;
+    if (mime != null) return mime.startsWith('image/') ? f.bytes : null;
+    final name = f.name.toLowerCase();
+    const exts = ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif'];
+    return exts.any(name.endsWith) ? f.bytes : null;
   }
 
   Future<void> _copy(String text) async {

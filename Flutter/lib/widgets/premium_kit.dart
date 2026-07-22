@@ -215,11 +215,16 @@ class CircleGlassButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.onTap,
+    this.onLongPress,
     this.badge,
   });
 
   final IconData icon;
   final VoidCallback onTap;
+
+  /// Optional secondary action (e.g. long-press search → command palette).
+  final VoidCallback? onLongPress;
+
   final String? badge;
 
   @override
@@ -231,6 +236,7 @@ class CircleGlassButton extends StatelessWidget {
         InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Container(
             width: 42,
             height: 42,
