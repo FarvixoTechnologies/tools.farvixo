@@ -371,26 +371,28 @@ class PremiumEmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [
-                    color.withValues(alpha: .22),
-                    AppColors.brandMagenta.withValues(alpha: .12),
-                  ]),
-                  border: Border.all(color: color.withValues(alpha: .35)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: color.withValues(alpha: .25), blurRadius: 30),
-                  ],
+              _Breathe(
+                child: Container(
+                  width: 104,
+                  height: 104,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [
+                      color.withValues(alpha: .22),
+                      AppColors.brandMagenta.withValues(alpha: .12),
+                    ]),
+                    border: Border.all(color: color.withValues(alpha: .35)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: color.withValues(alpha: .25), blurRadius: 30),
+                    ],
+                  ),
+                  child: emoji != null
+                      ? Center(
+                          child: Text(emoji!,
+                              style: AppTypography.displayMediumStyle))
+                      : Icon(icon, size: 46, color: color),
                 ),
-                child: emoji != null
-                    ? Center(
-                        child: Text(emoji!,
-                            style: AppTypography.displayMediumStyle))
-                    : Icon(icon, size: 46, color: color),
               ),
               const SizedBox(height: 20),
               Text(title,
@@ -444,6 +446,51 @@ class _GradientButton extends StatelessWidget {
                 color: AppColors.onAccent,
                 weight: FontWeights.extrabold)),
       ),
+    );
+  }
+}
+
+/// Slow breathing scale loop for hero/empty-state icons — barely perceptible,
+/// but the screen never feels dead. Freezes under reduce-motion.
+class _Breathe extends StatefulWidget {
+  const _Breathe({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_Breathe> createState() => _BreatheState();
+}
+
+class _BreatheState extends State<_Breathe>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim =
+      AnimationController(vsync: this, duration: Motion.breathe);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (Motion.reduced(context)) {
+      if (_anim.isAnimating) _anim.stop();
+    } else if (!_anim.isAnimating) {
+      _anim.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        final t = Curves.easeInOut.transform(_anim.value);
+        return Transform.scale(scale: 1 + t * 0.04, child: child);
+      },
+      child: widget.child,
     );
   }
 }

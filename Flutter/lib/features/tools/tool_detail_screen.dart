@@ -19,6 +19,7 @@ import '../../widgets/premium/before_after_slider.dart';
 import '../../widgets/premium/command_palette.dart';
 import '../../widgets/premium/confetti_burst.dart';
 import '../../widgets/premium/progress_ring.dart';
+import '../../widgets/premium/typewriter_text.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/tool_card.dart';
@@ -647,6 +648,12 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
 
     Widget resultZone;
     if (result.kind == ToolResultKind.text && result.text != null) {
+      // AI tools get a live-stream typewriter reveal; utility tools (JSON,
+      // hash, encoders…) show instantly — waiting there would be friction.
+      final isAiTool = ToolsData.tools
+          .any((t) => t.id == widget.toolId && t.categoryId == 'ai');
+      final textStyle = AppTypography.bodyMedium(context, color: p.textPrimary)
+          .copyWith(height: 1.45);
       resultZone = Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxHeight: 280),
@@ -657,10 +664,9 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           border: Border.all(color: p.border),
         ),
         child: SingleChildScrollView(
-          child: SelectableText(
-            result.text!,
-            style: AppTypography.bodyMedium(context, color: p.textPrimary).copyWith(height: 1.45),
-          ),
+          child: isAiTool
+              ? TypewriterText(text: result.text!, style: textStyle)
+              : SelectableText(result.text!, style: textStyle),
         ),
       );
     } else if (isImage && result.bytes != null) {
