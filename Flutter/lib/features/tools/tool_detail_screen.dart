@@ -20,6 +20,7 @@ import '../../widgets/premium/command_palette.dart';
 import '../../widgets/premium/confetti_burst.dart';
 import '../../widgets/premium/progress_ring.dart';
 import '../../widgets/premium/typewriter_text.dart';
+import '../../widgets/premium/waveform_bars.dart';
 import '../../widgets/premium_kit.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/tool_card.dart';
@@ -601,16 +602,33 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     );
   }
 
+  /// Whether this tool belongs to [categoryId] — drives category-specific
+  /// processing visuals (waveform for video/audio, typewriter for AI).
+  bool _inCategory(String categoryId) => ToolsData.tools
+      .any((t) => t.id == widget.toolId && t.categoryId == categoryId);
+
   // ---------- running: progress + stage + cancel ----------
   Widget _processingCard(
       Color accent, AppPalette p, double? fraction, String? stage) {
+    final isMedia = _inCategory('video') || _inCategory('audio');
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
       glowColor: accent,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (fraction == null)
+          if (isMedia) ...[
+            WaveformBars(color: accent),
+            if (fraction != null) ...[
+              const SizedBox(height: 16),
+              PremiumProgressRing(
+                progress: fraction,
+                size: 72,
+                strokeWidth: 6,
+                color: accent,
+              ),
+            ],
+          ] else if (fraction == null)
             CircularProgressIndicator(color: accent)
           else
             PremiumProgressRing(
@@ -650,8 +668,7 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
     if (result.kind == ToolResultKind.text && result.text != null) {
       // AI tools get a live-stream typewriter reveal; utility tools (JSON,
       // hash, encoders…) show instantly — waiting there would be friction.
-      final isAiTool = ToolsData.tools
-          .any((t) => t.id == widget.toolId && t.categoryId == 'ai');
+      final isAiTool = _inCategory('ai');
       final textStyle = AppTypography.bodyMedium(context, color: p.textPrimary)
           .copyWith(height: 1.45);
       resultZone = Container(

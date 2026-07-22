@@ -549,17 +549,21 @@ class _PdfConverterScreenState extends ConsumerState<PdfConverterScreen> {
         ),
         if (state.history.isNotEmpty) ...[
           const PremiumSectionHead(title: 'Recent conversions'),
-          for (final h in state.history.take(5))
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(h.target.icon, color: h.target.accentOf(context)),
-              title: Text(
-                h.sourceName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                '${h.target.label} · ${h.confidence}% · ${_ago(h.timestamp)}',
+          for (final (i, h) in state.history.take(5).indexed)
+            FadeSlideIn(
+              index: i + 1,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading:
+                    Icon(h.target.icon, color: h.target.accentOf(context)),
+                title: Text(
+                  h.sourceName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '${h.target.label} · ${h.confidence}% · ${_ago(h.timestamp)}',
+                ),
               ),
             ),
         ],
