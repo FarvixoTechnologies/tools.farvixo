@@ -5,6 +5,7 @@ import 'engines/audio_wav_engines.dart';
 import 'engines/calc_engines.dart';
 import 'engines/dev_engines.dart';
 import 'engines/media_extra_engines.dart';
+import 'engines/native_media_engines.dart';
 import 'engines/pending_native_engines.dart';
 import 'engines/video_ffmpeg_engines.dart';
 import 'engines/image_engines.dart';
@@ -81,53 +82,20 @@ final toolEngineRegistryProvider = Provider<ToolEngineRegistry>((ref) {
     'audio-converter': AudioConverterEngine(),
     'noise-reducer': NoiseReducerEngine(),
 
+    // --- Native capability engines (mobile, on-device) ---
+    'text-to-speech': TextToSpeechEngine(),
+    'speech-to-text': SpeechToTextEngine(),
+    'audio-recorder': AudioRecorderEngine(),
+    'image-ocr': ImageOcrEngine(),
+    'background-remover': BackgroundRemoverEngine(),
+
     // --- Awaiting native modules (honest, never fake) ---
     'screen-recorder': PendingNativeEngine(
       actionLabel: 'Start Recording',
       reason:
-          'Screen recording needs the system capture module, which ships in the '
-          'next native update. Until then use your device\'s built-in recorder.',
-    ),
-    'audio-recorder': PendingNativeEngine(
-      actionLabel: 'Record',
-      reason:
-          'Microphone recording needs the native recorder module, which ships '
-          'in the next update. Your device\'s voice recorder works meanwhile.',
-    ),
-    'text-to-speech': PendingNativeEngine(
-      actionLabel: 'Speak',
-      needsText: true,
-      textHint: 'Text to speak aloud',
-      reason:
-          'Text-to-speech needs the platform voice module, which ships in the '
-          'next native update.',
-    ),
-    'speech-to-text': PendingNativeEngine(
-      actionLabel: 'Transcribe',
-      needsFile: true,
-      allowedExtensions: ['wav', 'mp3', 'm4a'],
-      reason:
-          'Transcription needs the on-device speech model, which ships in the '
-          'next native update.',
-    ),
-    'image-ocr': PendingNativeEngine(
-      actionLabel: 'Extract Text',
-      needsFile: true,
-      pickFromGallery: true,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-      reason:
-          'Image OCR needs the on-device text-recognition model (ML Kit), '
-          'which ships in the next native update. PDF OCR already works for '
-          'digital PDFs via the PDF OCR tool.',
-    ),
-    'background-remover': PendingNativeEngine(
-      actionLabel: 'Remove Background',
-      needsFile: true,
-      pickFromGallery: true,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-      reason:
-          'Background removal needs the on-device segmentation model (ML Kit), '
-          'which ships in the next native update.',
+          'Screen recording needs the system capture module (MediaProjection), '
+          'which ships in the next native update. Until then use your '
+          'device\'s built-in screen recorder.',
     ),
 
     // --- Subtitles (pure text, on-device) ---

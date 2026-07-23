@@ -67,7 +67,11 @@ class MergePdfEngine extends LocalToolEngine {
     if (input.files.length < 2) {
       throw const ToolFailure('Select at least two PDF files to merge.');
     }
+    // Optional per-file page selection, aligned to [input.files]. Each entry is
+    // a range string like "1-3,5" (1-based); null/empty = all pages.
+    final ranges = input.option<List<String?>>('pageRanges');
     final output = PdfDocument();
+    var totalPages = 0;
     try {
       // 27.x has no PdfDocument.merge — copy every source page as a template
       // onto a fresh page in the output document.
@@ -77,7 +81,9 @@ class MergePdfEngine extends LocalToolEngine {
         await yieldFrame();
         final source = PdfDocument(inputBytes: input.files[i].bytes);
         try {
-          for (var p = 0; p < source.pages.count; p++) {
+          final rangeStr = (ranges != null && i < ranges.length) ? ranges[i] : null;
+          final selected = parsePageRange(rangeStr, source.pages.count);
+          for (final p in selected) {
             final srcPage = source.pages[p];
             final template = srcPage.createTemplate();
             final newPage = output.pages.add();
@@ -86,10 +92,14 @@ class MergePdfEngine extends LocalToolEngine {
               Offset.zero,
               srcPage.getClientSize(),
             );
+            totalPages++;
           }
         } finally {
           source.dispose();
         }
+      }
+      if (totalPages == 0) {
+        throw const ToolFailure('No pages selected. Adjust the page ranges.');
       }
       onProgress(1, 'Saving');
       final bytes = Uint8List.fromList(output.saveSync());
@@ -97,11 +107,41 @@ class MergePdfEngine extends LocalToolEngine {
         bytes,
         fileName: 'farvixo-merged.pdf',
         mime: 'application/pdf',
-        summary: '${input.files.length} PDFs merged',
+        summary: '${input.files.length} PDFs · $totalPages pages merged',
       );
     } finally {
       output.dispose();
     }
+  }
+
+  /// Parse a 1-based page-range string ("1-3,5,8-10") into a sorted, de-duped
+  /// list of 0-based page indices, clamped to [0, count). Null/blank = all pages.
+  static List<int> parsePageRange(String? spec, int count) {
+    if (spec == null || spec.trim().isEmpty) {
+      return List<int>.generate(count, (i) => i);
+    }
+    final result = <int>{};
+    for (final partRaw in spec.split(',')) {
+      final part = partRaw.trim();
+      if (part.isEmpty) continue;
+      if (part.contains('-')) {
+        final bits = part.split('-');
+        if (bits.length != 2) continue;
+        final a = int.tryParse(bits[0].trim());
+        final b = int.tryParse(bits[1].trim());
+        if (a == null || b == null) continue;
+        final lo = a < b ? a : b;
+        final hi = a < b ? b : a;
+        for (var n = lo; n <= hi; n++) {
+          if (n >= 1 && n <= count) result.add(n - 1);
+        }
+      } else {
+        final n = int.tryParse(part);
+        if (n != null && n >= 1 && n <= count) result.add(n - 1);
+      }
+    }
+    final list = result.toList()..sort();
+    return list;
   }
 }
 

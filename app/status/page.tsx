@@ -1,10 +1,17 @@
-import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Status | Farvixo Tools',
+export const metadata = pageMetadata({
+  title: 'System Status',
+  description: 'Live Farvixo Tools platform status and uptime — website, API, PDF, image, video/audio and AI services. Check current operational status here.',
+  path: '/status',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'System Status',
   description: 'Farvixo Tools platform status and uptime monitoring.',
-};
+  path: '/status',
+});
 
 const services = [
   { name: 'Website & API', status: 'operational' },
@@ -17,7 +24,7 @@ const services = [
 
 export default function StatusPage() {
   return (
-    <PageShell title="System Status" subtitle="All systems operational">
+    <PageShell title="System Status" subtitle="All systems operational" jsonLd={jsonLd}>
       <div className="status-grid">
         {services.map((s) => (
           <div key={s.name} className="status-card glass">

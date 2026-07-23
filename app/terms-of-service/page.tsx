@@ -1,14 +1,21 @@
-import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service | Farvixo Tools',
-  description: 'Terms and conditions for using Farvixo Tools online tools.',
-};
+export const metadata = pageMetadata({
+  title: 'Terms of Service',
+  description: 'The terms and conditions for using Farvixo Tools — your rights, acceptable use, and our service commitments. Please read before using the platform.',
+  path: '/terms-of-service',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'Terms of Service',
+  description: 'Terms and conditions for using Farvixo Tools.',
+  path: '/terms-of-service',
+});
 
 export default function TermsPage() {
   return (
-    <PageShell title="Terms of Service" subtitle="Last updated: July 3, 2025">
+    <PageShell title="Terms of Service" subtitle="Last updated: July 3, 2025" jsonLd={jsonLd}>
       <h2>1. Acceptance</h2>
       <p>By accessing Farvixo Tools you agree to these Terms. If you disagree, please do not use the service.</p>
       <h2>2. Service description</h2>

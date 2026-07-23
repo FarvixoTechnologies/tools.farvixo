@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Icon from '@/components/Icon';
 import ToolCard from '@/components/ToolCard';
+import Breadcrumb from '@/components/Breadcrumb';
 import { categories, getCategory } from '@/data/categories';
 import { getToolsByCategory } from '@/data/tools';
 import { categoryMetadata, categoryJsonLd } from '@/lib/seo';
@@ -31,9 +32,13 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <div className="container" style={{ paddingBottom: 64 }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link href="/">Home</Link> / <Link href="/tools">All Tools</Link> / <span>{cat.name}</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { name: 'Home', href: '/' },
+          { name: 'All Tools', href: '/tools' },
+          { name: cat.name },
+        ]}
+      />
 
       <div className="cat-hero" style={{ paddingTop: 12 }}>
         <div className="cat-hero-inner">

@@ -1,12 +1,19 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Developer API — Farvixo Tools',
-  description:
-    'Build with the Farvixo Tools API: AI chat, summarize, translate, content writing, QR codes, hashing and more. Simple Bearer-key auth, credit-based pricing.',
-};
+export const metadata = pageMetadata({
+  title: 'Developer API',
+  description: 'Build with the Farvixo Tools API — AI chat, summarize, translate, content writing, QR codes and hashing. Simple Bearer-key auth, credit-based pricing.',
+  path: '/developers',
+  ogBadge: 'API',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'Farvixo Tools Developer API',
+  description: 'Build with the Farvixo Tools API: AI, content, QR codes, hashing and more.',
+  path: '/developers',
+});
 
 const codeStyle: React.CSSProperties = { overflowX: 'auto', padding: 14, fontSize: 13, borderRadius: 8 };
 
@@ -34,7 +41,7 @@ function Endpoint({
 
 export default function DevelopersPage() {
   return (
-    <PageShell title="Developer API" subtitle="Build Farvixo's AI and utilities into your own apps">
+    <PageShell title="Developer API" subtitle="Build Farvixo's AI and utilities into your own apps" jsonLd={jsonLd}>
       <h2>Getting started</h2>
       <ol>
         <li><Link href="/signup">Create a Farvixo Tools account</Link> — new accounts get <b>25 free credits</b></li>

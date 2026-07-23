@@ -1,15 +1,23 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'About Us | Farvixo Tools',
-  description: 'Learn about Farvixo Tools — one platform with 150+ free online AI & productivity tools.',
-};
+export const metadata = pageMetadata({
+  title: 'About Us',
+  description: 'Farvixo Tools is one platform with 150+ free online AI & productivity tools — PDF, image, video, AI and more. Built by Farvixo Technologies. Build Beyond.',
+  path: '/about',
+});
+
+const jsonLd = webPageJsonLd({
+  type: 'AboutPage',
+  name: 'About Farvixo Tools',
+  description: 'One platform with 150+ free online AI & productivity tools, built by Farvixo Technologies.',
+  path: '/about',
+});
 
 export default function AboutPage() {
   return (
-    <PageShell title="About Farvixo Tools" subtitle="Build Beyond.">
+    <PageShell title="About Farvixo Tools" subtitle="Build Beyond." jsonLd={jsonLd}>
       <p>Farvixo Tools is built by <strong>Faruk Mondal</strong> and the team at <strong>Farvixo Technologies</strong>. We set out to replace the fragmented landscape of single-purpose tool sites with one unified platform — one account, one history, one AI brain across every tool.</p>
       <h2>Our mission</h2>
       <p>Give everyone professional-grade tools for PDF, image, video, audio, AI, developer, SEO and business tasks — free, fast, and private.</p>

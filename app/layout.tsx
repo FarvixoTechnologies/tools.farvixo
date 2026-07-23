@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer';
 import GlobalUI from '@/components/GlobalUI';
 import FirebaseProvider from '@/components/FirebaseProvider';
 import MicrosoftClarity from '@/components/MicrosoftClarity';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import BottomNav from '@/components/layout/BottomNav';
 import ScrollManager from '@/components/ScrollManager';
@@ -42,7 +43,18 @@ export const metadata: Metadata = {
   creator: 'Farvixo Technologies',
   publisher: 'Farvixo Technologies',
   category: 'technology',
-  alternates: { canonical: SITE_URL },
+  alternates: {
+    canonical: SITE_URL,
+    // Multi-language readiness — single locale today; expand LOCALES in lib/seo.
+    languages: { 'x-default': SITE_URL, en: SITE_URL },
+  },
+  // Search Console / Bing Webmaster hooks — set the tokens in env to activate.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
+    other: process.env.NEXT_PUBLIC_BING_VERIFICATION
+      ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION }
+      : undefined,
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -129,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <FirebaseProvider />
             <MicrosoftClarity />
+            <GoogleAnalytics />
             <Header />
             <main id="main-content">{children}</main>
             <Footer />

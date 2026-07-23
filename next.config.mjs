@@ -2,6 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   eslint: { ignoreDuringBuilds: true },
+  // Image SEO / Core Web Vitals: serve next-gen formats (smaller = better LCP).
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [320, 420, 640, 768, 1024, 1200, 1600, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
   webpack: (config) => {
     config.resolve.alias = { ...config.resolve.alias, canvas: false, encoding: false };
     return config;

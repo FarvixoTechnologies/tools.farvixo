@@ -1,14 +1,21 @@
-import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy | Farvixo Tools',
+export const metadata = pageMetadata({
+  title: 'Cookie Policy',
+  description: 'How Farvixo Tools uses cookies and similar technologies to remember your preferences and improve your experience — and how to control or disable them.',
+  path: '/cookie-policy',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'Cookie Policy',
   description: 'How Farvixo Tools uses cookies and similar technologies.',
-};
+  path: '/cookie-policy',
+});
 
 export default function CookiePolicyPage() {
   return (
-    <PageShell title="Cookie Policy" subtitle="Last updated: July 3, 2025">
+    <PageShell title="Cookie Policy" subtitle="Last updated: July 3, 2025" jsonLd={jsonLd}>
       <h2>What are cookies?</h2>
       <p>Cookies are small text files stored on your device to remember preferences and improve your experience.</p>
       <h2>Cookies we use</h2>

@@ -1,14 +1,21 @@
-import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Refund Policy | Farvixo Tools',
+export const metadata = pageMetadata({
+  title: 'Refund Policy',
+  description: 'The Farvixo Pro refund policy — a 7-day money-back guarantee on your first payment, no questions asked. Learn how to request one and when it applies.',
+  path: '/refund-policy',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'Refund Policy',
   description: 'Farvixo Pro subscription refund policy.',
-};
+  path: '/refund-policy',
+});
 
 export default function RefundPolicyPage() {
   return (
-    <PageShell title="Refund Policy" subtitle="Last updated: July 3, 2025">
+    <PageShell title="Refund Policy" subtitle="Last updated: July 3, 2025" jsonLd={jsonLd}>
       <h2>7-day money-back guarantee</h2>
       <p>If you are not satisfied with Farvixo Pro within 7 days of your first payment, contact us for a full refund — no questions asked.</p>
       <h2>How to request</h2>

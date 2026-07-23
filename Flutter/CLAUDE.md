@@ -1,397 +1,400 @@
-# FARVIXO FLUTTER ENTERPRISE UI MIGRATION
-## Version 5.0 Ultimate Ultra Pro Max
-### Autonomous Full Project Upgrade Protocol
+FARVIXO FLUTTER v2.0 – ULTRA PRO MAX MASTER PROMPT
+Mission
 
----
+Transform all 143 tools into enterprise-grade production quality.
 
-# OBJECTIVE
+No basic implementation.
 
-Continue working until the ENTIRE Flutter application reaches true enterprise production quality.
+Every tool must feel like Adobe, Microsoft, Google and Canva level quality.
 
-Do NOT stop after one screen.
+Target:
 
-Do NOT wait for confirmations.
+Android
+iOS
+Tablet
+Foldable
+Desktop
+Web
+Quality Level
 
-Do NOT ask permission between tasks.
+Every tool must be
 
-Continue automatically until every screen, every tool, every pending module, every widget, every animation, every theme token, every reusable component, and every design system element has been completed.
+✅ Production Ready
 
-The objective is to transform Farvixo into a world-class application comparable to Google, Apple, Adobe, Notion, Canva, Arc Browser, Figma, ChatGPT, and the highest-rated Flutter applications on the Play Store.
+✅ Enterprise Ready
 
----
+✅ AI Ready
 
-# IMPORTANT AUTONOMOUS MODE
+✅ Offline Ready
 
-From this point forward:
+✅ Cloud Ready
 
-DO NOT ask
+✅ Accessibility Ready
 
-• Should I continue?
-• Can I modify this?
-• May I update this?
-• Do you want me to proceed?
-• Which screen next?
-• Should I refactor this?
-• Should I optimize this?
-• Should I redesign this?
-• Should I continue migration?
+✅ International Ready
 
-Never pause.
+✅ High Performance
 
-Never request confirmation.
+✅ Secure
 
-Never stop because one feature finished.
+✅ Beautiful
 
-Automatically continue to the next unfinished task until absolutely everything is complete.
-
-The only acceptable reason to stop is when:
-
-• Entire project completed
-OR
-• A compile blocker exists that cannot be resolved automatically
-OR
-• An external credential/API key/account is required.
-
-Otherwise continue automatically.
-
----
-
-# DO NOT CHANGE
-
-Never modify
-
-Business Logic
-
-Authentication
-
-Supabase
-
-Firebase
-
-API
-
-Riverpod providers
-
-Navigation
-
-Database
-
-Analytics
-
-Quota system
-
-Payments
-
-Billing
-
-Storage
-
-Backend
-
-Routes
-
-State logic
-
-Security
-
-Encryption
-
-Anything server-side
-
-Preserve every feature exactly.
-
-Improve only:
-
-UI
-
-UX
-
-Animations
-
-Accessibility
-
-Performance
+✅ Premium UX
 
 Architecture
 
-Consistency
+Use
 
-Reusable components
+Clean Architecture
+Feature First
+Riverpod
+MVVM
+Repository Pattern
+Service Layer
+Domain Layer
+Dependency Injection
+Modular Packages
 
-Tool Engines (see TOOL ENGINE COMPLETION below)
+No business logic inside widgets.
 
----
+No duplicate code.
 
-# TOOL ENGINE COMPLETION
+100% reusable.
 
-EXCEPTION to the business-logic freeze above: on-device tool engines
-(lib/features/tools/engine/**) ARE in scope and MUST be completed.
+Flutter recommends separating UI, data, repositories and view models to improve scalability and maintainability.
 
-Target: every tool in tools_data.dart has a registered engine.
-No tool may show "Coming soon".
+Every Tool Must Include
+Beautiful UI
 
-Rules:
-
-• New engines follow the existing LocalToolEngine / RemoteToolEngine pattern
-  and are registered ONLY in toolEngineRegistryProvider.
-• Prefer pure-Dart implementations with existing dependencies
-  (image, syncfusion_flutter_pdf, archive, crypto, pdfrx).
-• A new dependency may be added when a category is impossible without it
-  (e.g. ffmpeg for video/audio codecs) — document it in the commit message.
-• Engines that genuinely require external credentials, a backend endpoint,
-  or an ML model that is not available yet must fail honestly with a clear
-  in-result message — never fake output.
-• Auth / Supabase / Firebase / payments / quota / routes remain frozen.
-
----
-
-# PROJECT TARGET
-
-Enterprise
-
-Production
-
-Play Store Featured
-
-Material 3 Expressive
-
-Apple-level polish
-
-Google Pixel quality
-
-Microsoft Fluent quality
-
-Adobe experience
-
-Canva quality
-
-Notion simplicity
-
-Arc Browser smoothness
-
-ChatGPT responsiveness
-
-120 FPS
-
-Zero jank
-
-Zero inconsistencies
-
----
-
-# GLOBAL DESIGN SYSTEM
-
-Every screen must use only shared design tokens.
-
-Never hardcode
-
-colors
-
-radius
-
-spacing
-
-padding
-
-elevation
-
-opacity
-
-animation duration
-
-font size
-
-border
-
-shadow
-
-blur
-
-Everything must come from
-
-AppColors
-
-AppPalette
-
-AppTheme
-
-Motion
-
-Insets
-
-Radius
-
-Elevation
-
-Typography
-
-Spacing
-
-Design Tokens
-
----
-
-# TOOL MIGRATION
-
-Upgrade every tool.
-
-Including every completed tool.
-
-Including every pending tool.
-
-Including future-ready placeholders.
-
-Examples
-
-PDF Tools
-
-Image Tools
-
-AI Tools
-
-OCR
-
-QR
-
-Scanner
-
-Notebook
-
-Calculator
-
-Text Tools
-
-Developer Tools
-
-Business Tools
-
-Government Tools
-
-Finance
-
-Video
-
-Audio
-
-Converters
-
-Utilities
-
-Cloud
-
-Storage
-
-Search
-
-Notes
-
-Bookmarks
-
-Downloads
-
-Favorites
-
-History
-
-AI Generator
-
-Background Remover
-
-Compressors
-
-Merge
-
-Split
-
-Editors
-
-Every tool must receive a completely unique UI identity.
-
-No two tools should look similar.
-
----
-
-# MINIMUM UI CONCEPTS
-
-Before building any tool
-
-Create
-
-Minimum 5 completely different UI concepts.
-
-Target
-
-8–10 concepts whenever possible.
-
-Every concept must have
-
-Different layout
-
-Different hierarchy
-
-Different spacing
-
-Different navigation
-
-Different animations
-
-Different cards
-
-Different interactions
-
-Different visual language
-
-Examples
-
-Concept 1
-
-Material Expressive
-
-Concept 2
-
-Glass Enterprise
-
-Concept 3
-
-Apple Premium
-
-Concept 4
-
-AI Dashboard
-
-Concept 5
-
-Luxury Minimal
-
-Evaluate every concept.
-
-Merge the strongest ideas.
-
-Build only the best final version.
-
-Never use generic templates.
-
----
-
-# EVERY TOOL MUST INCLUDE
-
-Premium Hero
-
-Animated Header
-
-Dynamic Background
-
-Interactive Cards
+Modern animations
 
 Glassmorphism
 
-Floating Elements
+Material 3
 
-Animated Statistics
+Adaptive UI
+
+Responsive
+
+Dynamic Theme
+
+Custom Illustration
+
+Premium Icons
+
+Micro Animations
+
+Hero Animation
+
+Gesture Animation
+
+Loading Skeleton
+
+Shimmer
+
+Lottie
+
+Particles
+
+Confetti
+
+Smooth Navigation
+
+AI Features
+
+Every tool should support AI where possible
+
+AI Assistant
+
+AI Suggestions
+
+AI Autofill
+
+AI Error Detection
+
+AI Optimization
+
+AI Smart Rename
+
+AI OCR
+
+AI Translation
+
+AI Summary
+
+AI Explain
+
+AI Rewrite
+
+AI Generate
+
+AI Voice
+
+AI Chat
+
+AI Recommendations
+
+AI Auto Fix
+
+AI Auto Format
+
+AI Auto Compress
+
+AI Auto Enhance
+
+AI Smart Export
+
+Smart Features
+
+Undo
+
+Redo
+
+History
+
+Version Control
+
+Auto Save
+
+Draft
+
+Favorites
+
+Pin
+
+Recent
+
+Collections
+
+Tags
+
+Templates
+
+Quick Actions
+
+Widgets
+
+Shortcuts
+
+Floating Toolbar
+
+Search
+
+Filters
+
+Advanced Sort
+
+Preview
+
+Compare
+
+Diff
 
 Timeline
 
-Progress Tracker
+Activity
+
+Analytics
+
+Usage Stats
+
+Achievements
+
+Bookmarks
+
+Smart Suggestions
+
+Export
+
+PDF
+
+PNG
+
+JPEG
+
+WEBP
+
+SVG
+
+DOCX
+
+TXT
+
+Markdown
+
+JSON
+
+CSV
+
+ZIP
+
+Share Sheet
+
+Clipboard
+
+Print
+
+Cloud Export
+
+Batch Export
+
+Encrypted Export
+
+Cloud
+
+Supabase Sync
+
+Realtime
+
+Backup
+
+Restore
+
+Cross Device Sync
+
+Version History
+
+Conflict Resolution
+
+Offline Queue
+
+Background Sync
+
+Cloud Storage
+
+Encrypted Backup
+
+Security
+
+AES Encryption
+
+Secure Storage
+
+Biometric Lock
+
+PIN Lock
+
+App Lock
+
+Hidden Mode
+
+Private Vault
+
+Token Refresh
+
+Certificate Pinning
+
+Rate Limiting
+
+Secure Logs
+
+Privacy Mode
+
+Screenshot Protection
+
+Performance
+
+60 FPS
+
+120 FPS Support
+
+Lazy Loading
+
+Pagination
+
+Caching
+
+Memory Optimization
+
+Background Processing
+
+Image Compression
+
+Parallel Tasks
+
+Streaming
+
+Worker Isolates
+
+Battery Optimization
+
+Zero Memory Leak
+
+Fast Startup
+
+Accessibility
+
+Screen Reader
+
+Voice Navigation
+
+Dynamic Font
+
+High Contrast
+
+Keyboard Navigation
+
+RTL
+
+Large Text
+
+Color Blind Mode
+
+Accessibility Labels
+
+Localization
+
+50+ Languages
+
+Auto Detect Language
+
+Regional Formats
+
+Currency
+
+Date
+
+Time
+
+Units
+
+UX
+
+Empty States
+
+Error States
+
+Retry
+
+Offline Banner
+
+Progress
+
+Interactive Tutorials
+
+First Time Guide
+
+Coach Marks
+
+Feedback
+
+Haptic Feedback
+
+Sounds
+
+Animations
+
+Dark Mode
+
+Light Mode
+
+System Theme
+
+Tool Features
+
+Every one of the 143 tools should have
+
+Dashboard
 
 Recent Files
 
@@ -399,406 +402,442 @@ History
 
 Favorites
 
-Smart Search
+Templates
 
-Advanced Filters
+Batch Mode
 
-AI Suggestions
+AI Assistant
 
-Drag & Drop
+Settings
 
-Multi File Queue
+Help
+
+Tutorial
+
+Keyboard Shortcuts
+
+Cloud Sync
+
+Import
+
+Export
 
 Preview
 
-Before/After Comparison
+Compare
 
-Live Progress
+Analytics
 
-Animated Result
+Pro Features
 
-Confetti Success
+Feedback
 
-Premium Error Screen
+Advanced Search
 
-Offline Support
+Global Search
 
-Modern Empty States
+Voice Search
 
-Pull To Refresh
+Image Search
 
-Responsive Layout
+OCR Search
 
-Landscape Support
+Tag Search
 
-Desktop Layout
+File Search
 
-Tablet Layout
+AI Search
 
-Hover Effects
+Notification
 
-Mouse Support
+Realtime
 
-Keyboard Navigation
+Scheduled
 
-Adaptive Panels
+Progress
 
-Smart FAB
+Background
 
-Context Menu
+Download Complete
 
-Bottom Sheets
+Cloud Sync
 
-Dialogs
+AI Suggestions
 
-Snackbars
+Developer Features
 
-Shimmer
+Logging
 
-Skeleton
+Crash Reporting
 
-Lottie
+Analytics
 
-Micro Interactions
+Feature Flags
 
-Gesture Support
+Remote Config
+
+A/B Testing
+
+Performance Monitor
+
+Debug Panel
+
+Developer Mode
+
+Hidden Diagnostics
+
+Testing
+
+Unit Test
+
+Widget Test
+
+Golden Test
+
+Integration Test
+
+Performance Test
+
+Accessibility Test
+
+Security Test
+
+Regression Test
+
+Memory Test
+
+Stress Test
+
+Offline Test
+
+CI/CD
+
+GitHub Actions
+
+Fastlane
+
+Auto Build
+
+Auto Test
+
+Auto Lint
+
+Auto Analyze
+
+Auto Release
+
+Auto Version
+
+Auto Changelog
+
+Code Quality
+
+Zero Warning
+
+Zero Analyze Issue
+
+Zero Memory Leak
+
+Zero Dead Code
+
+Zero Duplicate Code
+
+100% Null Safe
+
+100% Typed
+
+100% Documented
+
+Reusable Components
+
+Design Tokens
+
+Modular
+
+Maintainable
+
+Scalable
+
+Analytics
+
+User Activity
+
+Tool Usage
+
+Session Time
+
+Performance
+
+Crash
+
+Errors
+
+Conversion
+
+Retention
+
+Funnels
+
+AI Usage
+
+Premium Experience
+
+Adobe Level
+
+Canva Level
+
+Google Level
+
+Microsoft Level
+
+Apple Level
+
+Pixel Perfect
+
+Premium Motion
+
+Native Feel
+
+Final Goal
+
+Build the world's most advanced Flutter utility application.
+
+143 tools.
+
+Enterprise Quality.
+
+AI Native.
+
+Cloud Native.
+
+Offline First.
+
+Cross Platform.
+
+Zero Bugs.
+
+Production Ready.
+
+App Store Ready.
+
+Play Store Ready.
+
+Future Proof.
+
+Ultra Pro Max Quality.
+
+Target Quality Score: 10/10
+
+
+এই **১৪৩টি টুল** দিয়ে একটি সাধারণ utility app নয়, বরং **professional toolkit** বানানো সম্ভব। আমি প্রতিটি ক্যাটাগরির জন্য এমন advanced feature set সাজিয়েছি যাতে প্রতিটি টুল standalone premium app-এর মতো অনুভূত হয়।
 
 ---
 
-# REUSABLE COMPONENTS
+# 🔥 PDF (19 Tools) — Ultra Pro
 
-Everything reusable.
+### Common Features
 
-Never duplicate UI.
-
-Use shared widgets only.
-
-PremiumCard
-
-GlassSurface
-
-AnimatedHero
-
-AnimatedSection
-
-AnimatedToolCard
-
-PressableScale
-
-FadeSlideIn
-
-PremiumButton
-
-PremiumTextField
-
-PremiumDropdown
-
-PremiumSearch
-
-PremiumTabs
-
-PremiumAppBar
-
-PremiumBottomSheet
-
-PremiumDialog
-
-PremiumSnackbar
-
-PremiumChip
-
-PremiumBadge
-
-PremiumProgress
-
-PremiumTimeline
-
-PremiumLoader
-
-PremiumPlaceholder
-
-PremiumEmptyState
-
-PremiumErrorState
-
-PremiumSuccessState
-
-PremiumGrid
-
-PremiumList
-
-PremiumNavigation
-
-PremiumSettingsTile
-
-PremiumProfileCard
-
-PremiumStatCard
-
-PremiumSection
-
-PremiumToolbar
+* Batch processing
+* Drag & Drop
+* Multi-file queue
+* Live preview
+* Page thumbnails
+* Undo/Redo
+* Auto-save
+* History
+* Favorites
+* Background processing
+* Password support
+* OCR integration
+* Digital signature support
+* Metadata editor
+* AI document summary
+* Smart compression
+* Export quality selector
+* Share & cloud export
 
 ---
 
-# ANIMATIONS
+# 🖼️ Image (19 Tools) — Ultra Pro
 
-Every screen must feel alive.
+### Common Features
 
-Shared element transitions
-
-Hero animations
-
-Morphing buttons
-
-Animated icons
-
-Floating backgrounds
-
-Parallax
-
-Glass reflections
-
-Scroll animations
-
-Interactive gestures
-
-Physics animations
-
-Ripple improvements
-
-Animated loading
-
-Animated transitions
-
-Premium page transitions
-
-Adaptive motion
-
-Desktop animations
-
-Tablet animations
-
-120 FPS smoothness
+* Batch editing
+* Live preview
+* Before/After comparison
+* Histogram
+* EXIF viewer/editor
+* AI auto-enhance
+* AI background removal
+* AI object cleanup
+* Face-aware crop
+* Smart resize
+* Watermark templates
+* Lossless optimization
+* Format comparison
+* Metadata removal
+* Export presets
 
 ---
 
-# PERFORMANCE
+# 🤖 AI (20 Tools) — Ultra Pro
 
-Use
+### Common Features
 
-const
-
-RepaintBoundary
-
-Lazy builders
-
-Image caching
-
-Deferred loading
-
-Minimal rebuilds
-
-Riverpod optimization
-
-Widget memoization
-
-No unnecessary allocations
-
-No nested expensive layouts
-
-No redundant rebuilds
-
-Maintain 60/120 FPS.
+* Multiple AI models
+* Conversation history
+* Streaming responses
+* Prompt templates
+* Prompt library
+* Saved prompts
+* AI memory
+* Voice input
+* Image input
+* File input
+* OCR integration
+* Markdown output
+* Code highlighting
+* Export chat
+* AI suggestions
+* Follow-up actions
+* Cost/token tracking (where applicable)
 
 ---
 
-# ACCESSIBILITY
+# 📝 Text (18 Tools) — Ultra Pro
 
-Full Semantics
+### Common Features
 
-Tooltips
-
-Large Text
-
-Contrast
-
-Keyboard Support
-
-Focus Traversal
-
-Screen Readers
-
-Voice Access
-
-Minimum touch targets
-
-Adaptive fonts
+* Live editing
+* Undo/Redo
+* Auto-save
+* Regex support
+* Smart search
+* Syntax highlighting (where applicable)
+* AI rewrite
+* AI grammar
+* AI summarize
+* Reading time
+* Word statistics
+* Export
+* Compare versions
+* Clipboard history
 
 ---
 
-# ARCHITECTURE
+# 💻 Developer (22 Tools) — Ultra Pro
 
-Split every large screen.
+### Common Features
 
-No God widgets.
-
-Every feature should contain
-
-widgets
-
-controllers
-
-providers
-
-models
-
-services
-
-extensions
-
-animations
-
-utils
-
-theme
-
-components
+* Monaco-style editor
+* Syntax highlighting
+* Pretty print
+* Validation
+* Error detection
+* Copy
+* Download
+* Share
+* Import files
+* Export files
+* Live preview
+* Diff viewer
+* Format history
+* One-click examples
 
 ---
 
-# CODE QUALITY
+# 🛠️ Utility (18 Tools) — Ultra Pro
 
-Follow Flutter best practices.
+### Common Features
 
-No duplicated logic.
-
-No duplicated widgets.
-
-No dead code.
-
-No unused imports.
-
-No warnings.
-
-No analyzer issues.
-
-No deprecated APIs.
-
-No temporary hacks.
-
-No TODO left behind.
+* Smart calculators
+* Formula explanation
+* Calculation history
+* Save results
+* Compare results
+* Charts (where useful)
+* Export PDF
+* Share results
+* Offline mode
+* Region-aware formats
+* Smart presets
 
 ---
 
-# AFTER EVERY FEATURE
+# 🎥 Video (14 Tools) — Ultra Pro
 
-Automatically run
+### Common Features
 
-flutter analyze
-
-Fix every issue.
-
-Continue automatically.
-
-Never stop.
-
----
-
-# AFTER EVERY CATEGORY
-
-Run
-
-flutter analyze
-
-flutter test
-
-Fix everything.
-
-Continue automatically.
+* Hardware acceleration
+* FFmpeg optimization
+* Batch processing
+* Live preview
+* Timeline editor
+* Trim precision
+* Compression presets
+* Codec selection
+* Resolution selector
+* Frame rate control
+* Watermark support
+* Metadata editor
+* Export queue
+* Background rendering
 
 ---
 
-# FINAL PROJECT VALIDATION
+# 🎵 Audio (13 Tools) — Ultra Pro
 
-When every screen is complete automatically run
+### Common Features
 
-flutter analyze
-
-flutter test
-
-flutter build apk --debug
-
-flutter build apk --release
-
-flutter build appbundle
-
-flutter build web
-
-flutter build windows
-
-flutter build linux
-
-flutter build macos
-
-Fix every compile issue.
-
-Repeat until clean.
+* Waveform editor
+* Spectrogram
+* Trim with precision
+* Fade in/out
+* Normalize
+* Noise reduction
+* Batch conversion
+* Metadata editor
+* Equalizer presets
+* Export quality settings
+* Live playback
+* Background processing
 
 ---
 
-# GIT WORKFLOW
+# ⭐ Every Tool Should Have
 
-Work on a feature branch.
+Every one of the **143 tools** should include:
 
-Commit after each completed category.
-
-Never lose progress.
-
-Use clean commit messages.
-
-Do not squash unrelated work.
+* Premium Material 3 UI
+* Smooth animations
+* Dark & Light mode
+* Responsive layout
+* Offline support (where possible)
+* Auto-save
+* History
+* Favorites
+* Recent items
+* Search
+* Batch processing (where applicable)
+* Drag & Drop (desktop/web)
+* Live preview
+* Undo/Redo
+* Import & Export
+* Share
+* Error recovery
+* Progress tracking
+* Accessibility support
+* Localization support
+* Performance optimization
+* Clean Architecture
+* Riverpod state management
+* Comprehensive testing
+* Production-ready code
 
 ---
 
-# FINAL DELIVERY
+## 🎯 Final Goal
 
-Only stop when
+**143 Tools → 143 Premium Mini Applications**
 
-100% of the Flutter application has been upgraded.
-
-Every tool upgraded.
-
-Every pending tool upgraded.
-
-Every reusable widget completed.
-
-Every animation completed.
-
-Every screen production ready.
-
-Every analyzer issue fixed.
-
-Every build successful.
-
-Every design system token unified.
-
-Every accessibility issue resolved.
-
-Every performance optimization complete.
-
-Every UI polished.
-
-Every feature visually world-class.
-
-Only then create the final completion summary.
-
-Until that point,
-
-DO NOT ASK FOR PERMISSION.
-
-DO NOT WAIT FOR CONFIRMATION.
-
-DO NOT PAUSE.
-
-CONTINUE AUTOMATICALLY.
+প্রতিটি টুল এমনভাবে তৈরি হবে যাতে ব্যবহারকারী মনে করে এটি আলাদা করে ডাউনলোড করার মতো একটি প্রফেশনাল অ্যাপ—যেখানে feature depth, stability, performance এবং UX সাধারণ অনলাইন utility সাইটগুলোর তুলনায় অনেক উন্নত।

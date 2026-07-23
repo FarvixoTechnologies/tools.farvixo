@@ -63,6 +63,11 @@ dependencies:
 
   # PDF Converter (OOXML writers + page rasterization)
   ffmpeg_kit_flutter_new: any    # video/audio codecs for the media tool engines
+  flutter_tts: any               # text-to-speech engine
+  speech_to_text: any            # live speech transcription engine
+  record: any                    # microphone recorder engine
+  google_mlkit_text_recognition: any     # on-device OCR (image-ocr tool)
+  google_mlkit_selfie_segmentation: any  # on-device background remover
   archive: ^4.0.2                # ZIP for DOCX / XLSX / PPTX / multi-page image packs
   xml: ^6.5.0                    # Office Open XML part builders
   pdfrx: ^2.1.3                  # PDFium page → bitmap (JPG/PNG/WebP/PPTX)

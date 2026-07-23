@@ -47,6 +47,8 @@
 	<string>Farvixo needs camera access for profile photos and document tools.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Farvixo needs microphone access for voice and audio tools.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Farvixo uses speech recognition for the Speech to Text tool.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Farvixo needs photo library access to choose images for tools and your profile.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

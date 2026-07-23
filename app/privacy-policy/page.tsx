@@ -1,14 +1,21 @@
-import type { Metadata } from 'next';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | Farvixo Tools',
+export const metadata = pageMetadata({
+  title: 'Privacy Policy',
+  description: 'How Farvixo Tools collects, uses and protects your data. Most tools run in your browser, so your files never leave your device. Read our full policy.',
+  path: '/privacy-policy',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'Privacy Policy',
   description: 'How Farvixo Tools collects, uses and protects your data.',
-};
+  path: '/privacy-policy',
+});
 
 export default function PrivacyPolicyPage() {
   return (
-    <PageShell title="Privacy Policy" subtitle="Last updated: July 3, 2025">
+    <PageShell title="Privacy Policy" subtitle="Last updated: July 3, 2025" jsonLd={jsonLd}>
       <h2>1. Overview</h2>
       <p>Farvixo Tools (&quot;we&quot;, &quot;us&quot;) operates tools.farvixo.com. This policy explains what data we collect and how we use it when you use our free online tools platform.</p>
       <h2>2. Data we collect</h2>

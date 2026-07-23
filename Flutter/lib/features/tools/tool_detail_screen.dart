@@ -30,6 +30,8 @@ import '../upload/domain/upload_status.dart';
 import '../upload/presentation/upload_layout.dart';
 import '../upload/presentation/widgets/lightning_hero.dart';
 import 'engine/tool_engine.dart';
+import 'tool_draft_store.dart';
+import 'tool_history_store.dart';
 import 'engine/tool_execution.dart';
 import 'engine/tool_io_service.dart';
 import 'engine/engines/scan_engines.dart' show describeQrPayload;
@@ -43,6 +45,7 @@ import 'scanner/services/qr_parser.dart';
 import 'scanner/services/qr_security.dart';
 import 'converter/models/target_format.dart';
 import 'converter/screens/pdf_converter_screen.dart';
+import 'pdf/merge_pdf_screen.dart';
 
 /// Universal tool page — premium galaxy backdrop, glowing tool header, glass
 /// workspace (pick → process → share) and related tools. Processing runs on
@@ -91,18 +94,53 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         _ => 'PDF Converter',
       };
 
+  Timer? _draftDebounce;
+  bool _draftRestored = false;
+  int _historyDirty = 0;
+
   @override
   void initState() {
     super.initState();
+    _textController.addListener(_scheduleDraftSave);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(AnalyticsService.instance.toolOpen(widget.toolId));
+      unawaited(_restoreDraft());
     });
   }
 
   @override
   void dispose() {
+    _draftDebounce?.cancel();
+    _textController.removeListener(_scheduleDraftSave);
     _textController.dispose();
     super.dispose();
+  }
+
+  /// Restores the saved text + choice for this tool, once, on first open.
+  Future<void> _restoreDraft() async {
+    if (_draftRestored) return;
+    _draftRestored = true;
+    final draft = await ToolDraftStore.instance.load(widget.toolId);
+    if (!mounted || draft.isEmpty) return;
+    setState(() {
+      if (draft.text != null && _textController.text.isEmpty) {
+        _textController.text = draft.text!;
+      }
+      _choiceValue ??= draft.choice;
+    });
+  }
+
+  /// Debounced auto-save so we persist after the user stops typing, not on
+  /// every keystroke.
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(Motion.analyticsDebounce, () {
+      unawaited(ToolDraftStore.instance.save(
+        widget.toolId,
+        text: _textController.text,
+        choice: _choiceValue,
+      ));
+    });
   }
 
   ToolEngine? get _engine =>
@@ -216,6 +254,8 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
   void _reset() {
     ref.read(toolExecutionProvider(widget.toolId).notifier).reset();
     _textController.clear();
+    _choiceValue = null;
+    unawaited(ToolDraftStore.instance.clear(widget.toolId));
     setState(() => _files.clear());
   }
 
@@ -239,6 +279,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
       );
     }
 
+    if (widget.toolId == MergePdfScreen.toolId) {
+      return const MergePdfScreen();
+    }
+
     if (widget.toolId == 'qr-generator') {
       return const QrGeneratorScreen();
     }
@@ -252,6 +296,24 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
         if (prev is! ToolSuccess) {
           _confetti.fire();
           unawaited(AppHaptics.success());
+          // The input produced a result — the draft has served its purpose.
+          unawaited(ToolDraftStore.instance.clear(widget.toolId));
+          // Record the run so this tool gains a "Recent" list.
+          final r = next.result;
+          final summary = r.summary ??
+              (r.kind == ToolResultKind.file
+                  ? (r.fileName ?? 'File ready')
+                  : 'Result ready');
+          unawaited(ToolHistoryStore.instance
+              .add(
+                widget.toolId,
+                ToolHistoryEntry(
+                  summary: summary,
+                  fileName: r.fileName,
+                  timestamp: DateTime.now(),
+                ),
+              )
+              .then((_) => mounted ? setState(() => _historyDirty++) : null));
         }
       } else if (next is ToolFailed) {
         unawaited(AnalyticsService.instance
@@ -643,7 +705,10 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
               for (final o in spec.choice!.options)
                 DropdownMenuItem(value: o, child: Text(o)),
             ],
-            onChanged: (v) => setState(() => _choiceValue = v),
+            onChanged: (v) {
+              setState(() => _choiceValue = v);
+              _scheduleDraftSave();
+            },
           ),
         ],
         if (spec.takesNoInput) ...[
@@ -658,7 +723,85 @@ class _ToolDetailScreenState extends ConsumerState<ToolDetailScreen> {
           label: '${spec.actionLabel} Now',
           onPressed: canRun ? _run : null,
         ),
+        _recentSection(p),
       ],
+    );
+  }
+
+  /// "Recent" list for this tool — shows the last few successful runs. Uses a
+  /// FutureBuilder keyed on [_historyDirty] so it refreshes after each run.
+  Widget _recentSection(AppPalette p) {
+    return FutureBuilder<List<ToolHistoryEntry>>(
+      key: ValueKey(_historyDirty),
+      future: ToolHistoryStore.instance.load(widget.toolId),
+      builder: (context, snap) {
+        final entries = snap.data ?? const [];
+        if (entries.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 24, 4, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text('Recent',
+                        style: AppTypography.titleSmall(context,
+                            color: p.textPrimary,
+                            weight: FontWeights.extrabold)),
+                  ),
+                  InkWell(
+                    borderRadius: Radii.brSm,
+                    onTap: () async {
+                      await ToolHistoryStore.instance.clear(widget.toolId);
+                      if (mounted) setState(() => _historyDirty++);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 4),
+                      child: Text('Clear',
+                          style: AppTypography.bodySmall(context,
+                              color: p.textMuted)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            for (final (i, e) in entries.indexed)
+              FadeSlideIn(
+                index: i,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Icon(
+                        e.fileName != null
+                            ? Icons.insert_drive_file_rounded
+                            : Icons.check_circle_rounded,
+                        size: 18,
+                        color: p.textMuted,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          e.summary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.bodySmall(context,
+                              color: p.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(e.ago(),
+                          style: AppTypography.labelSmall(context,
+                              color: p.textMuted)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

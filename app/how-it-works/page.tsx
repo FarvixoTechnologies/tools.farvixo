@@ -1,15 +1,22 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import PageShell from '@/components/content/PageShell';
+import { pageMetadata, webPageJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'How It Works | Farvixo Tools',
-  description: 'Learn how Farvixo Tools work — upload, process and download in three simple steps.',
-};
+export const metadata = pageMetadata({
+  title: 'How It Works',
+  description: 'How Farvixo Tools work — upload or paste, process instantly in your browser, and download. Three simple steps, 100% private, no sign-up required.',
+  path: '/how-it-works',
+});
+
+const jsonLd = webPageJsonLd({
+  name: 'How Farvixo Tools Work',
+  description: 'Upload, process and download in three simple, browser-based steps.',
+  path: '/how-it-works',
+});
 
 export default function HowItWorksPage() {
   return (
-    <PageShell title="How It Works" subtitle="Three steps to get anything done">
+    <PageShell title="How It Works" subtitle="Three steps to get anything done" jsonLd={jsonLd}>
       <div className="hiw" style={{ marginTop: 24 }}>
         {[
           { n: 1, t: 'Choose a tool', d: 'Browse 150+ tools by category or search with ⌘K. Every tool has a dedicated page with clear instructions.' },
